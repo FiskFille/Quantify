@@ -1,5 +1,6 @@
 package com.fiskmods.quantify.member;
 
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 @FunctionalInterface
@@ -24,5 +25,9 @@ public interface QtfListener {
     @FunctionalInterface
     interface Output {
         Stream<String> keys();
+
+        default Output filter(Predicate<String> predicate) {
+            return () -> keys().filter(predicate);
+        }
     }
 }

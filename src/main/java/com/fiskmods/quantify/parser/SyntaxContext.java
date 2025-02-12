@@ -9,6 +9,7 @@ import com.fiskmods.quantify.jvm.JvmFunctionDefinition;
 import com.fiskmods.quantify.jvm.VarAddress;
 import com.fiskmods.quantify.jvm.assignable.NumVar;
 import com.fiskmods.quantify.jvm.assignable.Struct;
+import com.fiskmods.quantify.jvm.assignable.VarInfo;
 import com.fiskmods.quantify.jvm.assignable.VarType;
 import com.fiskmods.quantify.library.QtfLibrary;
 import com.fiskmods.quantify.member.*;
@@ -89,32 +90,17 @@ public class SyntaxContext implements ScopeProvider {
         }
     }
 
-    public VarAddress<NumVar> addOutputVariable(String name) throws QtfParseException {
+    @SuppressWarnings("unchecked")
+    public <T extends Value & Assignable> VarAddress<T> addPublicVar(String name, VarType<T> type) throws QtfParseException {
         try {
-            VarAddress<NumVar> var = globalScope.members.put(name,
-                    () -> VarAddress.arrayAccess(OUTPUT_ID, outputs.size()));
-            outputs.add(name);
-            return var;
-        } catch (QtfException e) {
-            throw new QtfParseException(e);
-        }
-    }
-
-    public VarAddress<NumVar> addPublicVar(String name) throws QtfParseException {
-        try {
+            if (type == VarType.STRUCT) {
+                return (VarAddress<T>) scope().members.put(name, () -> VarAddress.create(VarType.STRUCT,
+                        Struct.create(name, OUTPUT_ID, outputIndex, outputs), false));
+            }
             VarAddress<NumVar> var = globalScope.members.put(name,
                     () -> VarAddress.arrayAccess(OUTPUT_ID, outputIndex.getAndIncrement()));
             outputs.add(name);
-            return var;
-        } catch (QtfException e) {
-            throw new QtfParseException(e);
-        }
-    }
-
-    public VarAddress<Struct> addPublicStruct(String name) throws QtfParseException {
-        try {
-            return scope().members.put(name, () -> VarAddress.create(VarType.STRUCT,
-                    Struct.create(name, OUTPUT_ID, outputIndex, outputs), false));
+            return (VarAddress<T>) var;
         } catch (QtfException e) {
             throw new QtfParseException(e);
         }
@@ -152,9 +138,9 @@ public class SyntaxContext implements ScopeProvider {
     private class DefaultNamespace implements Namespace {
         @Override
         public <T extends Value & Assignable> VarAddress<T> computeVariable(
-                VarType<T> type, String name, boolean isDefinition) throws QtfException {
-            if (isDefinition) {
-                return type.define(name, scope());
+                VarType<T> type, String name, int modifiers) throws QtfException {
+            if ((modifiers & VarInfo.DEFINITION) != 0) {
+                return VarInfo.define(name, type, SyntaxContext.this, modifiers);
             }
             return getMember(name, MemberType.VARIABLE)
                     .cast(name, type);

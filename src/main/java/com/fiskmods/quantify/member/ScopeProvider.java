@@ -58,7 +58,7 @@ public interface ScopeProvider {
         }
     }
 
-    default  <T> T getMember(String name, MemberType<T> expectedType) throws QtfParseException {
+    default <T> T getMember(String name, MemberType<T> expectedType) throws QtfParseException {
         try {
             return expectedType.scope(this).members.get(name, expectedType);
         } catch (QtfException e) {

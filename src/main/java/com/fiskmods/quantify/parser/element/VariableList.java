@@ -45,14 +45,14 @@ record VariableList<T extends Value & Assignable>(VarAddress<T>[] addresses) imp
 
     @SuppressWarnings("unchecked")
     static <T extends Value & Assignable> SyntaxParser<VariableList<T>> parse(
-            VarAddress<T> firstVar, boolean isDefinition) {
+            VarAddress<T> firstVar, int modifiers) {
 
         return (parser, context) -> {
             List<VarAddress<T>> list = new ArrayList<>();
             list.add(firstVar);
             do {
                 parser.clearPeekedToken();
-                list.add(Assignable.nextVariable(parser, firstVar.type(), isDefinition));
+                list.add(Assignable.nextVariable(parser, firstVar.type(), modifiers));
             } while (parser.isNext(TokenClass.COMMA));
 
             return new VariableList<>(list.toArray(new VarAddress[0]));

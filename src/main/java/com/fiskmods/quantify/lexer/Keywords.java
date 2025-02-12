@@ -5,7 +5,6 @@ public interface Keywords {
     String VAR = "var";
     String CONST = "const";
     String FUNC = "func";
-    String STRUCT = "struct";
     String THIS = "this";
     String IMPORT = "import";
     String INPUT = "input";

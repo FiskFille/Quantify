@@ -14,7 +14,6 @@ public enum TokenClass {
     VAR,
     CONST,
     FUNC,
-    STRUCT,
     IMPORT,
     INPUT,
     PUBLIC,

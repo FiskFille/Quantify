@@ -50,18 +50,20 @@ public class MemberMap {
         return find(name, expectedType).isPresent();
     }
 
-    public <T> void put(String name, MemberType<T> type, T value) throws QtfException {
+    public void nameCheck(String name) throws QtfException {
         if (members.containsKey(name)) {
             throw new QtfException("Duplicate member '%s'".formatted(name));
         }
+    }
+
+    public <T> void put(String name, MemberType<T> type, T value) throws QtfException {
+        nameCheck(name);
         Member<T> member = new Member<>(type, value);
         members.put(name, member);
     }
 
     public <T> T put(String name, MemberType<T> type, Supplier<T> valueSupplier) throws QtfException {
-        if (members.containsKey(name)) {
-            throw new QtfException("Duplicate member '%s'".formatted(name));
-        }
+        nameCheck(name);
         T value = valueSupplier.get();
         Member<T> member = new Member<>(type, value);
         members.put(name, member);

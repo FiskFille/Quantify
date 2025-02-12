@@ -3,6 +3,7 @@ package com.fiskmods.quantify.parser.element;
 import com.fiskmods.quantify.exception.QtfParseException;
 import com.fiskmods.quantify.jvm.JvmFunction;
 import com.fiskmods.quantify.jvm.VarAddress;
+import com.fiskmods.quantify.jvm.assignable.VarInfo;
 import com.fiskmods.quantify.jvm.assignable.VarType;
 import com.fiskmods.quantify.lexer.token.Operator;
 import com.fiskmods.quantify.lexer.token.TokenClass;
@@ -21,27 +22,27 @@ public interface Assignable extends JvmFunction {
 
     void lerp(MethodVisitor mv, Value value, Value progress, boolean rotational);
 
-    static <T extends Value & Assignable> SyntaxParser<Assignable> parse(VarType<T> type, boolean isDefinition) {
+    static <T extends Value & Assignable> SyntaxParser<Assignable> parse(VarType<T> type, int modifiers) {
         return (parser, context) -> {
-            VarAddress<T> var = nextVariable(parser, type, isDefinition);
-            return parser.next(parse(var, isDefinition));
+            VarAddress<T> var = nextVariable(parser, type, modifiers);
+            return parser.next(parse(var, modifiers));
         };
     }
 
-    static SyntaxParser<Assignable> parse(VarAddress<?> firstVar, boolean isDefinition) {
+    static SyntaxParser<Assignable> parse(VarAddress<?> firstVar, int modifiers) {
         return (parser, context) -> {
             if (parser.isNext(TokenClass.COMMA)) {
-                return parser.next(VariableList.parse(firstVar, isDefinition));
+                return parser.next(VariableList.parse(firstVar, modifiers));
             }
             return firstVar;
         };
     }
 
     static <T extends Value & Assignable> VarAddress<T> nextVariable(
-            QtfParser parser, VarType<T> type, boolean isDefinition) throws QtfParseException {
+            QtfParser parser, VarType<T> type, int modifiers) throws QtfParseException {
 
-        boolean isNegated = isNegated(parser, isDefinition);
-        VarAddress<T> var = parser.next(VariableParser.refOrDef(type, isDefinition));
+        boolean isNegated = isNegated(parser, (modifiers & VarInfo.DEFINITION) != 0);
+        VarAddress<T> var = parser.next(VariableParser.refOrDef(type, modifiers));
         if (isNegated) {
             return VarAddress.create(var, true);
         }

@@ -16,7 +16,7 @@ interface Assignment extends JvmFunction {
         return (parser, context) -> {
             // Empty definition
             if (!parser.hasNext(QtfParser.Boundary.LINE)) {
-                return new Assignment.AbsoluteAssignment(target, null, null);
+                return new AbsoluteAssignment(target, null, null);
             }
 
             Token assignment = parser.next(TokenClass.ASSIGNMENT);
@@ -24,29 +24,23 @@ interface Assignment extends JvmFunction {
 
             Value value = parser.next(ExpressionParser.INSTANCE);
             if (op == Operator.LERP || op == Operator.LERP_ROT) {
-                return new Assignment.LerpAssignment(target, value, context.scope().getLerpProgress(),
+                return new LerpAssignment(target, value, context.scope().getLerpProgress(),
                         op == Operator.LERP_ROT);
             }
-            return new Assignment.AbsoluteAssignment(target, value, op);
+            return new AbsoluteAssignment(target, value, op);
         };
     }
 
     static SyntaxParser<Assignment> parserFrom(String name, Namespace namespace) {
         return (parser, context) -> {
-            VarAddress<?> firstVar = VariableParser.compute(name, namespace, VarType.NUM, false);
+            VarAddress<?> firstVar = VariableParser.compute(name, namespace, VarType.NUM, 0);
 
             if (parser.isNext(TokenClass.COMMA)) {
-                VariableList<?> list = parser.next(VariableList.parse(firstVar, false));
+                VariableList<?> list = parser.next(VariableList.parse(firstVar, 0));
                 return parser.next(parser(list, false));
             }
             return parser.next(parser(firstVar, false));
         };
-    }
-
-    static SyntaxParser<Assignment> parseDef(String name) {
-        return VariableParser.def(name, VarType.NUM)
-                .sequence(var -> Assignable.parse(var, true))
-                .sequence(target -> Assignment.parser(target, true));
     }
 
     record AbsoluteAssignment(Assignable target, Value value, Operator op) implements Assignment {

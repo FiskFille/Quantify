@@ -3,6 +3,7 @@ package com.fiskmods.quantify.library;
 import com.fiskmods.quantify.exception.QtfException;
 import com.fiskmods.quantify.jvm.FunctionAddress;
 import com.fiskmods.quantify.jvm.VarAddress;
+import com.fiskmods.quantify.jvm.assignable.VarInfo;
 import com.fiskmods.quantify.jvm.assignable.VarType;
 import com.fiskmods.quantify.member.Namespace;
 import com.fiskmods.quantify.parser.element.Assignable;
@@ -11,11 +12,11 @@ import com.fiskmods.quantify.parser.element.Value;
 public record FallbackNamespace(Namespace namespace, Namespace fallback) implements Namespace  {
     @Override
     public <T extends Value & Assignable> VarAddress<T> computeVariable(
-            VarType<T> type, String name, boolean isDefinition) throws QtfException {
-        if (isDefinition || namespace.hasVariable(name)) {
-            return namespace.computeVariable(type, name, isDefinition);
+            VarType<T> type, String name, int modifiers) throws QtfException {
+        if ((modifiers & VarInfo.DEFINITION) != 0 || namespace.hasVariable(name)) {
+            return namespace.computeVariable(type, name, modifiers);
         }
-        return fallback.computeVariable(type, name, false);
+        return fallback.computeVariable(type, name, modifiers);
     }
 
     @Override

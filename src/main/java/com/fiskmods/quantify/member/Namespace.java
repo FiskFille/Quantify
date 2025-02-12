@@ -10,7 +10,7 @@ import com.fiskmods.quantify.parser.element.Assignable;
 import com.fiskmods.quantify.parser.element.Value;
 
 public interface Namespace {
-    <T extends Value & Assignable> VarAddress<T> computeVariable(VarType<T> type, String name, boolean isDefinition) throws QtfException;
+    <T extends Value & Assignable> VarAddress<T> computeVariable(VarType<T> type, String name, int modifiers) throws QtfException;
 
     boolean hasVariable(String name);
 
@@ -33,7 +33,7 @@ public interface Namespace {
         return new Namespace() {
             @Override
             public <T extends Value & Assignable> VarAddress<T> computeVariable(
-                    VarType<T> type, String name, boolean isDefinition) throws QtfException {
+                    VarType<T> type, String name, int modifiers) throws QtfException {
                 throw new QtfException("Undefined variable '%s' in library '%s'"
                         .formatted(name, library.getKey()));
             }

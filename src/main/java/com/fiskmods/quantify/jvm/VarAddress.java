@@ -21,8 +21,8 @@ public interface VarAddress<T extends Value & Assignable> extends Value, Assigna
 
     default void typeCheck(String name, VarType<?> expectedType) throws QtfException {
         if (expectedType != null && type() != expectedType) {
-            throw new QtfException("Expected '%s' to be a %s, was %s"
-                    .formatted(name, expectedType.name(), type().name()));
+            throw new QtfException("Expected '%s' to be of type %s, was %s"
+                    .formatted(name, expectedType.typeName(), type().typeName()));
         }
     }
 

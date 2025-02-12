@@ -37,8 +37,8 @@ public abstract class Struct implements Namespace, Value, Assignable {
     }
 
     @Override
-    public FunctionAddress getFunction(String name) {
-        return null;
+    public FunctionAddress getFunction(String name) throws QtfException {
+        throw new QtfException("Undefined %s '%s'".formatted(MemberType.FUNCTION.name(), name));
     }
 
     @Override
@@ -107,7 +107,7 @@ public abstract class Struct implements Namespace, Value, Assignable {
         @Override
         @SuppressWarnings("unchecked")
         public <T extends Value & Assignable> VarAddress<T> computeVariable(
-                VarType<T> type, String name, boolean isDefinition) throws QtfException {
+                VarType<T> type, String name, int modifiers) throws QtfException {
 
             if (type == null || members.has(name)) {
                 return members.get(name, MemberType.VARIABLE)
@@ -142,7 +142,7 @@ public abstract class Struct implements Namespace, Value, Assignable {
 
             @Override
             public <T extends Value & Assignable> VarAddress<T> computeVariable(
-                    VarType<T> type, String name, boolean isDefinition) {
+                    VarType<T> type, String name, int modifiers) {
                 return null;
             }
 
