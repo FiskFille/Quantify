@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiConsumer;
 
 public class OutputTree {
     private final Map<String, Variable> vars = new HashMap<>();
@@ -25,6 +26,10 @@ public class OutputTree {
 
     public Variable get(String key) {
         return vars.get(key);
+    }
+
+    public void forEach(BiConsumer<? super String, ? super Variable> action) {
+        vars.forEach(action);
     }
 
     public void resolve(QtfListener.Resolver resolver, QtfListener.Output output) {
