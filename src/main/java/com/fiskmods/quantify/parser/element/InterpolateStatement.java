@@ -21,7 +21,7 @@ record InterpolateStatement(Value progress, VarAddress<?> substitution, JvmFunct
             return;
         }
         if (substitution != null) {
-            substitution.modify(mv, progress, null);
+            substitution.set(mv, progress);
         }
         body.apply(mv);
     }
