@@ -18,7 +18,7 @@ class ImportParser implements SyntaxParser<JvmFunction> {
 
         String name = parser.next(TokenClass.IDENTIFIER).getString();
         context.addLibrary(name, key);
-        parser.next(TokenClass.TERMINATOR);
+        parser.expectLineBreak();
         return null;
     }
 }

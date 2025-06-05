@@ -57,7 +57,7 @@ record FunctionRef(FunctionAddress address, Value[] args, boolean hasResult) imp
             func.validateParameters(args.size(), parser.next(TokenClass.CLOSE_PARENTHESIS));
 
             if (!hasResult) {
-                parser.next(TokenClass.TERMINATOR);
+                parser.expectLineBreak();
             }
             return new FunctionRef(func, args.toArray(new Value[0]), hasResult);
         }

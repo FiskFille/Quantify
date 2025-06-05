@@ -1,6 +1,7 @@
 package com.fiskmods.quantify.lexer.token;
 
 public enum TokenClass {
+    EOF,
     TERMINATOR,
 
     // Constructs

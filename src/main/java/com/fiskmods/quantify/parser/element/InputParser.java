@@ -22,7 +22,7 @@ class InputParser implements SyntaxParser<Assignment> {
         VarAddress<?> var = context.addLocalVariable(name);
         VarAddress<?> inputVar = context.addInputVariable(name, index);
 
-        parser.next(TokenClass.TERMINATOR);
+        parser.expectLineBreak();
         return new Assignment.AbsoluteAssignment(var, inputVar, null);
     }
 }
