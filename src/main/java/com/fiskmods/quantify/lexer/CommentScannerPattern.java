@@ -1,8 +1,11 @@
 package com.fiskmods.quantify.lexer;
 
-public class CommentScannerPattern implements ScannerPattern {
+import javax.annotation.Nullable;
+
+public class CommentScannerPattern implements ScannerPattern<String> {
+    @Nullable
     @Override
-    public MatchResult match(String text, int startIndex) {
+    public MatchResult<String> match(final String text, final int startIndex) {
         return switch (text.charAt(startIndex)) {
             case '#' -> matchLine(text, startIndex);
             case '/' -> matchBlock(text, startIndex);
@@ -10,15 +13,16 @@ public class CommentScannerPattern implements ScannerPattern {
         };
     }
 
-    private MatchResult matchLine(String text, int startIndex) {
+    private MatchResult<String> matchLine(final String text, final int startIndex) {
         int endIndex = startIndex + 1;
         while (endIndex < text.length() && !QtfLexer.isTerminator(text.charAt(endIndex))) {
             ++endIndex;
         }
-        return new MatchResult(text.substring(startIndex, endIndex));
+        return MatchResult.string(text.substring(startIndex, endIndex));
     }
 
-    private MatchResult matchBlock(String text, int startIndex) {
+    @Nullable
+    private MatchResult<String> matchBlock(final String text, final int startIndex) {
         if (startIndex + 1 >= text.length() || text.charAt(startIndex + 1) != '#') {
             return null;
         }
@@ -32,6 +36,6 @@ public class CommentScannerPattern implements ScannerPattern {
                 break;
             }
         }
-        return new MatchResult(text.substring(startIndex, endIndex));
+        return MatchResult.string(text.substring(startIndex, endIndex));
     }
 }

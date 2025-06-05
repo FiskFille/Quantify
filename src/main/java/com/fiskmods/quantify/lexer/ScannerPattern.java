@@ -2,19 +2,21 @@ package com.fiskmods.quantify.lexer;
 
 import com.fiskmods.quantify.exception.QtfLexerException;
 
+import javax.annotation.Nullable;
 import java.util.function.Predicate;
 
 @FunctionalInterface
-public interface ScannerPattern {
-    MatchResult match(String text, int startIndex) throws QtfLexerException;
+public interface ScannerPattern<T> {
+    @Nullable
+    MatchResult<T> match(String text, int startIndex) throws QtfLexerException;
 
-    record MatchResult(String match, int length) {
-        public MatchResult(String match) {
-            this(match, match.length());
+    record MatchResult<T>(T match, int length) {
+        public static MatchResult<String> string(final String match) {
+            return new MatchResult<>(match, match.length());
         }
     }
 
-    ScannerPattern IDENTIFIER = (text, startIndex) -> {
+    ScannerPattern<String> IDENTIFIER = (text, startIndex) -> {
         char c = text.charAt(startIndex);
         // Cannot begin with a digit
         if (Character.isDigit(c) || QtfLexer.isNonAlphanumeric(c)) {
@@ -26,13 +28,13 @@ public interface ScannerPattern {
                 break;
             }
         }
-        return new MatchResult(text.substring(startIndex, l));
+        return MatchResult.string(text.substring(startIndex, l));
     };
 
-    ScannerPattern TOKEN = (text, startIndex) -> {
+    ScannerPattern<String> TOKEN = (text, startIndex) -> {
         char c = text.charAt(startIndex);
         if (QtfLexer.isNonAlphanumeric(c)) {
-            return new MatchResult(String.valueOf(c), 1);
+            return new MatchResult<>(String.valueOf(c), 1);
         }
         int l = startIndex;
         while (++l < text.length()) {
@@ -40,15 +42,15 @@ public interface ScannerPattern {
                 break;
             }
         }
-        return new MatchResult(text.substring(startIndex, l));
+        return MatchResult.string(text.substring(startIndex, l));
     };
 
-    ScannerPattern INTEGER = phrase(Character::isDigit);
-    ScannerPattern NUMBER = new NumberScannerPattern();
-    ScannerPattern STRING = new StringScannerPattern();
-    ScannerPattern COMMENT = new CommentScannerPattern();
+    //ScannerPattern INTEGER = phrase(Character::isDigit);
+    ScannerPattern<Number> NUMBER = new NumberScannerPattern();
+    ScannerPattern<String> STRING = new StringScannerPattern();
+    ScannerPattern<String> COMMENT = new CommentScannerPattern();
 
-    static ScannerPattern phrase(Predicate<Character> allowedChar) {
+    static ScannerPattern<String> phrase(final Predicate<Character> allowedChar) {
         return (text, startIndex) -> {
             int l = startIndex;
             while (l < text.length()) {
@@ -60,7 +62,7 @@ public interface ScannerPattern {
             if (startIndex == l) {
                 return null;
             }
-            return new MatchResult(text.substring(startIndex, l));
+            return MatchResult.string(text.substring(startIndex, l));
         };
     }
 }

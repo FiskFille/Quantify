@@ -4,13 +4,15 @@ import com.fiskmods.quantify.exception.QtfLexerException;
 import com.fiskmods.quantify.lexer.token.Token;
 import com.fiskmods.quantify.lexer.token.TokenClass;
 
+import javax.annotation.Nullable;
+
 public class TextScanner {
     private final String text;
 
     private int scanIndex;
     private int scanLength;
 
-    public TextScanner(String text) {
+    public TextScanner(final String text) {
         this.text = text;
     }
 
@@ -27,12 +29,12 @@ public class TextScanner {
         scanLength = 1;
     }
 
-    public void advance(ScannerPattern.MatchResult result) {
+    public void advance(final ScannerPattern.MatchResult<?> result) {
         scanLength = result.length();
         scanIndex += scanLength;
     }
 
-    public void skip(int length) {
+    public void skip(final int length) {
         scanLength = length;
         scanIndex += length;
     }
@@ -41,16 +43,16 @@ public class TextScanner {
      * Expands the selection to include up to <code>length</code> more characters.
      * @param length the number of additional characters to include
      */
-    public void expand(int length) {
+    public void expand(final int length) {
         scanLength += length;
         scanIndex += length;
     }
 
-    public Token newToken(TokenClass type, @Nullable Object value) {
+    public Token newToken(final TokenClass type, @Nullable final Object value) {
         return new Token(type, value, scanIndex - scanLength, scanIndex);
     }
 
-    public Token newToken(TokenClass type) {
+    public Token newToken(final TokenClass type) {
         return newToken(type, null);
     }
 
@@ -66,12 +68,14 @@ public class TextScanner {
         return text.charAt(scanIndex);
     }
 
-    public ScannerPattern.MatchResult peek(ScannerPattern pattern) throws QtfLexerException {
+    @Nullable
+    public <T> ScannerPattern.MatchResult<T> peek(final ScannerPattern<T> pattern) throws QtfLexerException {
         return pattern.match(text, scanIndex);
     }
 
-    public String next(ScannerPattern pattern) throws QtfLexerException {
-        ScannerPattern.MatchResult result = peek(pattern);
+    @Nullable
+    public <T> T next(final ScannerPattern<T> pattern) throws QtfLexerException {
+        final ScannerPattern.MatchResult<T> result = peek(pattern);
         if (result == null) {
             return null;
         }
@@ -79,7 +83,7 @@ public class TextScanner {
         return result.match();
     }
 
-    public static String address(String text, int scanIndex) {
+    public static String address(final String text, final int scanIndex) {
         String s = text.substring(0, scanIndex);
         int line = 1, i;
 
@@ -90,7 +94,7 @@ public class TextScanner {
         return "line %s, column %s".formatted(line, s.length() + 1);
     }
 
-    public static String trace(String text, int scanIndex) {
+    public static String trace(final String text, final int scanIndex) {
         String s = text;
         int i, index = scanIndex;
 
@@ -102,17 +106,17 @@ public class TextScanner {
             index -= i + 1;
         }
 
-        int start = Math.max(index - 64, 0);
-        String s1 = s.substring(start, Math.min(index + 64, s.length()));
+        final int start = Math.max(index - 64, 0);
+        final String s1 = s.substring(start, Math.min(index + 64, s.length()));
         return '\n' + " ".repeat(64 - index + start)
                 + s1 + '\n' + " ".repeat(63) + " ^";
     }
 
-    public static String fullTrace(String text, int scanIndex) {
+    public static String fullTrace(final String text, final int scanIndex) {
         return address(text, scanIndex) + trace(text, scanIndex);
     }
 
-    public static String fullTrace(TextScanner scanner) {
+    public static String fullTrace(final TextScanner scanner) {
         return fullTrace(scanner.text, scanner.scanIndex);
     }
 }

@@ -1,8 +1,11 @@
 package com.fiskmods.quantify.lexer;
 
-public class NumberScannerPattern implements ScannerPattern {
+import javax.annotation.Nullable;
+
+public class NumberScannerPattern implements ScannerPattern<Number> {
+    @Nullable
     @Override
-    public MatchResult match(String text, int startIndex) {
+    public MatchResult<Number> match(final String text, final int startIndex) {
         char c = text.charAt(startIndex);
         if (!Character.isDigit(c)) {
             return null;
@@ -10,20 +13,26 @@ public class NumberScannerPattern implements ScannerPattern {
 
         boolean decimal = false;
         int endIndex = startIndex + 1;
+
         for (; endIndex < text.length(); ++endIndex) {
-            if ((c = text.charAt(endIndex)) == '.') {
-                if (decimal) {
+            c = text.charAt(endIndex);
+
+            if (!Character.isDigit(c)) {
+                if (c == '.' && !decimal && endIndex + 1 < text.length()
+                        && Character.isDigit(text.charAt(endIndex + 1))) {
+                    decimal = true;
+                    ++endIndex;
+                } else {
                     break;
                 }
-                decimal = true;
-            } else if (!Character.isDigit(c)) {
-                break;
             }
         }
 
-        if (c == '.') {
-            --endIndex;
+        final String match = text.substring(startIndex, endIndex);
+        final int length = match.length();
+        if (decimal) {
+            return new MatchResult<>(Double.parseDouble(match), length);
         }
-        return new MatchResult(text.substring(startIndex, endIndex));
+        return new MatchResult<>(Integer.parseInt(match), length);
     }
 }

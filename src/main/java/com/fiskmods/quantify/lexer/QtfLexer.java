@@ -111,8 +111,9 @@ public class QtfLexer {
                     continue;
                 }
 
-                if ((result = scanner.next(ScannerPattern.NUMBER)) != null) {
-                    tokens.accept(scanner.newToken(NUM_LITERAL, result));
+                Number numResult;
+                if ((numResult = scanner.next(ScannerPattern.NUMBER)) != null) {
+                    tokens.accept(scanner.newToken(NUM_LITERAL, numResult));
                     continue;
                 }
                 if ((result = scanner.next(ScannerPattern.STRING)) != null) {

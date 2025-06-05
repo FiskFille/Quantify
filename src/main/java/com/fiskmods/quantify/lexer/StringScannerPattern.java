@@ -2,9 +2,12 @@ package com.fiskmods.quantify.lexer;
 
 import com.fiskmods.quantify.exception.QtfLexerException;
 
-public class StringScannerPattern implements ScannerPattern {
+import javax.annotation.Nullable;
+
+public class StringScannerPattern implements ScannerPattern<String> {
+    @Nullable
     @Override
-    public MatchResult match(String text, int startIndex) throws QtfLexerException {
+    public MatchResult<String> match(final String text, final int startIndex) throws QtfLexerException {
         if (text.charAt(startIndex) != '"') {
             return null;
         }
@@ -19,7 +22,7 @@ public class StringScannerPattern implements ScannerPattern {
             }
             throw new QtfLexerException("Unclosed string");
         }
-        String s = text.substring(startIndex + 1, endIndex);
-        return new MatchResult(s.replace("\\\"", "\""), s.length() + 2);
+        final String s = text.substring(startIndex + 1, endIndex);
+        return new MatchResult<>(s.replace("\\\"", "\""), s.length() + 2);
     }
 }
