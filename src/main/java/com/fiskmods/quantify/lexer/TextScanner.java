@@ -2,7 +2,6 @@ package com.fiskmods.quantify.lexer;
 
 import com.fiskmods.quantify.exception.QtfLexerException;
 import com.fiskmods.quantify.lexer.token.Token;
-import com.fiskmods.quantify.lexer.token.TokenClass;
 
 import javax.annotation.Nullable;
 
@@ -22,6 +21,10 @@ public class TextScanner {
 
     public int getStartIndex() {
         return scanIndex - scanLength;
+    }
+
+    public Token.Range scanRange() {
+        return new Token.Range(scanIndex - scanLength, scanIndex);
     }
 
     public void advance() {
@@ -48,14 +51,6 @@ public class TextScanner {
         scanIndex += length;
     }
 
-    public Token newToken(final TokenClass type, @Nullable final Object value) {
-        return new Token(type, value, scanIndex - scanLength, scanIndex);
-    }
-
-    public Token newToken(final TokenClass type) {
-        return newToken(type, null);
-    }
-
     public boolean hasNext() {
         return scanIndex < text.length();
     }
@@ -66,6 +61,15 @@ public class TextScanner {
 
     public char peekChar() {
         return text.charAt(scanIndex);
+    }
+
+    public boolean tryConsume(final char expected) {
+        if (peekChar() == expected) {
+            expand(1);
+            return true;
+        } else {
+            return false;
+        }
     }
 
     @Nullable
@@ -81,6 +85,10 @@ public class TextScanner {
         }
         advance(result);
         return result.match();
+    }
+
+    public String fullTrace() {
+        return address(text, scanIndex) + trace(text, scanIndex);
     }
 
     public static String address(final String text, final int scanIndex) {
@@ -110,13 +118,5 @@ public class TextScanner {
         final String s1 = s.substring(start, Math.min(index + 64, s.length()));
         return '\n' + " ".repeat(64 - index + start)
                 + s1 + '\n' + " ".repeat(63) + " ^";
-    }
-
-    public static String fullTrace(final String text, final int scanIndex) {
-        return address(text, scanIndex) + trace(text, scanIndex);
-    }
-
-    public static String fullTrace(final TextScanner scanner) {
-        return fullTrace(scanner.text, scanner.scanIndex);
     }
 }

@@ -16,6 +16,7 @@ import com.fiskmods.quantify.parser.QtfParser;
 import com.fiskmods.quantify.parser.SyntaxContext;
 import com.fiskmods.quantify.parser.SyntaxTree;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -30,9 +31,10 @@ public class QtfCompiler {
     private final Map<String, QtfLibrary> libraries = new HashMap<>();
 
     private final Supplier<DynamicClassLoader> classLoaderFactory;
+    @Nullable
     private DynamicClassLoader classLoader;
 
-    public QtfCompiler(Supplier<DynamicClassLoader> classLoaderFactory) {
+    public QtfCompiler(final Supplier<DynamicClassLoader> classLoaderFactory) {
         this.classLoaderFactory = classLoaderFactory;
     }
 
@@ -40,12 +42,12 @@ public class QtfCompiler {
         this(DynamicClassLoader::new);
     }
 
-    public QtfCompiler addLibrary(QtfLibrary library) {
+    public QtfCompiler addLibrary(final QtfLibrary library) {
         libraries.put(library.getKey(), library);
         return this;
     }
 
-    public QtfLibrary getLibrary(String key) {
+    public QtfLibrary getLibrary(final String key) {
         return libraries.get(key);
     }
 
@@ -53,39 +55,40 @@ public class QtfCompiler {
         return libraries.size();
     }
 
-    public QtfScript compile(String text, QtfListener listener) throws QtfCompilerException {
+    public QtfScript compile(final String text, final QtfListener listener) throws QtfCompilerException {
         QtfParser parser = null;
         try {
-            List<Token> tokens = new ArrayList<>();
-            QtfLexer.read(text, tokens::add);
+            final List<Token> tokens = new ArrayList<>();
+            final QtfLexer lexer = new QtfLexer(text);
+            lexer.read(tokens::add);
 
             if (QtfCompiler.DEBUG) {
                 System.out.println(tokens);
             }
-            SyntaxContext context = new SyntaxContext(this);
-            SyntaxTree syntaxTree = new SyntaxTree(context);
+            final SyntaxContext context = new SyntaxContext(this);
+            final SyntaxTree syntaxTree = new SyntaxTree(context);
 
             parser = new QtfParser(tokens.iterator(), context);
             parser.parse(syntaxTree, false);
             return compile(syntaxTree, listener);
-        } catch (QtfLexerException e) {
+        } catch (final QtfLexerException e) {
             throw QtfCompilerException.handle(e);
-        } catch (QtfParseException e) {
+        } catch (final QtfParseException e) {
             throw QtfCompilerException.handle(parser, e, text);
         }
     }
 
-    public QtfScript compile(SyntaxTree tree, QtfListener listener) throws QtfCompilerException {
+    public QtfScript compile(final SyntaxTree tree, final QtfListener listener) throws QtfCompilerException {
         try {
             if (classLoader == null) {
                 classLoader = classLoaderFactory.get();
             }
-            String className = nameProvider.next();
-            QtfMemory memory = tree.context().createMemory(listener);
-            JvmClassComposer composer = tree.context().createClassComposer(className);
-            JvmRunnable runnable = JvmCompiler.compile(tree.flatten(), composer, className, classLoader);
+            final String className = nameProvider.next();
+            final QtfMemory memory = tree.context().createMemory(listener);
+            final JvmClassComposer composer = tree.context().createClassComposer(className);
+            final JvmRunnable runnable = JvmCompiler.compile(tree.flatten(), composer, className, classLoader);
             return new QtfScript(runnable, memory, tree.context().getInputs());
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new QtfCompilerException(e);
         }
     }
@@ -100,7 +103,7 @@ public class QtfCompiler {
     }
 
     private record NameProvider(String path, AtomicInteger id) {
-        public NameProvider(String path) {
+        public NameProvider(final String path) {
             this(path, new AtomicInteger());
         }
 
