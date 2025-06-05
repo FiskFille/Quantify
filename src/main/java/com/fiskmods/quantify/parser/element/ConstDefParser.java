@@ -20,13 +20,13 @@ class ConstDefParser implements SyntaxParser<JvmFunction> {
         Token assignment = parser.next(TokenClass.ASSIGNMENT);
 
         if (assignment.value() instanceof Operator) {
-            throw QtfParseException.error("definitions can't use assignment operators", assignment);
+            throw QtfParseException.error("definitions can't use assignment operators", assignment.range());
         }
         Value value = parser.next(ExpressionParser.INSTANCE);
         if (value instanceof NumLiteral(double v)) {
             context.addMember(name, MemberType.CONSTANT, v);
             return null;
         }
-        throw QtfParseException.error("constants can't be assigned to variables or functions", assignment);
+        throw QtfParseException.error("constants can't be assigned to variables or functions", assignment.range());
     }
 }

@@ -46,8 +46,8 @@ public class TextScanner {
         scanIndex += length;
     }
 
-    public Token newToken(TokenClass type, Object value) {
-        return new Token(type, scanIndex - scanLength, scanIndex, value);
+    public Token newToken(TokenClass type, @Nullable Object value) {
+        return new Token(type, value, scanIndex - scanLength, scanIndex);
     }
 
     public Token newToken(TokenClass type) {

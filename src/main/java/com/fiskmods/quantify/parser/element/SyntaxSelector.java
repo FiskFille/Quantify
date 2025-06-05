@@ -27,7 +27,7 @@ public class SyntaxSelector {
             throws QtfParseException {
         if (context.scope().isInnerScope()) {
             throw new QtfParseException("Illegal token '" + next + "'",
-                    "unavailable in inner scopes", next);
+                    "unavailable in inner scopes", next.range());
         }
         return syntaxParser;
     }

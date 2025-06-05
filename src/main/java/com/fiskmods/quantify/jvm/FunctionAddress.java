@@ -28,7 +28,7 @@ public interface FunctionAddress {
         visit(mv, Opcodes.INVOKESTATIC, false);
     }
 
-    default void validateParameters(int arguments, Token location) throws QtfParseException {
+    default void validateParameters(int arguments, Token.Range location) throws QtfParseException {
         if (arguments != parameters()) {
             throw new QtfParseException("Incorrect number of arguments for " + getLoggingName(),
                     "expected %d, was %d".formatted(parameters(), arguments), location);

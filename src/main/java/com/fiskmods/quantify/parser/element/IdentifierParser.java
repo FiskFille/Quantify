@@ -54,9 +54,9 @@ class IdentifierParser {
                 }
 
                 throw QtfParseException.error("expected '%s' to be a %s, was %s"
-                        .formatted(name, MemberType.LIBRARY.name(), type.name()), token);
+                        .formatted(name, MemberType.LIBRARY.name(), type.name()), token.range());
             }
-            throw QtfParseException.error("undefined library '%s'".formatted(name), token);
+            throw QtfParseException.error("undefined library '%s'".formatted(name), token.range());
         };
     }
 

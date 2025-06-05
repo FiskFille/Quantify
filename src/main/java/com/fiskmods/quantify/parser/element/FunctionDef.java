@@ -62,7 +62,7 @@ record FunctionDef(DefinedFunctionAddress address, JvmFunction body, ReturnValue
             if (parser.isNext(TokenClass.ASSIGNMENT)) {
                 Token assignment = parser.next(TokenClass.ASSIGNMENT);
                 if (assignment.value() != null) {
-                    throw QtfParseException.error("function definitions can't use assignment operators", assignment);
+                    throw QtfParseException.error("function definitions can't use assignment operators", assignment.range());
                 }
 
                 context.push(scope);
@@ -90,7 +90,7 @@ record FunctionDef(DefinedFunctionAddress address, JvmFunction body, ReturnValue
             while (true) {
                 Token token = parser.next(TokenClass.IDENTIFIER);
                 if (!set.add(token.getString())) {
-                    throw QtfParseException.error("duplicate parameter '%s'".formatted(token.getString()), token);
+                    throw QtfParseException.error("duplicate parameter '%s'".formatted(token.getString()), token.range());
                 }
 
                 if (parser.isNext(TokenClass.COMMA)) {

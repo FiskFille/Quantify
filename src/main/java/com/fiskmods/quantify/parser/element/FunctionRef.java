@@ -49,12 +49,12 @@ record FunctionRef(FunctionAddress address, Value[] args, boolean hasResult) imp
             parser.next(TokenClass.OPEN_PARENTHESIS);
 
             if (parser.isNext(TokenClass.CLOSE_PARENTHESIS)) {
-                func.validateParameters(0, parser.next());
+                func.validateParameters(0, parser.next().range());
                 return new FunctionRef(func, new Value[0], hasResult);
             }
 
             List<Value> args = parser.nextSequence(ExpressionParser.INSTANCE, TokenClass.COMMA);
-            func.validateParameters(args.size(), parser.next(TokenClass.CLOSE_PARENTHESIS));
+            func.validateParameters(args.size(), parser.next(TokenClass.CLOSE_PARENTHESIS).range());
 
             if (!hasResult) {
                 parser.expectLineBreak();

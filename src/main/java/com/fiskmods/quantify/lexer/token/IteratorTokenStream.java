@@ -95,13 +95,13 @@ public class IteratorTokenStream implements TokenStream {
     }
 
     private QtfParseException unexpectedToken(final Token found, final TokenClass expectedClass) {
-        return new QtfParseException("Unexpected token '" + found + "'", "expected " + expectedClass, found);
+        return new QtfParseException("Unexpected token '" + found + "'", "expected " + expectedClass, found.range());
     }
 
     private Token eof() {
         if (eofToken == null) {
-            final int eofPos = lastToken != null ? lastToken.endIndex() : 0;
-            eofToken = new Token(TokenClass.EOF, eofPos, eofPos, null);
+            final int eofPos = lastToken != null ? lastToken.range().endIndex() : 0;
+            eofToken = new Token(TokenClass.EOF, null, new Token.Range(eofPos, eofPos));
         }
         return eofToken;
     }

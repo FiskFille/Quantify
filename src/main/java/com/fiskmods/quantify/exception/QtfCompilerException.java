@@ -24,12 +24,14 @@ public class QtfCompilerException extends QtfException {
 
     public static QtfCompilerException handle(QtfParser parser, QtfParseException cause, String text) {
         String message = cause.getMessage();
-        Token location = cause.location != null ? cause.location : parser.last();
+        String reason = cause.getReason();
+        Token.Range location = cause.getLocation(parser);
+
         if (location != null) {
             message += " at " + TextScanner.address(text, location.startIndex());
         }
-        if (cause.reason != null) {
-            message += " - " + cause.reason;
+        if (reason != null) {
+            message += " - " + reason;
         }
         if (location != null) {
             message += TextScanner.trace(text, location.startIndex());
