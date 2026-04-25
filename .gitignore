@@ -10,7 +10,6 @@ run/
 # Gradle
 .gradle/
 build/
-gradle.properties
 
 # QTF
 src/test/
