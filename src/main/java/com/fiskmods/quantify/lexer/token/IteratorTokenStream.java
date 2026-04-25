@@ -1,16 +1,15 @@
 package com.fiskmods.quantify.lexer.token;
 
 import com.fiskmods.quantify.exception.QtfParseException;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Iterator;
 import java.util.Objects;
 
 public class IteratorTokenStream implements TokenStream {
     private final Iterator<Token> tokens;
 
-    @Nullable
-    private Token peekedToken, lastToken, eofToken;
+    private @Nullable Token peekedToken, lastToken, eofToken;
 
     public IteratorTokenStream(final Iterator<Token> tokens) {
         this.tokens = tokens;
@@ -30,9 +29,8 @@ public class IteratorTokenStream implements TokenStream {
         }
     }
 
-    @Nullable
     @Override
-    public Token last() {
+    public @Nullable Token last() {
         return lastToken;
     }
 

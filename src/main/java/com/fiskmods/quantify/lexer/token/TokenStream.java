@@ -1,8 +1,8 @@
 package com.fiskmods.quantify.lexer.token;
 
 import com.fiskmods.quantify.exception.QtfParseException;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Iterator;
 
 public interface TokenStream extends Iterator<Token> {
@@ -25,8 +25,7 @@ public interface TokenStream extends Iterator<Token> {
      *
      * @return the last consumed token, or <code>null</code> if no token has been consumed yet
      */
-    @Nullable
-    Token last();
+    @Nullable Token last();
 
     /**
      * Checks whether any tokens remain in the token stream.

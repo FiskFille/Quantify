@@ -1,14 +1,13 @@
 package com.fiskmods.quantify.lexer;
 
 import com.fiskmods.quantify.exception.QtfLexerException;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.function.Predicate;
 
 @FunctionalInterface
 public interface ScannerPattern<T> {
-    @Nullable
-    MatchResult<T> match(String text, int startIndex) throws QtfLexerException;
+    @Nullable MatchResult<T> match(String text, int startIndex) throws QtfLexerException;
 
     record MatchResult<T>(T match, int length) {
         public static MatchResult<String> string(final String match) {

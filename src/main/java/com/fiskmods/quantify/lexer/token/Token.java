@@ -2,8 +2,7 @@ package com.fiskmods.quantify.lexer.token;
 
 import com.fiskmods.quantify.exception.QtfParseException;
 import com.fiskmods.quantify.parser.SyntaxContext;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public record Token(TokenClass type, @Nullable Object value, Range range) {
     public Token(TokenClass type, @Nullable Object value, int startIndex, int endIndex) {
@@ -33,8 +32,7 @@ public record Token(TokenClass type, @Nullable Object value, Range range) {
         throw QtfParseException.internal("token '%s' is not an operator".formatted(this), range);
     }
 
-    @Nullable
-    public Operator getAssignmentOperator(SyntaxContext context, boolean isDefinition) throws QtfParseException {
+    public @Nullable Operator getAssignmentOperator(SyntaxContext context, boolean isDefinition) throws QtfParseException {
         if (value == null) {
             return null;
         }

@@ -4,8 +4,8 @@ import com.fiskmods.quantify.exception.QtfLexerException;
 import com.fiskmods.quantify.lexer.token.Operator;
 import com.fiskmods.quantify.lexer.token.Token;
 import com.fiskmods.quantify.lexer.token.TokenClass;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.function.Consumer;
 
 import static com.fiskmods.quantify.lexer.token.Operator.*;
@@ -201,7 +201,7 @@ public class QtfLexer {
     }
 
     private record TokenGenerator(TextScanner scanner, Consumer<Token> tokens) {
-        void insert(final TokenClass tokenClass, @Nullable final Object value) {
+        void insert(final TokenClass tokenClass, final @Nullable Object value) {
             tokens.accept(new Token(tokenClass, value, scanner.scanRange()));
         }
 

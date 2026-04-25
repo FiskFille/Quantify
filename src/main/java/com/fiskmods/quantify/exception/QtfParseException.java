@@ -2,16 +2,13 @@ package com.fiskmods.quantify.exception;
 
 import com.fiskmods.quantify.lexer.token.Token;
 import com.fiskmods.quantify.parser.QtfParser;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class QtfParseException extends QtfException {
-    @Nullable
-    private final String reason;
-    @Nullable
-    private final Token.Range location;
+    private final @Nullable String reason;
+    private final Token.@Nullable Range location;
 
-    public QtfParseException(String message, String reason, @Nullable Token.Range location) {
+    public QtfParseException(String message, String reason, Token.@Nullable Range location) {
         super(message);
         this.reason = reason;
         this.location = location;
@@ -27,13 +24,11 @@ public class QtfParseException extends QtfException {
         this(cause.getMessage());
     }
 
-    @Nullable
-    public String getReason() {
+    public @Nullable String getReason() {
         return reason;
     }
 
-    @Nullable
-    public Token.Range getLocation(QtfParser parser) {
+    public Token.@Nullable Range getLocation(QtfParser parser) {
         if (location != null) {
             return location;
         }

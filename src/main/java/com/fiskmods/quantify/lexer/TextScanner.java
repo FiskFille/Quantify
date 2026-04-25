@@ -2,8 +2,7 @@ package com.fiskmods.quantify.lexer;
 
 import com.fiskmods.quantify.exception.QtfLexerException;
 import com.fiskmods.quantify.lexer.token.Token;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class TextScanner {
     private final String text;
@@ -72,13 +71,11 @@ public class TextScanner {
         }
     }
 
-    @Nullable
-    public <T> ScannerPattern.MatchResult<T> peek(final ScannerPattern<T> pattern) throws QtfLexerException {
+    public <T> ScannerPattern.@Nullable MatchResult<T> peek(final ScannerPattern<T> pattern) throws QtfLexerException {
         return pattern.match(text, scanIndex);
     }
 
-    @Nullable
-    public <T> T next(final ScannerPattern<T> pattern) throws QtfLexerException {
+    public <T> @Nullable T next(final ScannerPattern<T> pattern) throws QtfLexerException {
         final ScannerPattern.MatchResult<T> result = peek(pattern);
         if (result == null) {
             return null;

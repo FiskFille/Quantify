@@ -15,8 +15,8 @@ import com.fiskmods.quantify.member.QtfMemory;
 import com.fiskmods.quantify.parser.QtfParser;
 import com.fiskmods.quantify.parser.SyntaxContext;
 import com.fiskmods.quantify.parser.SyntaxTree;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -31,8 +31,7 @@ public class QtfCompiler {
     private final Map<String, QtfLibrary> libraries = new HashMap<>();
 
     private final Supplier<DynamicClassLoader> classLoaderFactory;
-    @Nullable
-    private DynamicClassLoader classLoader;
+    private @Nullable DynamicClassLoader classLoader;
 
     public QtfCompiler(final Supplier<DynamicClassLoader> classLoaderFactory) {
         this.classLoaderFactory = classLoaderFactory;

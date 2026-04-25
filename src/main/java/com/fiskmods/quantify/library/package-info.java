@@ -1,9 +1,4 @@
-@ParametersAreNonnullByDefault
-@FieldsAreNonnullByDefault
-@MethodsReturnNonnullsByDefault
+@NullMarked
 package com.fiskmods.quantify.library;
 
-import com.fiskmods.quantify.util.FieldsAreNonnullByDefault;
-import com.fiskmods.quantify.util.MethodsReturnNonnullsByDefault;
-
-import javax.annotation.ParametersAreNonnullByDefault;
+import org.jspecify.annotations.NullMarked;

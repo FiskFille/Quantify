@@ -1,11 +1,10 @@
 package com.fiskmods.quantify.lexer;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class NumberScannerPattern implements ScannerPattern<Number> {
-    @Nullable
     @Override
-    public MatchResult<Number> match(final String text, final int startIndex) {
+    public @Nullable MatchResult<Number> match(final String text, final int startIndex) {
         char c = text.charAt(startIndex);
         if (!Character.isDigit(c)) {
             return null;

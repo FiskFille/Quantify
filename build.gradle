@@ -14,17 +14,11 @@ repositories {
     mavenCentral()
 }
 
-configurations {
-    runtimeClasspath {
-        exclude group: 'com.google.code.findbugs', module: 'jsr305'
-    }
-}
-
 dependencies {
     implementation "org.ow2.asm:asm-tree:$asmVersion"
     implementation "org.ow2.asm:asm-commons:$asmVersion"
     implementation "org.ow2.asm:asm-util:$asmVersion"
-    implementation "com.google.code.findbugs:jsr305:3.0.2"
+    implementation "org.jspecify:jspecify:$jspecifyVersion"
 }
 
 publishing {

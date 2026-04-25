@@ -1,13 +1,11 @@
 package com.fiskmods.quantify.lexer;
 
 import com.fiskmods.quantify.exception.QtfLexerException;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class StringScannerPattern implements ScannerPattern<String> {
-    @Nullable
     @Override
-    public MatchResult<String> match(final String text, final int startIndex) throws QtfLexerException {
+    public @Nullable MatchResult<String> match(final String text, final int startIndex) throws QtfLexerException {
         if (text.charAt(startIndex) != '"') {
             return null;
         }

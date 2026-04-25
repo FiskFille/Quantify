@@ -1,11 +1,10 @@
 package com.fiskmods.quantify.lexer;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class CommentScannerPattern implements ScannerPattern<String> {
-    @Nullable
     @Override
-    public MatchResult<String> match(final String text, final int startIndex) {
+    public @Nullable MatchResult<String> match(final String text, final int startIndex) {
         return switch (text.charAt(startIndex)) {
             case '#' -> matchLine(text, startIndex);
             case '/' -> matchBlock(text, startIndex);
@@ -21,8 +20,7 @@ public class CommentScannerPattern implements ScannerPattern<String> {
         return MatchResult.string(text.substring(startIndex, endIndex));
     }
 
-    @Nullable
-    private MatchResult<String> matchBlock(final String text, final int startIndex) {
+    private @Nullable MatchResult<String> matchBlock(final String text, final int startIndex) {
         if (startIndex + 1 >= text.length() || text.charAt(startIndex + 1) != '#') {
             return null;
         }
