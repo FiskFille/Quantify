@@ -71,7 +71,7 @@ public class QtfCompiler {
             parser.parse(syntaxTree, false);
             return compile(syntaxTree, listener);
         } catch (final QtfLexerException e) {
-            throw QtfCompilerException.handle(e);
+            throw QtfCompilerException.handle(e, text);
         } catch (final QtfParseException e) {
             throw QtfCompilerException.handle(parser, e, text);
         }

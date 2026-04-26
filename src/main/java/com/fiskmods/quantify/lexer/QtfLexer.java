@@ -26,7 +26,7 @@ public class QtfLexer {
         try {
             readUnsafe(new TokenGenerator(scanner, tokenConsumer));
         } catch (final QtfLexerException e) {
-            throw new QtfLexerException(e.getMessage() + " at " + scanner.fullTrace(), e);
+            throw new QtfLexerException(e.getMessage(), scanner.getLocation());
         }
     }
 

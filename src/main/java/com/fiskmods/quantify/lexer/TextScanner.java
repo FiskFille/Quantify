@@ -84,36 +84,44 @@ public class TextScanner {
         return result.match();
     }
 
-    public String fullTrace() {
-        return address(text, scanIndex) + trace(text, scanIndex);
+    public Location getLocation() {
+        return location(text, scanIndex);
     }
 
-    public static String address(final String text, final int scanIndex) {
-        String s = text.substring(0, scanIndex);
-        int line = 1, i;
-
-        while ((i = s.indexOf('\n')) != -1) {
-            s = s.substring(i + 1);
-            ++line;
+    public static Location location(final String text, final int index) {
+        int start = 0;
+        int line = 1;
+        for (int i; (i = text.indexOf('\n', start, index)) != -1; line++) {
+            start = i + 1;
         }
-        return "line %s, column %s".formatted(line, s.length() + 1);
+
+        final int column = index - start + 1;
+        return new Location(start, line, column);
     }
 
-    public static String trace(final String text, final int scanIndex) {
-        String s = text;
-        int i, index = scanIndex;
-
-        if ((i = s.indexOf('\n', index)) > -1) {
-            s = s.substring(0, i);
-        }
-        if ((i = s.lastIndexOf('\n')) > -1) {
-            s = s.substring(i + 1);
-            index -= i + 1;
+    public record Location(int lineStart, int line, int column) {
+        public String formattedString() {
+            return "line %s, column %s".formatted(line, column);
         }
 
-        final int start = Math.max(index - 64, 0);
-        final String s1 = s.substring(start, Math.min(index + 64, s.length()));
-        return '\n' + " ".repeat(64 - index + start)
-                + s1 + '\n' + " ".repeat(63) + " ^";
+        public Trace createTrace(final String text) {
+            int lineEnd = text.indexOf('\n', lineStart + column - 1);
+            if (lineEnd < 0) {
+                lineEnd = text.length();
+            }
+
+            final String snippet = text.substring(lineStart, lineEnd);
+            return new Trace(snippet, column - 1);
+        }
+    }
+
+    public record Trace(String snippet, int offset) {
+        public String formattedString(final int padding) {
+            if (padding > offset) {
+                return " ".repeat(Math.max(padding - offset, 0)) + snippet
+                        + '\n' + " ".repeat(padding) + '^';
+            }
+            return snippet + '\n' + " ".repeat(offset) + '^';
+        }
     }
 }

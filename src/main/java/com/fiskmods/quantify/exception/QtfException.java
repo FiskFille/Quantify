@@ -1,15 +1,15 @@
 package com.fiskmods.quantify.exception;
 
 public class QtfException extends Exception {
-    public QtfException(String message) {
+    public QtfException(final String message) {
         super(message);
     }
 
-    public QtfException(Throwable cause) {
+    public QtfException(final Throwable cause) {
         super(cause);
     }
 
-    public QtfException(String message, Throwable cause) {
+    public QtfException(final String message, final Throwable cause) {
         super(message, cause);
     }
 }
