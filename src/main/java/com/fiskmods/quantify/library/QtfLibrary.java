@@ -1,15 +1,16 @@
 package com.fiskmods.quantify.library;
 
-import com.fiskmods.quantify.jvm.FunctionAddress;
+import com.fiskmods.quantify.member.Namespace;
+import com.fiskmods.quantify.member.SimpleNamespace;
 
-public interface QtfLibrary {
-    String getKey();
+import java.util.function.UnaryOperator;
 
-    FunctionAddress getFunction(String name);
-
-    default boolean hasFunction(String name) {
-        return getFunction(name) != null;
+public record QtfLibrary(
+        String key,
+        Namespace namespace
+) {
+    public static QtfLibrary create(String name, UnaryOperator<SimpleNamespace.Builder> namespace) {
+        var builder = namespace.apply(SimpleNamespace.builder(name));
+        return new QtfLibrary(name, builder.build());
     }
-
-    Double getConstant(String name);
 }

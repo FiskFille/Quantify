@@ -4,6 +4,7 @@ import com.fiskmods.quantify.exception.QtfParseException;
 import com.fiskmods.quantify.jvm.JvmFunction;
 import com.fiskmods.quantify.lexer.Keywords;
 import com.fiskmods.quantify.lexer.token.TokenClass;
+import com.fiskmods.quantify.library.QtfLibrary;
 import com.fiskmods.quantify.member.MemberType;
 import com.fiskmods.quantify.member.Namespace;
 import com.fiskmods.quantify.parser.QtfParser;
@@ -22,7 +23,8 @@ class NamespaceParser implements SyntaxParser<JvmFunction> {
         if (namespaceName.equals(Keywords.THIS)) {
             namespace = context.getDefaultNamespace();
         } else {
-            namespace = Namespace.of(context.getMember(namespaceName, MemberType.LIBRARY))
+            QtfLibrary library = context.getMember(namespaceName, MemberType.LIBRARY);
+            namespace = library.namespace()
                     .fallback(context.getDefaultNamespace());
         }
 

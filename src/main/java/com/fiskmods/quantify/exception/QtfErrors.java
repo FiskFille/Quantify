@@ -15,6 +15,6 @@ public final class QtfErrors {
     }
 
     public static QtfException undefined(MemberType<?> expectedType, String name, QtfLibrary library) {
-        return undefined(expectedType, name, library.getKey());
+        return undefined(expectedType, name, library.key());
     }
 }

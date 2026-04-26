@@ -42,7 +42,7 @@ class IdentifierParser {
                 MemberType<?> type = member.get().type();
 
                 if (type == MemberType.LIBRARY) {
-                    Namespace namespace = Namespace.of((QtfLibrary) member.get().value());
+                    Namespace namespace = ((QtfLibrary) member.get().value()).namespace();
                     return parser.next(nextParser.apply(child, namespace));
                 }
                 if (type == MemberType.VARIABLE && ((VarAddress<?>) member.get().value()).is(VarType.STRUCT)) {

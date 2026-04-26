@@ -5,7 +5,7 @@ public class QtfMath {
     private static final String MATH = "java/lang/Math";
     private static final String QTF_MATH = "com/fiskmods/quantify/library/QtfMath";
 
-    public static final QtfLibrary LIBRARY = StandardQtfLibrary.builder()
+    public static final QtfLibrary LIBRARY = QtfLibrary.create("lang/Math", b -> b
             .addFunction(MATH, "sin", 1)
             .addFunction(MATH, "cos", 1)
             .addFunction(MATH, "tan", 1)
@@ -40,8 +40,7 @@ public class QtfMath {
             .addFunction(QTF_MATH, "clamp", 3)
             .addFunction(QTF_MATH, "lerp", 3)
             .addFunction(QTF_MATH, "lerpRot", 3)
-
-            .build("lang/Math");
+    );
 
     public static double logn(double base, double d) {
         return Math.log(d) / Math.log(base);

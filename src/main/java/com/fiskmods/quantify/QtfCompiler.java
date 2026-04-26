@@ -42,7 +42,7 @@ public class QtfCompiler {
     }
 
     public QtfCompiler addLibrary(final QtfLibrary library) {
-        libraries.put(library.getKey(), library);
+        libraries.put(library.key(), library);
         return this;
     }
 
