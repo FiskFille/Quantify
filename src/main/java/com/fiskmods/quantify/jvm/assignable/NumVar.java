@@ -61,7 +61,7 @@ public interface NumVar extends Value, Assignable {
             mv.visitVarInsn(DLOAD, id);
             mv.visitInsn(DSUB);
             if (rotational) {
-                mv.visitMethodInsn(INVOKESTATIC, QTF_MATH, "wrapAngleToPi", "(D)D", false);
+                mv.visitMethodInsn(INVOKESTATIC, QTF_MATH, "wrapToPi", "(D)D", false);
             }
             mv.visitInsn(DMUL);
             mv.visitInsn(DADD);
@@ -114,7 +114,7 @@ public interface NumVar extends Value, Assignable {
                 JvmUtil.arrayLoad(mv, id, arrayIndex);
                 mv.visitInsn(DSUB);
                 if (rotational) {
-                    mv.visitMethodInsn(INVOKESTATIC, QTF_MATH, "wrapAngleToPi", "(D)D", false);
+                    mv.visitMethodInsn(INVOKESTATIC, QTF_MATH, "wrapToPi", "(D)D", false);
                 }
                 mv.visitInsn(DMUL);
                 mv.visitInsn(DADD);

@@ -54,7 +54,7 @@ public class QtfMath {
         return Math.min(Math.max(d, min), max);
     }
 
-    public static double wrapAngleTo180(double value) {
+    public static double wrapTo180(double value) {
         while (value < -180) {
             value += 360;
         }
@@ -64,7 +64,7 @@ public class QtfMath {
         return value;
     }
 
-    public static double wrapAngleToPi(double value) {
+    public static double wrapToPi(double value) {
         while (value < -Math.PI) {
             value += 2 * Math.PI;
         }
@@ -79,6 +79,6 @@ public class QtfMath {
     }
 
     public static double lerpRot(double progress, double from, double to) {
-        return from + progress * wrapAngleToPi(to - from);
+        return from + progress * wrapToPi(to - from);
     }
 }
