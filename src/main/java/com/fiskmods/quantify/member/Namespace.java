@@ -1,5 +1,6 @@
 package com.fiskmods.quantify.member;
 
+import com.fiskmods.quantify.exception.QtfErrors;
 import com.fiskmods.quantify.exception.QtfException;
 import com.fiskmods.quantify.jvm.FunctionAddress;
 import com.fiskmods.quantify.jvm.VarAddress;
@@ -34,8 +35,7 @@ public interface Namespace {
             @Override
             public <T extends Value & Assignable> VarAddress<T> computeVariable(
                     VarType<T> type, String name, int modifiers) throws QtfException {
-                throw new QtfException("Undefined variable '%s' in library '%s'"
-                        .formatted(name, library.getKey()));
+                throw QtfErrors.undefined(MemberType.VARIABLE, name, library);
             }
 
             @Override

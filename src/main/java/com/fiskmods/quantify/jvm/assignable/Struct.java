@@ -1,5 +1,6 @@
 package com.fiskmods.quantify.jvm.assignable;
 
+import com.fiskmods.quantify.exception.QtfErrors;
 import com.fiskmods.quantify.exception.QtfException;
 import com.fiskmods.quantify.exception.QtfParseException;
 import com.fiskmods.quantify.jvm.FunctionAddress;
@@ -38,7 +39,7 @@ public abstract class Struct implements Namespace, Value, Assignable {
 
     @Override
     public FunctionAddress getFunction(String name) throws QtfException {
-        throw new QtfException("Undefined %s '%s'".formatted(MemberType.FUNCTION.name(), name));
+        throw QtfErrors.undefined(MemberType.FUNCTION, name);
     }
 
     @Override

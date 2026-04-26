@@ -1,5 +1,6 @@
 package com.fiskmods.quantify.member;
 
+import com.fiskmods.quantify.exception.QtfErrors;
 import com.fiskmods.quantify.exception.QtfException;
 import com.fiskmods.quantify.jvm.VarAddress;
 import com.fiskmods.quantify.parser.element.Assignable;
@@ -80,7 +81,7 @@ public class MemberMap {
     public <T> T get(String name, MemberType<T> expectedType) throws QtfException {
         Member<?> foundMember = members.get(name);
         if (foundMember == null) {
-            throw new QtfException("Undefined %s '%s'".formatted(expectedType.name(), name));
+            throw QtfErrors.undefined(expectedType, name);
         }
         foundMember.typeCheck(name, expectedType);
         return (T) foundMember.value();
