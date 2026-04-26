@@ -3,45 +3,44 @@ plugins {
     id 'maven-publish'
 }
 
-java {
-    withSourcesJar()
-}
-
-group 'com.fiskmods.quantify'
-version project.version
+base.archivesName = archive_name
+java.toolchain.languageVersion = JavaLanguageVersion.of(java_version)
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    implementation "org.ow2.asm:asm-tree:$asmVersion"
-    implementation "org.ow2.asm:asm-commons:$asmVersion"
-    implementation "org.ow2.asm:asm-util:$asmVersion"
-    implementation "org.jspecify:jspecify:$jspecifyVersion"
+    implementation "org.ow2.asm:asm-commons:$asm_version"
+    implementation "org.ow2.asm:asm-util:$asm_version"
+    implementation "org.jspecify:jspecify:$jspecify_version"
+}
+
+java {
+    withSourcesJar()
 }
 
 publishing {
     publications {
         maven(MavenPublication) {
             groupId = group
-            artifactId = rootProject.name
+            artifactId = archive_name
             version = version
             from components.java
 
             pom {
-                name = rootProject.name
-                description = project.description
+                name = archive_name
+                description = maven_description
             }
         }
     }
     repositories {
         maven {
             credentials {
-                username = "$repsyUsername"
-                password = "$repsyPassword"
+                username repsyUsername
+                password repsyPassword
             }
-            url = "https://repo.repsy.io/mvn/fiskfille/fiskmods/"
+            url maven_url
         }
     }
 }
