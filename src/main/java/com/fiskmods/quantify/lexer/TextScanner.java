@@ -88,6 +88,10 @@ public class TextScanner {
         return location(text, scanIndex);
     }
 
+    public Trace createTrace() {
+        return getLocation().createTrace(text);
+    }
+
     public static Location location(final String text, final int index) {
         int start = 0;
         int line = 1;
@@ -100,10 +104,6 @@ public class TextScanner {
     }
 
     public record Location(int lineStart, int line, int column) {
-        public String formattedString() {
-            return "line %s, column %s".formatted(line, column);
-        }
-
         public Trace createTrace(final String text) {
             int lineEnd = text.indexOf('\n', lineStart + column - 1);
             if (lineEnd < 0) {
@@ -111,17 +111,14 @@ public class TextScanner {
             }
 
             final String snippet = text.substring(lineStart, lineEnd);
-            return new Trace(snippet, column - 1);
+            return new Trace(snippet, this);
         }
     }
 
-    public record Trace(String snippet, int offset) {
+    public record Trace(String snippet, Location location) {
         public String formattedString(final int padding) {
-            if (padding > offset) {
-                return " ".repeat(Math.max(padding - offset, 0)) + snippet
-                        + '\n' + " ".repeat(padding) + '^';
-            }
-            return snippet + '\n' + " ".repeat(offset) + '^';
+            final String tab = " ".repeat(padding);
+            return tab + snippet + '\n' + tab + " ".repeat(location.column - 1) + '^';
         }
     }
 }

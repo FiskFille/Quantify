@@ -5,42 +5,41 @@ import com.fiskmods.quantify.parser.QtfParser;
 import org.jspecify.annotations.Nullable;
 
 public class QtfParseException extends QtfException {
-    private final @Nullable String reason;
     private final Token.@Nullable Range location;
 
-    public QtfParseException(String message, String reason, Token.@Nullable Range location) {
+    public QtfParseException(final String message, final Token.@Nullable Range location) {
         super(message);
-        this.reason = reason;
         this.location = location;
     }
 
-    public QtfParseException(String message) {
-        super(message);
-        this.reason = null;
-        this.location = null;
+    public QtfParseException(final String message, final String reason, final Token.@Nullable Range location) {
+        this(message + " - " + reason, location);
     }
 
-    public QtfParseException(Throwable cause) {
+    public QtfParseException(final String message) {
+        this(message, null);
+    }
+
+    public QtfParseException(final Throwable cause) {
         this(cause.getMessage());
     }
 
-    public @Nullable String getReason() {
-        return reason;
-    }
-
-    public Token.@Nullable Range getLocation(QtfParser parser) {
+    public int getStartIndex(final QtfParser parser) {
         if (location != null) {
-            return location;
+            return location.startIndex();
         }
-        Token lastToken = parser.last();
-        return lastToken != null ? lastToken.range() : null;
+        final Token lastToken = parser.last();
+        if (lastToken != null) {
+            return lastToken.range().startIndex();
+        }
+        return 0;
     }
 
-    public static QtfParseException internal(String reason, Token.Range location) {
+    public static QtfParseException internal(final String reason, final Token.Range location) {
         return new QtfParseException("Internal error", reason, location);
     }
 
-    public static QtfParseException error(String reason, Token.Range location) {
+    public static QtfParseException error(final String reason, final Token.Range location) {
         return new QtfParseException("Unresolved error", reason, location);
     }
 }

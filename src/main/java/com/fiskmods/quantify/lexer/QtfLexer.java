@@ -1,5 +1,8 @@
 package com.fiskmods.quantify.lexer;
 
+import com.fiskmods.quantify.ProblemReporter;
+import com.fiskmods.quantify.QtfCompiler;
+import com.fiskmods.quantify.exception.QtfCompilerException;
 import com.fiskmods.quantify.exception.QtfLexerException;
 import com.fiskmods.quantify.lexer.token.Operator;
 import com.fiskmods.quantify.lexer.token.Token;
@@ -12,26 +15,25 @@ import static com.fiskmods.quantify.lexer.token.Operator.*;
 import static com.fiskmods.quantify.lexer.token.TokenClass.*;
 
 public class QtfLexer {
+    private final String fileName;
     private final TextScanner scanner;
+    private final ProblemReporter problems;
 
-    public QtfLexer(final TextScanner scanner) {
+    public QtfLexer(final String fileName, final TextScanner scanner, final ProblemReporter problems) {
+        this.fileName = fileName;
         this.scanner = scanner;
+        this.problems = problems;
     }
 
-    public QtfLexer(final String text) {
-        this(new TextScanner(text));
+    public QtfLexer(final String fileName, final String text, final ProblemReporter problems) {
+        this(fileName, new TextScanner(text), problems);
     }
 
-    public void read(final Consumer<Token> tokenConsumer) throws QtfLexerException {
-        try {
-            readUnsafe(new TokenGenerator(scanner, tokenConsumer));
-        } catch (final QtfLexerException e) {
-            throw new QtfLexerException(e.getMessage(), scanner.getLocation());
-        }
+    public void read(final Consumer<Token> tokenConsumer) throws QtfCompilerException {
+        read(new TokenGenerator(scanner, tokenConsumer));
     }
 
-    private void readUnsafe(final TokenGenerator tokens) throws QtfLexerException {
-        String result;
+    private void read(final TokenGenerator tokens) throws QtfCompilerException {
         char c;
 
         while (scanner.hasNext()) {
@@ -44,130 +46,148 @@ public class QtfLexer {
                 continue;
             }
 
-            // Skip past comments
-            if (scanner.next(ScannerPattern.COMMENT) != null) {
-                continue;
+            try {
+                if (readUnsafe(tokens, c)) {
+                    continue;
+                }
+                problems.report("Unknown symbol '%s'".formatted(c), scanner, fileName);
+            } catch (final QtfLexerException e) {
+                if (QtfCompiler.DEBUG) {
+                    e.printStackTrace();
+                }
+                problems.report(e.getMessage(), scanner, fileName);
             }
 
-            singleChar: {
-                scanner.advance();
-                switch (c) {
-                    case '+' -> readOperator(tokens, ADD);
-                    case '-' -> {
-                        switch (scanner.peekChar()) {
-                            case '=' -> {
-                                scanner.expand(1);
-                                tokens.insert(ASSIGNMENT, SUB);
-                            }
-                            case '>' -> {
-                                scanner.expand(1);
-                                tokens.insert(ASSIGNMENT, LERP);
-                            }
-                            case '\'' -> {
-                                scanner.expand(1);
-                                if (scanner.tryConsume('>')) {
-                                    tokens.insert(ASSIGNMENT, LERP_ROT);
-                                } else {
-                                    scanner.skip(-2);
-                                    scanner.advance();
-                                    tokens.insert(OPERATOR, SUB);
-                                }
-                            }
-                            default -> tokens.insert(OPERATOR, SUB);
-                        }
-                    }
-                    case '*' -> readOperator(tokens, MUL);
-                    case '/' -> readOperator(tokens, DIV);
-                    case '^' -> readOperator(tokens, POW);
-                    case '%' -> readOperator(tokens, MOD);
-                    case '&' -> {
-                        if (readDoubleOperator(tokens, '&', AND)) {
-                            break singleChar;
-                        }
-                    }
-                    case '|' -> {
-                        if (readDoubleOperator(tokens, '|', OR)) {
-                            break singleChar;
-                        }
-                    }
+            scanner.advance();
+        }
+    }
 
-                    case '<' -> readEqualityOperator(tokens, LT, LEQ);
-                    case '>' -> readEqualityOperator(tokens, GT, GEQ);
-                    case '!' -> {
-                        if (scanner.tryConsume('=')) {
-                            tokens.insert(OPERATOR, NEQ);
-                        } else {
-                            tokens.insert(NOT);
-                        }
-                    }
-                    case '=' -> {
-                        if (scanner.tryConsume('=')) {
-                            tokens.insert(OPERATOR, EQ);
-                        } else {
-                            tokens.insert(ASSIGNMENT);
-                        }
-                    }
+    private boolean readUnsafe(final TokenGenerator tokens, final char c) throws QtfLexerException {
+        // Skip past comments
+        if (scanner.next(ScannerPattern.COMMENT) != null) {
+            return true;
+        }
 
-                    case '.' -> tokens.insert(DOT);
-                    case ':' -> tokens.insert(COLON);
-                    case ',' -> tokens.insert(COMMA);
-                    case '(' -> tokens.insert(OPEN_PARENTHESIS);
-                    case ')' -> tokens.insert(CLOSE_PARENTHESIS);
-                    case '{' -> tokens.insert(OPEN_BRACES);
-                    case '}' -> tokens.insert(CLOSE_BRACES);
-                    case '[' -> tokens.insert(OPEN_BRACKETS);
-                    case ']' -> tokens.insert(CLOSE_BRACKETS);
-                    case '\'' -> tokens.insert(DEGREES);
-                    default -> {
-                        // Backtrack
-                        scanner.skip(-1);
+        singleChar: {
+            scanner.advance();
+            switch (c) {
+                case '+' -> readOperator(tokens, ADD);
+                case '-' -> {
+                    switch (scanner.peekChar()) {
+                        case '=' -> {
+                            scanner.expand(1);
+                            tokens.insert(ASSIGNMENT, SUB);
+                        }
+                        case '>' -> {
+                            scanner.expand(1);
+                            tokens.insert(ASSIGNMENT, LERP);
+                        }
+                        case '\'' -> {
+                            scanner.expand(1);
+                            if (scanner.tryConsume('>')) {
+                                tokens.insert(ASSIGNMENT, LERP_ROT);
+                            } else {
+                                scanner.skip(-2);
+                                scanner.advance();
+                                tokens.insert(OPERATOR, SUB);
+                            }
+                        }
+                        default -> tokens.insert(OPERATOR, SUB);
+                    }
+                }
+                case '*' -> readOperator(tokens, MUL);
+                case '/' -> readOperator(tokens, DIV);
+                case '^' -> readOperator(tokens, POW);
+                case '%' -> readOperator(tokens, MOD);
+                case '&' -> {
+                    if (readDoubleOperator(tokens, '&', AND)) {
                         break singleChar;
                     }
                 }
-                continue;
-            }
-
-            final Number numResult;
-            if ((numResult = scanner.next(ScannerPattern.NUMBER)) != null) {
-                tokens.insert(NUM_LITERAL, numResult);
-                continue;
-            }
-            if ((result = scanner.next(ScannerPattern.STRING)) != null) {
-                tokens.insert(STR_LITERAL, result);
-                continue;
-            }
-            if ((result = scanner.next(ScannerPattern.IDENTIFIER)) != null) {
-                switch (result) {
-                    // Syntax keywords
-                    case Keywords.VAR -> tokens.insert(VAR);
-                    case Keywords.CONST -> tokens.insert(CONST);
-                    case Keywords.FUNC -> tokens.insert(FUNC);
-                    case Keywords.IMPORT -> tokens.insert(IMPORT);
-                    case Keywords.INPUT -> tokens.insert(INPUT);
-                    case Keywords.PUBLIC -> tokens.insert(PUBLIC);
-
-                    // Control keywords
-                    case Keywords.IF -> tokens.insert(IF);
-                    case Keywords.ELSE -> tokens.insert(ELSE);
-                    case Keywords.INTERPOLATE -> tokens.insert(INTERPOLATE);
-                    case Keywords.NAMESPACE -> tokens.insert(NAMESPACE);
-                    case Keywords.RETURN -> tokens.insert(RETURN);
-
-                    // Constants
-                    case "pi" -> tokens.insert(NUM_LITERAL, Math.PI);
-                    case "e" -> tokens.insert(NUM_LITERAL, Math.E);
-                    case "NaN" -> tokens.insert(NUM_LITERAL, Double.NaN);
-                    case "Inf" -> tokens.insert(NUM_LITERAL, Double.POSITIVE_INFINITY);
-                    case "true" -> tokens.insert(NUM_LITERAL, 1);
-                    case "false" -> tokens.insert(NUM_LITERAL, 0);
-
-                    default -> tokens.insert(IDENTIFIER, result);
+                case '|' -> {
+                    if (readDoubleOperator(tokens, '|', OR)) {
+                        break singleChar;
+                    }
                 }
-                continue;
-            }
 
-            throw new QtfLexerException("Unknown symbol '%s'".formatted(c));
+                case '<' -> readEqualityOperator(tokens, LT, LEQ);
+                case '>' -> readEqualityOperator(tokens, GT, GEQ);
+                case '!' -> {
+                    if (scanner.tryConsume('=')) {
+                        tokens.insert(OPERATOR, NEQ);
+                    } else {
+                        tokens.insert(NOT);
+                    }
+                }
+                case '=' -> {
+                    if (scanner.tryConsume('=')) {
+                        tokens.insert(OPERATOR, EQ);
+                    } else {
+                        tokens.insert(ASSIGNMENT);
+                    }
+                }
+
+                case '.' -> tokens.insert(DOT);
+                case ':' -> tokens.insert(COLON);
+                case ',' -> tokens.insert(COMMA);
+                case '(' -> tokens.insert(OPEN_PARENTHESIS);
+                case ')' -> tokens.insert(CLOSE_PARENTHESIS);
+                case '{' -> tokens.insert(OPEN_BRACES);
+                case '}' -> tokens.insert(CLOSE_BRACES);
+                case '[' -> tokens.insert(OPEN_BRACKETS);
+                case ']' -> tokens.insert(CLOSE_BRACKETS);
+                case '\'' -> tokens.insert(DEGREES);
+                default -> {
+                    // Backtrack
+                    scanner.skip(-1);
+                    break singleChar;
+                }
+            }
+            return true;
         }
+
+        final Number numResult;
+        if ((numResult = scanner.next(ScannerPattern.NUMBER)) != null) {
+            tokens.insert(NUM_LITERAL, numResult);
+            return true;
+        }
+
+        String result;
+        if ((result = scanner.next(ScannerPattern.STRING)) != null) {
+            tokens.insert(STR_LITERAL, result);
+            return true;
+        }
+        if ((result = scanner.next(ScannerPattern.IDENTIFIER)) != null) {
+            switch (result) {
+                // Syntax keywords
+                case Keywords.VAR -> tokens.insert(VAR);
+                case Keywords.CONST -> tokens.insert(CONST);
+                case Keywords.FUNC -> tokens.insert(FUNC);
+                case Keywords.IMPORT -> tokens.insert(IMPORT);
+                case Keywords.INPUT -> tokens.insert(INPUT);
+                case Keywords.PUBLIC -> tokens.insert(PUBLIC);
+
+                // Control keywords
+                case Keywords.IF -> tokens.insert(IF);
+                case Keywords.ELSE -> tokens.insert(ELSE);
+                case Keywords.INTERPOLATE -> tokens.insert(INTERPOLATE);
+                case Keywords.NAMESPACE -> tokens.insert(NAMESPACE);
+                case Keywords.RETURN -> tokens.insert(RETURN);
+
+                // Constants
+                case "pi" -> tokens.insert(NUM_LITERAL, Math.PI);
+                case "e" -> tokens.insert(NUM_LITERAL, Math.E);
+                case "NaN" -> tokens.insert(NUM_LITERAL, Double.NaN);
+                case "Inf" -> tokens.insert(NUM_LITERAL, Double.POSITIVE_INFINITY);
+                case "true" -> tokens.insert(NUM_LITERAL, 1);
+                case "false" -> tokens.insert(NUM_LITERAL, 0);
+
+                default -> tokens.insert(IDENTIFIER, result);
+            }
+            return true;
+        }
+
+        return false;
     }
 
     private void readOperator(final TokenGenerator tokens, final Operator operator) {

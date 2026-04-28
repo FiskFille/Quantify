@@ -1,7 +1,6 @@
 package com.fiskmods.quantify;
 
 import com.fiskmods.quantify.exception.QtfCompilerException;
-import com.fiskmods.quantify.exception.QtfLexerException;
 import com.fiskmods.quantify.exception.QtfParseException;
 import com.fiskmods.quantify.jvm.DynamicClassLoader;
 import com.fiskmods.quantify.jvm.JvmClassComposer;
@@ -46,7 +45,7 @@ public class QtfCompiler {
         return this;
     }
 
-    public QtfLibrary getLibrary(final String key) {
+    public @Nullable QtfLibrary getLibrary(final String key) {
         return libraries.get(key);
     }
 
@@ -54,27 +53,44 @@ public class QtfCompiler {
         return libraries.size();
     }
 
-    public QtfScript compile(final String text, final QtfListener listener) throws QtfCompilerException {
-        QtfParser parser = null;
-        try {
-            final List<Token> tokens = new ArrayList<>();
-            final QtfLexer lexer = new QtfLexer(text);
-            lexer.read(tokens::add);
-
-            if (QtfCompiler.DEBUG) {
-                System.out.println(tokens);
-            }
-            final SyntaxContext context = new SyntaxContext(this);
-            final SyntaxTree syntaxTree = new SyntaxTree(context);
-
-            parser = new QtfParser(tokens.iterator(), context);
-            parser.parse(syntaxTree, false);
-            return compile(syntaxTree, listener);
-        } catch (final QtfLexerException e) {
-            throw QtfCompilerException.handle(e, text);
-        } catch (final QtfParseException e) {
-            throw QtfCompilerException.handle(parser, e, text);
+    public QtfScript compile(final String fileName, final String text, final QtfListener listener, final ProblemReporter problems) throws QtfCompilerException {
+        final List<Token> tokens = new ArrayList<>();
+        final QtfLexer lexer = new QtfLexer(fileName, text, problems);
+        lexer.read(tokens::add);
+        if (QtfCompiler.DEBUG) {
+            System.out.println(tokens);
         }
+
+        problems.flush();
+
+        final SyntaxContext context = new SyntaxContext(this);
+        final SyntaxTree syntaxTree = new SyntaxTree(context);
+        final QtfParser parser = new QtfParser(tokens.iterator(), context);
+
+        try {
+            parser.parse(syntaxTree, false);
+        } catch (final QtfParseException e) {
+            if (QtfCompiler.DEBUG) {
+                e.printStackTrace();
+            }
+            final int startIndex = e.getStartIndex(parser);
+            problems.report(e.getMessage(), startIndex, text, fileName);
+        }
+
+        problems.flush();
+        return compile(syntaxTree, listener);
+    }
+
+    public QtfScript compile(final String fileName, final String text, final QtfListener listener) throws QtfCompilerException {
+        return compile(fileName, text, listener, ProblemReporter.EARLY_EXIT);
+    }
+
+    public QtfScript compile(final String text, final QtfListener listener, final ProblemReporter problems) throws QtfCompilerException {
+        return compile("<unknown>", text, listener, problems);
+    }
+
+    public QtfScript compile(final String text, final QtfListener listener) throws QtfCompilerException {
+        return compile(text, listener, ProblemReporter.EARLY_EXIT);
     }
 
     public QtfScript compile(final SyntaxTree tree, final QtfListener listener) throws QtfCompilerException {
