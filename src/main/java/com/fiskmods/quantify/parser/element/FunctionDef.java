@@ -1,5 +1,6 @@
 package com.fiskmods.quantify.parser.element;
 
+import com.fiskmods.quantify.exception.QtfException;
 import com.fiskmods.quantify.exception.QtfParseException;
 import com.fiskmods.quantify.jvm.FunctionAddress;
 import com.fiskmods.quantify.jvm.JvmClassComposer;
@@ -24,10 +25,10 @@ record FunctionDef(DefinedFunctionAddress address, JvmFunction body, ReturnValue
     static final SyntaxParser<JvmFunction> PARSER = new FunctionDefParser();
 
     @Override
-    public JvmClassComposer define(String className) {
+    public JvmClassComposer define(final String className) {
         address.owner = className;
         return cw -> {
-            MethodVisitor mv = cw.visitMethod(ACC_STATIC | ACC_PRIVATE, address.name, address.descriptor, null, null);
+            final MethodVisitor mv = cw.visitMethod(ACC_STATIC | ACC_PRIVATE, address.name, address.descriptor, null, null);
             body.apply(mv);
 
             if (returnValue == ReturnValueType.MISSING) {
@@ -43,24 +44,36 @@ record FunctionDef(DefinedFunctionAddress address, JvmFunction body, ReturnValue
 
     private static class FunctionDefParser implements SyntaxParser<JvmFunction> {
         @Override
-        public JvmFunction accept(QtfParser parser, SyntaxContext context) throws QtfParseException {
-            DefinedFunctionAddress address = new DefinedFunctionAddress();
+        public JvmFunction accept(final QtfParser parser, final SyntaxContext context) throws QtfParseException {
+            final DefinedFunctionAddress address = new DefinedFunctionAddress();
 
             parser.clearPeekedToken();
-            String name = parser.next(TokenClass.IDENTIFIER).getString();
-            context.addMember(name, MemberType.FUNCTION, address);
+            final Token identifier = parser.next(TokenClass.IDENTIFIER);
+            final String name = identifier.getString();
+
+            try {
+                context.addMember(name, MemberType.FUNCTION, address);
+            } catch (final QtfException e) {
+                throw new QtfParseException(e, identifier.range());
+            }
 
             parser.next(TokenClass.OPEN_PARENTHESIS);
-            String[] parameters = parseParameters(parser);
-            FunctionScope scope = FunctionScope.create(context, parameters);
-            JvmFunction body;
-            ReturnValueType returnValue;
+            final String[] parameters = parseParameters(parser);
+            final FunctionScope scope;
+            final JvmFunction body;
+            final ReturnValueType returnValue;
+
+            try {
+                scope = FunctionScope.create(context, parameters);
+            } catch (final QtfException e) {
+                throw new QtfParseException(e, identifier.range());
+            }
 
             address.descriptor = FunctionAddress.descriptor(parameters.length);
             address.parameters = parameters.length;
 
             if (parser.isNext(TokenClass.ASSIGNMENT)) {
-                Token assignment = parser.next(TokenClass.ASSIGNMENT);
+                final Token assignment = parser.next(TokenClass.ASSIGNMENT);
                 if (assignment.value() != null) {
                     throw QtfParseException.error("function definitions can't use assignment operators", assignment.range());
                 }
@@ -74,21 +87,21 @@ record FunctionDef(DefinedFunctionAddress address, JvmFunction body, ReturnValue
                 returnValue = scope.hasReturnValue() ? ReturnValueType.EXPLICIT : ReturnValueType.MISSING;
             }
 
-            int index = context.defineFunction(new FunctionDef(address, body, returnValue));
+            final int index = context.defineFunction(new FunctionDef(address, body, returnValue));
             address.name = "f" + index + "_" + name;
             return null;
         }
 
-        private String[] parseParameters(QtfParser parser) throws QtfParseException {
+        private String[] parseParameters(final QtfParser parser) throws QtfParseException {
             // Function has no parameters
             if (parser.isNext(TokenClass.CLOSE_PARENTHESIS)) {
                 parser.clearPeekedToken();
                 return new String[0];
             }
 
-            Set<String> set = new HashSet<>();
+            final Set<String> set = new HashSet<>();
             while (true) {
-                Token token = parser.next(TokenClass.IDENTIFIER);
+                final Token token = parser.next(TokenClass.IDENTIFIER);
                 if (!set.add(token.getString())) {
                     throw QtfParseException.error("duplicate parameter '%s'".formatted(token.getString()), token.range());
                 }

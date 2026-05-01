@@ -3,6 +3,7 @@ package com.fiskmods.quantify.jvm.assignable;
 import com.fiskmods.quantify.exception.QtfException;
 import com.fiskmods.quantify.exception.QtfParseException;
 import com.fiskmods.quantify.jvm.VarAddress;
+import com.fiskmods.quantify.lexer.token.Token;
 import com.fiskmods.quantify.lexer.token.TokenClass;
 import com.fiskmods.quantify.parser.QtfParser;
 import com.fiskmods.quantify.parser.SyntaxContext;
@@ -13,46 +14,39 @@ public record VarInfo<T extends Value & Assignable>(String name, VarType<T> type
     public static final int DEFINITION = 0x1;
     public static final int PUBLIC = 0x2;
 
-    public VarAddress<T> define(SyntaxContext context, boolean isPublic) throws QtfParseException {
+    public VarAddress<T> define(final SyntaxContext context, final boolean isPublic) throws QtfException {
         if (isPublic) {
             return context.addPublicVar(name, type);
-        }
-        try {
+        } else {
             return type.defineLocal(name, context.scope());
-        } catch (QtfException e) {
-            throw new QtfParseException(e);
         }
     }
 
-    public static <T extends Value & Assignable> VarAddress<T> define(
-            String name, VarType<T> type, SyntaxContext context, boolean isPublic) throws QtfParseException {
+    public static <T extends Value & Assignable> VarAddress<T> define(final String name, final VarType<T> type, final SyntaxContext context, final boolean isPublic) throws QtfException {
         if (isPublic) {
             return context.addPublicVar(name, type);
-        }
-        try {
+        } else {
             return type.defineLocal(name, context.scope());
-        } catch (QtfException e) {
-            throw new QtfParseException(e);
         }
     }
 
-    public static <T extends Value & Assignable> VarAddress<T> define(
-            String name, VarType<T> type, SyntaxContext context, int modifiers) throws QtfParseException {
+    public static <T extends Value & Assignable> VarAddress<T> define(final String name, final VarType<T> type, final SyntaxContext context, final int modifiers) throws QtfException {
         return define(name, type, context, (modifiers & PUBLIC) != 0);
     }
 
-    public static VarInfo<?> parse(QtfParser parser) throws QtfParseException {
-        String name = parser.next(TokenClass.IDENTIFIER).getString();
+    public static VarInfo<?> parse(final QtfParser parser) throws QtfParseException {
+        final String name = parser.next(TokenClass.IDENTIFIER).getString();
         VarType<?> type = VarType.NUM;
 
         // Explicit type definition
         if (parser.isNext(TokenClass.COLON)) {
             parser.clearPeekedToken();
-            String typeName = parser.next(TokenClass.IDENTIFIER).getString();
+            final Token identifier = parser.next(TokenClass.IDENTIFIER);
+            final String typeName = identifier.getString();
             try {
                 type = VarType.getType(typeName);
-            } catch (QtfException e) {
-                throw new QtfParseException(e);
+            } catch (final QtfException e) {
+                throw new QtfParseException(e, identifier.range());
             }
         }
         return new VarInfo<>(name, type);

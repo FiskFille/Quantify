@@ -1,7 +1,6 @@
 package com.fiskmods.quantify.member;
 
 import com.fiskmods.quantify.exception.QtfException;
-import com.fiskmods.quantify.exception.QtfParseException;
 import com.fiskmods.quantify.parser.SyntaxContext;
 
 public class FunctionScope extends Scope {
@@ -9,38 +8,34 @@ public class FunctionScope extends Scope {
 
     protected boolean hasReturnValue;
 
-    private FunctionScope(Namespace namespace, String[] parameters, int level) {
+    private FunctionScope(final Namespace namespace, final String[] parameters, final int level) {
         super(namespace, level);
         this.parameters = parameters;
     }
 
-    public static FunctionScope create(SyntaxContext context, String[] parameters) throws QtfParseException {
-        try {
-            Scope prevScope = context.scope();
-            FunctionScope scope = new FunctionScope(prevScope.namespace, parameters, 0);
-            scope.lerpProgress = prevScope.lerpProgress;
-            scope.localIndexOffset = 0;
-            scope.members.inheritAllExcept(prevScope.members, MemberType.VARIABLE);
+    public static FunctionScope create(final SyntaxContext context, final String[] parameters) throws QtfException {
+        final Scope prevScope = context.scope();
+        final FunctionScope scope = new FunctionScope(prevScope.namespace, parameters, 0);
+        scope.lerpProgress = prevScope.lerpProgress;
+        scope.localIndexOffset = 0;
+        scope.members.inheritAllExcept(prevScope.members, MemberType.VARIABLE);
 
-            for (String param : parameters) {
-                scope.addLocalVariable(param);
-            }
-            return scope;
-        } catch (QtfException e) {
-            throw new QtfParseException(e);
+        for (final String param : parameters) {
+            scope.addLocalVariable(param);
         }
+        return scope;
     }
 
     @Override
-    public FunctionScope copy(Namespace namespace) {
-        FunctionScope scope = new FunctionScope(namespace, parameters, level + 1);
+    public FunctionScope copy(final Namespace namespace) {
+        final FunctionScope scope = new FunctionScope(namespace, parameters, level + 1);
         scope.lerpProgress = lerpProgress;
         scope.localIndexOffset = localIndexOffset;
         scope.members.inherit(members);
         return scope;
     }
 
-    public void setHasReturnValue(boolean hasReturnValue) {
+    public void setHasReturnValue(final boolean hasReturnValue) {
         this.hasReturnValue = hasReturnValue;
     }
 

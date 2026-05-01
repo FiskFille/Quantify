@@ -3,6 +3,7 @@ package com.fiskmods.quantify.parser.element;
 import com.fiskmods.quantify.exception.QtfException;
 import com.fiskmods.quantify.exception.QtfParseException;
 import com.fiskmods.quantify.jvm.FunctionAddress;
+import com.fiskmods.quantify.lexer.token.Token;
 import com.fiskmods.quantify.lexer.token.TokenClass;
 import com.fiskmods.quantify.member.Namespace;
 import com.fiskmods.quantify.parser.QtfParser;
@@ -14,27 +15,28 @@ import org.objectweb.asm.Opcodes;
 import java.util.List;
 
 record FunctionRef(FunctionAddress address, Value[] args, boolean hasResult) implements Value {
-    static SyntaxParser<FunctionRef> parser(FunctionAddress func, boolean hasResult) {
+    static SyntaxParser<FunctionRef> parser(final FunctionAddress func, final boolean hasResult) {
         return new FunctionRefParser(func, hasResult);
     }
 
-    static SyntaxParser<FunctionRef> tryParse(String name, Namespace namespace, boolean hasResult) {
+    static SyntaxParser<FunctionRef> tryParse(final String name, final Token.Range range, final Namespace namespace, final boolean hasResult) {
         return (parser, context) -> {
             if (!parser.isNext(TokenClass.OPEN_PARENTHESIS)) {
                 return null;
             }
-            FunctionAddress func;
+
+            final FunctionAddress func;
             try {
                 func = namespace.getFunction(name);
-            } catch (QtfException e) {
-                throw new QtfParseException(e);
+            } catch (final QtfException e) {
+                throw new QtfParseException(e, range);
             }
             return parser.next(parser(func, hasResult));
         };
     }
 
     @Override
-    public void apply(MethodVisitor mv) {
+    public void apply(final MethodVisitor mv) {
         address.run(mv, args);
 
         // Pop returned function value from stack if unused
@@ -45,7 +47,7 @@ record FunctionRef(FunctionAddress address, Value[] args, boolean hasResult) imp
 
     private record FunctionRefParser(FunctionAddress func, boolean hasResult) implements SyntaxParser<FunctionRef> {
         @Override
-        public FunctionRef accept(QtfParser parser, SyntaxContext context) throws QtfParseException {
+        public FunctionRef accept(final QtfParser parser, final SyntaxContext context) throws QtfParseException {
             parser.next(TokenClass.OPEN_PARENTHESIS);
 
             if (parser.isNext(TokenClass.CLOSE_PARENTHESIS)) {
@@ -53,7 +55,7 @@ record FunctionRef(FunctionAddress address, Value[] args, boolean hasResult) imp
                 return new FunctionRef(func, new Value[0], hasResult);
             }
 
-            List<Value> args = parser.nextSequence(ExpressionParser.INSTANCE, TokenClass.COMMA);
+            final List<Value> args = parser.nextSequence(ExpressionParser.INSTANCE, TokenClass.COMMA);
             func.validateParameters(args.size(), parser.next(TokenClass.CLOSE_PARENTHESIS).range());
 
             if (!hasResult) {

@@ -1,8 +1,10 @@
 package com.fiskmods.quantify.parser.element;
 
+import com.fiskmods.quantify.exception.QtfException;
 import com.fiskmods.quantify.exception.QtfParseException;
 import com.fiskmods.quantify.jvm.JvmFunction;
 import com.fiskmods.quantify.lexer.Keywords;
+import com.fiskmods.quantify.lexer.token.Token;
 import com.fiskmods.quantify.lexer.token.TokenClass;
 import com.fiskmods.quantify.library.QtfLibrary;
 import com.fiskmods.quantify.member.MemberType;
@@ -15,20 +17,25 @@ class NamespaceParser implements SyntaxParser<JvmFunction> {
     static final SyntaxParser<JvmFunction> INSTANCE = new NamespaceParser();
 
     @Override
-    public JvmFunction accept(QtfParser parser, SyntaxContext context) throws QtfParseException {
+    public JvmFunction accept(final QtfParser parser, final SyntaxContext context) throws QtfParseException {
         parser.next(TokenClass.NAMESPACE);
-        String namespaceName = parser.next(TokenClass.IDENTIFIER).getString();
-        Namespace namespace;
+        final Token identifier = parser.next(TokenClass.IDENTIFIER);
+        final String namespaceName = identifier.getString();
+        final Namespace namespace;
 
         if (namespaceName.equals(Keywords.THIS)) {
             namespace = context.getDefaultNamespace();
         } else {
-            QtfLibrary library = context.getMember(namespaceName, MemberType.LIBRARY);
-            namespace = library.namespace()
-                    .fallback(context.getDefaultNamespace());
+            try {
+                final QtfLibrary library = context.getMember(namespaceName, MemberType.LIBRARY);
+                namespace = library.namespace()
+                        .fallback(context.getDefaultNamespace());
+            } catch (final QtfException e) {
+                throw new QtfParseException(e, identifier.range());
+            }
         }
 
-        boolean skipped = parser.skip(TokenClass.TERMINATOR);
+        final boolean skipped = parser.skip(TokenClass.TERMINATOR);
         if (!parser.isNext(TokenClass.OPEN_BRACES)) {
             context.scope().setNamespace(namespace);
             if (!skipped) {

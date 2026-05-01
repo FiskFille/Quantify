@@ -9,43 +9,43 @@ import com.fiskmods.quantify.lexer.token.TokenClass;
 import com.fiskmods.quantify.member.Namespace;
 import com.fiskmods.quantify.parser.QtfParser;
 import com.fiskmods.quantify.parser.SyntaxParser;
+import org.jspecify.annotations.Nullable;
 import org.objectweb.asm.MethodVisitor;
 
 interface Assignment extends JvmFunction {
-    static SyntaxParser<Assignment> parser(Assignable target, boolean isDefinition) {
+    static SyntaxParser<Assignment> parser(final Assignable target, final boolean isDefinition) {
         return (parser, context) -> {
             // Empty definition
             if (!parser.hasNext(QtfParser.Boundary.LINE)) {
                 return new AbsoluteAssignment(target, null, null);
             }
 
-            Token assignment = parser.next(TokenClass.ASSIGNMENT);
-            Operator op = assignment.getAssignmentOperator(context, isDefinition);
+            final Token assignment = parser.next(TokenClass.ASSIGNMENT);
+            final Operator op = assignment.getAssignmentOperator(context, isDefinition);
 
-            Value value = parser.next(ExpressionParser.INSTANCE);
+            final Value value = parser.next(ExpressionParser.INSTANCE);
             if (op == Operator.LERP || op == Operator.LERP_ROT) {
-                return new LerpAssignment(target, value, context.scope().getLerpProgress(),
-                        op == Operator.LERP_ROT);
+                return new LerpAssignment(target, value, context.scope().getLerpProgress(), op == Operator.LERP_ROT);
             }
             return new AbsoluteAssignment(target, value, op);
         };
     }
 
-    static SyntaxParser<Assignment> parserFrom(String name, Namespace namespace) {
+    static SyntaxParser<Assignment> parserFrom(final String name, final Token.Range range, final Namespace namespace) {
         return (parser, context) -> {
-            VarAddress<?> firstVar = VariableParser.compute(name, namespace, VarType.NUM, 0);
+            final VarAddress<?> firstVar = VariableParser.compute(name, range, namespace, VarType.NUM, 0);
 
             if (parser.isNext(TokenClass.COMMA)) {
-                VariableList<?> list = parser.next(VariableList.parse(firstVar, 0));
+                final VariableList<?> list = parser.next(VariableList.parse(firstVar, 0));
                 return parser.next(parser(list, false));
             }
             return parser.next(parser(firstVar, false));
         };
     }
 
-    record AbsoluteAssignment(Assignable target, Value value, Operator op) implements Assignment {
+    record AbsoluteAssignment(Assignable target, @Nullable Value value, @Nullable Operator op) implements Assignment {
         @Override
-        public void apply(MethodVisitor mv) {
+        public void apply(final MethodVisitor mv) {
             if (value == null) {
                 target.init(mv);
             } else if (op != null) {
@@ -58,7 +58,7 @@ interface Assignment extends JvmFunction {
 
     record LerpAssignment(Assignable target, Value value, Value progress, boolean rotational) implements Assignment {
         @Override
-        public void apply(MethodVisitor mv) {
+        public void apply(final MethodVisitor mv) {
             target.lerp(mv, value, progress, rotational);
         }
     }

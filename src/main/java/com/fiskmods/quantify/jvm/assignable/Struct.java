@@ -2,7 +2,6 @@ package com.fiskmods.quantify.jvm.assignable;
 
 import com.fiskmods.quantify.exception.QtfErrors;
 import com.fiskmods.quantify.exception.QtfException;
-import com.fiskmods.quantify.exception.QtfParseException;
 import com.fiskmods.quantify.jvm.FunctionAddress;
 import com.fiskmods.quantify.jvm.JvmUtil;
 import com.fiskmods.quantify.jvm.VarAddress;
@@ -57,7 +56,7 @@ public abstract class Struct implements Namespace, Value, Assignable {
         return false;
     }
 
-    public void expand(String name) throws QtfParseException {
+    public void expand(String name) throws QtfException {
     }
 
     public static Struct create(int index) {
@@ -91,17 +90,13 @@ public abstract class Struct implements Namespace, Value, Assignable {
         }
 
         @Override
-        public void expand(String name) throws QtfParseException {
-            try {
-                Optional<MemberMap.Member<?>> member = members.find(name);
-                if (member.isEmpty()) {
-                    members.put(name, () -> new VarAddress.Impl<>(VarType.STRUCT, new Child(), false));
-                } else {
-                    member.get().cast(name, MemberType.VARIABLE)
-                            .value().typeCheck(name, VarType.STRUCT);
-                }
-            } catch (QtfException e) {
-                throw new QtfParseException(e);
+        public void expand(String name) throws QtfException {
+            Optional<MemberMap.Member<?>> member = members.find(name);
+            if (member.isEmpty()) {
+                members.put(name, () -> new VarAddress.Impl<>(VarType.STRUCT, new Child(), false));
+            } else {
+                member.get().cast(name, MemberType.VARIABLE)
+                        .value().typeCheck(name, VarType.STRUCT);
             }
         }
 

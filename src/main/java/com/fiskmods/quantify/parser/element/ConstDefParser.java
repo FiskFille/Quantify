@@ -1,5 +1,6 @@
 package com.fiskmods.quantify.parser.element;
 
+import com.fiskmods.quantify.exception.QtfException;
 import com.fiskmods.quantify.exception.QtfParseException;
 import com.fiskmods.quantify.jvm.JvmFunction;
 import com.fiskmods.quantify.lexer.token.Operator;
@@ -14,19 +15,26 @@ class ConstDefParser implements SyntaxParser<JvmFunction> {
     static final ConstDefParser INSTANCE = new ConstDefParser();
 
     @Override
-    public JvmFunction accept(QtfParser parser, SyntaxContext context) throws QtfParseException {
+    public JvmFunction accept(final QtfParser parser, final SyntaxContext context) throws QtfParseException {
         parser.clearPeekedToken();
-        String name = parser.next(TokenClass.IDENTIFIER).getString();
-        Token assignment = parser.next(TokenClass.ASSIGNMENT);
+        final Token identifier = parser.next(TokenClass.IDENTIFIER);
+        final Token assignment = parser.next(TokenClass.ASSIGNMENT);
 
         if (assignment.value() instanceof Operator) {
             throw QtfParseException.error("definitions can't use assignment operators", assignment.range());
         }
-        Value value = parser.next(ExpressionParser.INSTANCE);
-        if (value instanceof NumLiteral(double v)) {
-            context.addMember(name, MemberType.CONSTANT, v);
-            return null;
+
+        final Value value = parser.next(ExpressionParser.INSTANCE);
+        if (value instanceof NumLiteral(final double v)) {
+            final String name = identifier.getString();
+            try {
+                context.addMember(name, MemberType.CONSTANT, v);
+                return null;
+            } catch (final QtfException e) {
+                throw new QtfParseException(e, identifier.range());
+            }
         }
+
         throw QtfParseException.error("constants can't be assigned to variables or functions", assignment.range());
     }
 }

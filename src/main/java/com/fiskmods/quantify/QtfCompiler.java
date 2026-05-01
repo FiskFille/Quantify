@@ -73,7 +73,7 @@ public class QtfCompiler {
             if (QtfCompiler.DEBUG) {
                 e.printStackTrace();
             }
-            final int startIndex = e.getStartIndex(parser);
+            final int startIndex = e.getRange().startIndex();
             problems.report(e.getMessage(), startIndex, text, fileName);
         }
 

@@ -2,7 +2,6 @@ package com.fiskmods.quantify.parser;
 
 import com.fiskmods.quantify.QtfCompiler;
 import com.fiskmods.quantify.exception.QtfException;
-import com.fiskmods.quantify.exception.QtfParseException;
 import com.fiskmods.quantify.jvm.FunctionAddress;
 import com.fiskmods.quantify.jvm.JvmClassComposer;
 import com.fiskmods.quantify.jvm.JvmFunctionDefinition;
@@ -36,7 +35,7 @@ public class SyntaxContext implements ScopeProvider {
 
     private final QtfCompiler compiler;
 
-    public SyntaxContext(QtfCompiler compiler) {
+    public SyntaxContext(final QtfCompiler compiler) {
         this.compiler = compiler;
         currentScope.add(globalScope);
     }
@@ -60,7 +59,7 @@ public class SyntaxContext implements ScopeProvider {
     }
 
     @Override
-    public void push(Scope scope) {
+    public void push(final Scope scope) {
         currentScope.add(scope);
     }
 
@@ -71,42 +70,34 @@ public class SyntaxContext implements ScopeProvider {
         }
     }
 
-    public void addLibrary(String name, String key) throws QtfParseException {
-        QtfLibrary library = compiler.getLibrary(key);
+    public void addLibrary(final String name, final String key) throws QtfException {
+        final QtfLibrary library = compiler.getLibrary(key);
         if (library == null) {
-            throw new QtfParseException("Unknown library '%s'".formatted(key));
+            throw new QtfException("Unknown library '%s'".formatted(key));
         }
         addMember(name, MemberType.LIBRARY, library);
     }
 
-    public VarAddress<NumVar> addInputVariable(String name, int index) throws QtfParseException {
-        try {
-            VarAddress<NumVar> var = globalScope.members.put("in:" + name,
-                    () -> VarAddress.arrayAccess(INPUT_ID, index));
-            inputs.put(name, index);
-            return var;
-        } catch (QtfException e) {
-            throw new QtfParseException(e);
-        }
+    public VarAddress<NumVar> addInputVariable(final String name, final int index) throws QtfException {
+        final VarAddress<NumVar> var = globalScope.members.put("in:" + name,
+                () -> VarAddress.arrayAccess(INPUT_ID, index));
+        inputs.put(name, index);
+        return var;
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends Value & Assignable> VarAddress<T> addPublicVar(String name, VarType<T> type) throws QtfParseException {
-        try {
-            if (type == VarType.STRUCT) {
-                return (VarAddress<T>) scope().members.put(name, () -> VarAddress.create(VarType.STRUCT,
-                        Struct.create(name, OUTPUT_ID, outputIndex, outputs), false));
-            }
-            VarAddress<NumVar> var = globalScope.members.put(name,
-                    () -> VarAddress.arrayAccess(OUTPUT_ID, outputIndex.getAndIncrement()));
-            outputs.add(name);
-            return (VarAddress<T>) var;
-        } catch (QtfException e) {
-            throw new QtfParseException(e);
+    public <T extends Value & Assignable> VarAddress<T> addPublicVar(final String name, final VarType<T> type) throws QtfException {
+        if (type == VarType.STRUCT) {
+            return (VarAddress<T>) scope().members.put(name, () -> VarAddress.create(VarType.STRUCT,
+                    Struct.create(name, OUTPUT_ID, outputIndex, outputs), false));
         }
+        final VarAddress<NumVar> var = globalScope.members.put(name,
+                () -> VarAddress.arrayAccess(OUTPUT_ID, outputIndex.getAndIncrement()));
+        outputs.add(name);
+        return (VarAddress<T>) var;
     }
 
-    public int defineFunction(JvmFunctionDefinition definition) {
+    public int defineFunction(final JvmFunctionDefinition definition) {
         functionDefinitions.add(definition);
         return functionDefinitions.size() - 1;
     }
@@ -119,26 +110,26 @@ public class SyntaxContext implements ScopeProvider {
         return outputs;
     }
 
-    public JvmClassComposer createClassComposer(String className) {
+    public JvmClassComposer createClassComposer(final String className) {
         return functionDefinitions.stream()
                 .map(t -> t.define(className))
                 .reduce(JvmClassComposer.DO_NOTHING, JvmClassComposer::andThen);
     }
 
-    public QtfMemory createMemory(QtfListener listener) throws QtfParseException {
+    public QtfMemory createMemory(final QtfListener listener) throws QtfException {
         if (currentScope.size() > 1) {
-            throw new QtfParseException("Unbalanced stack: " + currentScope.size());
+            throw new QtfException("Unbalanced stack: " + currentScope.size());
         }
-        List<String> outputs = getOutputs();
-        QtfMemory memory = new QtfMemory(new double[outputs.size()]);
+
+        final List<String> outputs = getOutputs();
+        final QtfMemory memory = new QtfMemory(new double[outputs.size()]);
         listener.listen(Variable.resolve(this, memory), outputs::stream);
         return memory;
     }
 
     private class DefaultNamespace implements Namespace {
         @Override
-        public <T extends Value & Assignable> VarAddress<T> computeVariable(
-                VarType<T> type, String name, int modifiers) throws QtfException {
+        public <T extends Value & Assignable> VarAddress<T> computeVariable(final VarType<T> type, final String name, final int modifiers) throws QtfException {
             if ((modifiers & VarInfo.DEFINITION) != 0) {
                 return VarInfo.define(name, type, SyntaxContext.this, modifiers);
             }
@@ -147,27 +138,27 @@ public class SyntaxContext implements ScopeProvider {
         }
 
         @Override
-        public boolean hasVariable(String name) {
+        public boolean hasVariable(final String name) {
             return hasMember(name, MemberType.VARIABLE);
         }
 
         @Override
-        public FunctionAddress getFunction(String name) throws QtfException {
+        public FunctionAddress getFunction(final String name) throws QtfException {
             return getMember(name, MemberType.FUNCTION);
         }
 
         @Override
-        public boolean hasFunction(String name) {
+        public boolean hasFunction(final String name) {
             return hasMember(name, MemberType.FUNCTION);
         }
 
         @Override
-        public double getConstant(String name) throws QtfException {
+        public double getConstant(final String name) throws QtfException {
             return getMember(name, MemberType.CONSTANT);
         }
 
         @Override
-        public boolean hasConstant(String name) {
+        public boolean hasConstant(final String name) {
             return hasMember(name, MemberType.CONSTANT);
         }
     }
