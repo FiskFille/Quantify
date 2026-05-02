@@ -1,7 +1,7 @@
 package com.fiskmods.quantify.library;
 
 @SuppressWarnings("unused")
-public class QtfMath {
+public final class QtfMath {
     private static final String MATH = "java/lang/Math";
     private static final String QTF_MATH = "com/fiskmods/quantify/library/QtfMath";
 
@@ -18,6 +18,8 @@ public class QtfMath {
             .addFunction(MATH, "log1p", 1)
             .addFunction(MATH, "sqrt", 1)
             .addFunction(MATH, "cbrt", 1)
+            .addFunction(QTF_MATH, "square", 1)
+            .addFunction(QTF_MATH, "cube", 1)
             .addFunction(MATH, "signum", 1)
             .addFunction(MATH, "sinh", 1)
             .addFunction(MATH, "cosh", 1)
@@ -42,15 +44,25 @@ public class QtfMath {
             .addFunction(QTF_MATH, "lerpRot", 3)
     );
 
-    public static double logn(double base, double d) {
+    private QtfMath() {}
+
+    public static double square(final double x) {
+        return x * x;
+    }
+
+    public static double cube(final double x) {
+        return x * x * x;
+    }
+
+    public static double logn(final double base, final double d) {
         return Math.log(d) / Math.log(base);
     }
 
-    public static double root(double d, double num) {
+    public static double root(final double d, final double num) {
         return Math.pow(d, 1 / num);
     }
 
-    public static double clamp(double d, double min, double max) {
+    public static double clamp(final double d, final double min, final double max) {
         return Math.min(Math.max(d, min), max);
     }
 
@@ -74,11 +86,11 @@ public class QtfMath {
         return value;
     }
 
-    public static double lerp(double progress, double from, double to) {
+    public static double lerp(final double progress, final double from, final double to) {
         return from + progress * (to - from);
     }
 
-    public static double lerpRot(double progress, double from, double to) {
+    public static double lerpRot(final double progress, final double from, final double to) {
         return from + progress * wrapToPi(to - from);
     }
 }
