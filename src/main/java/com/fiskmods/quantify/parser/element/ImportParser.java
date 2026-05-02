@@ -5,6 +5,8 @@ import com.fiskmods.quantify.exception.QtfParseException;
 import com.fiskmods.quantify.jvm.JvmFunction;
 import com.fiskmods.quantify.lexer.token.Token;
 import com.fiskmods.quantify.lexer.token.TokenClass;
+import com.fiskmods.quantify.library.QtfLibrary;
+import com.fiskmods.quantify.member.MemberType;
 import com.fiskmods.quantify.parser.QtfParser;
 import com.fiskmods.quantify.parser.SyntaxContext;
 import com.fiskmods.quantify.parser.SyntaxParser;
@@ -22,7 +24,8 @@ class ImportParser implements SyntaxParser<JvmFunction> {
 
         final String name = parser.next(TokenClass.IDENTIFIER).getString();
         try {
-            context.addLibrary(name, key);
+            final QtfLibrary library = context.libraries().getLibrary(key);
+            context.addMember(name, MemberType.LIBRARY, library);
         } catch (final QtfException e) {
             throw new QtfParseException(e, token.range());
         }

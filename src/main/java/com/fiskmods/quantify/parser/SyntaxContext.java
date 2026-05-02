@@ -1,6 +1,6 @@
 package com.fiskmods.quantify.parser;
 
-import com.fiskmods.quantify.QtfCompiler;
+import com.fiskmods.quantify.library.LibraryMap;
 import com.fiskmods.quantify.exception.QtfException;
 import com.fiskmods.quantify.jvm.FunctionAddress;
 import com.fiskmods.quantify.jvm.JvmClassComposer;
@@ -10,10 +10,10 @@ import com.fiskmods.quantify.jvm.assignable.NumVar;
 import com.fiskmods.quantify.jvm.assignable.Struct;
 import com.fiskmods.quantify.jvm.assignable.VarInfo;
 import com.fiskmods.quantify.jvm.assignable.VarType;
-import com.fiskmods.quantify.library.QtfLibrary;
 import com.fiskmods.quantify.member.*;
 import com.fiskmods.quantify.parser.element.Assignable;
 import com.fiskmods.quantify.parser.element.Value;
+import org.jspecify.annotations.Nullable;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -33,11 +33,15 @@ public class SyntaxContext implements ScopeProvider {
     private final List<String> outputs = new ArrayList<>();
     private final AtomicInteger outputIndex = new AtomicInteger();
 
-    private final QtfCompiler compiler;
+    private final LibraryMap libraries;
 
-    public SyntaxContext(final QtfCompiler compiler) {
-        this.compiler = compiler;
+    public SyntaxContext(final LibraryMap libraries) {
+        this.libraries = libraries;
         currentScope.add(globalScope);
+    }
+
+    public LibraryMap libraries() {
+        return libraries;
     }
 
     public Namespace namespace() {
@@ -68,14 +72,6 @@ public class SyntaxContext implements ScopeProvider {
         if (currentScope.size() > 1) {
             currentScope.removeLast();
         }
-    }
-
-    public void addLibrary(final String name, final String key) throws QtfException {
-        final QtfLibrary library = compiler.getLibrary(key);
-        if (library == null) {
-            throw new QtfException("Unknown library '%s'".formatted(key));
-        }
-        addMember(name, MemberType.LIBRARY, library);
     }
 
     public VarAddress<NumVar> addInputVariable(final String name, final int index) throws QtfException {
@@ -116,14 +112,16 @@ public class SyntaxContext implements ScopeProvider {
                 .reduce(JvmClassComposer.DO_NOTHING, JvmClassComposer::andThen);
     }
 
-    public QtfMemory createMemory(final QtfListener listener) throws QtfException {
+    public QtfMemory createMemory(final @Nullable QtfListener listener) throws QtfException {
         if (currentScope.size() > 1) {
             throw new QtfException("Unbalanced stack: " + currentScope.size());
         }
 
         final List<String> outputs = getOutputs();
         final QtfMemory memory = new QtfMemory(new double[outputs.size()]);
-        listener.listen(Variable.resolve(this, memory), outputs::stream);
+        if (listener != null) {
+            listener.listen(Variable.resolve(this, memory), outputs::stream);
+        }
         return memory;
     }
 

@@ -9,7 +9,7 @@ import com.fiskmods.quantify.jvm.JvmRunnable;
 import com.fiskmods.quantify.lexer.QtfLexer;
 import com.fiskmods.quantify.lexer.TextScanner;
 import com.fiskmods.quantify.lexer.token.Token;
-import com.fiskmods.quantify.library.QtfLibrary;
+import com.fiskmods.quantify.library.LibraryMap;
 import com.fiskmods.quantify.member.QtfListener;
 import com.fiskmods.quantify.member.QtfMemory;
 import com.fiskmods.quantify.parser.QtfParser;
@@ -20,7 +20,9 @@ import org.jspecify.annotations.Nullable;
 import javax.tools.DiagnosticListener;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
@@ -28,7 +30,6 @@ public class QtfCompiler {
     public static final boolean DEBUG = Boolean.parseBoolean(System.getProperty("com.fiskmods.quantify.Debug", "false"));
 
     private final NameProvider nameProvider = new NameProvider("com/fiskmods/quantify/dynamic/Compiled");
-    private final Map<String, QtfLibrary> libraries = new HashMap<>();
 
     private final Supplier<DynamicClassLoader> classLoaderFactory;
     private @Nullable DynamicClassLoader classLoader;
@@ -41,29 +42,17 @@ public class QtfCompiler {
         this(DynamicClassLoader::new);
     }
 
-    public QtfCompiler addLibrary(final QtfLibrary library) {
-        libraries.put(library.key(), library);
-        return this;
-    }
-
-    public @Nullable QtfLibrary getLibrary(final String key) {
-        return libraries.get(key);
-    }
-
-    public int libraries() {
-        return libraries.size();
-    }
-
     public QtfScript compile(
             final QtfSourceFile sourceFile,
-            final QtfListener listener,
+            final LibraryMap libraries,
+            final @Nullable QtfListener listener,
             final @Nullable DiagnosticListener<QtfSourceFile> diagnostics) throws QtfCompilerException {
 
         final TextScanner scanner = readFile(sourceFile);
         final Logger logger = new LoggerImpl(sourceFile, scanner, new PrintWriter(System.err), diagnostics);
 
         try {
-            final SyntaxContext context = new SyntaxContext(this);
+            final SyntaxContext context = new SyntaxContext(libraries);
 
             final List<Token> tokens = tokenize(scanner, logger);
             final SyntaxTree syntaxTree = parse(tokens.iterator(), context, logger);
@@ -74,11 +63,7 @@ public class QtfCompiler {
         }
     }
 
-    public QtfScript compile(final QtfSourceFile sourceFile, final QtfListener listener) throws QtfCompilerException {
-        return compile(sourceFile, listener, null);
-    }
-
-    public QtfScript compile(final SyntaxTree tree, final SyntaxContext context, final QtfListener listener) throws QtfCompilerException {
+    public QtfScript compile(final SyntaxTree tree, final SyntaxContext context, final @Nullable QtfListener listener) throws QtfCompilerException {
         try {
             if (classLoader == null) {
                 classLoader = classLoaderFactory.get();

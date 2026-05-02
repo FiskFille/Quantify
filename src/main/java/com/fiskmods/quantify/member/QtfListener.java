@@ -5,8 +5,6 @@ import java.util.stream.Stream;
 
 @FunctionalInterface
 public interface QtfListener {
-    QtfListener IGNORE = (resolver, output) -> { };
-
     void listen(Resolver resolver, Output output);
 
     @FunctionalInterface
@@ -17,7 +15,7 @@ public interface QtfListener {
          */
         void subscribe(Variable var, String name);
 
-        default void subscribe(OutputTree tree, Output output) {
+        default void subscribe(final OutputTree tree, final Output output) {
             tree.resolve(this, output);
         }
     }
@@ -26,7 +24,7 @@ public interface QtfListener {
     interface Output {
         Stream<String> keys();
 
-        default Output filter(Predicate<String> predicate) {
+        default Output filter(final Predicate<String> predicate) {
             return () -> keys().filter(predicate);
         }
     }
