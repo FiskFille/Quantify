@@ -84,41 +84,33 @@ public class TextScanner {
         return result.match();
     }
 
+    public String text() {
+        return text;
+    }
+
+    public String substring(final int start, final int end) {
+        return text.substring(start, end);
+    }
+
     public Location getLocation() {
-        return location(text, scanIndex);
+        return getLocation(scanIndex);
     }
 
-    public Trace createTrace() {
-        return getLocation().createTrace(text);
-    }
-
-    public static Location location(final String text, final int index) {
+    public Location getLocation(final int index) {
         int start = 0;
         int line = 1;
         for (int i; (i = text.indexOf('\n', start, index)) != -1; line++) {
             start = i + 1;
         }
 
+        int end = text.indexOf('\n', index);
+        if (end < 0) {
+            end = text.length();
+        }
+
         final int column = index - start + 1;
-        return new Location(start, line, column);
+        return new Location(start, end, line, column);
     }
 
-    public record Location(int lineStart, int line, int column) {
-        public Trace createTrace(final String text) {
-            int lineEnd = text.indexOf('\n', lineStart + column - 1);
-            if (lineEnd < 0) {
-                lineEnd = text.length();
-            }
-
-            final String snippet = text.substring(lineStart, lineEnd);
-            return new Trace(snippet, this);
-        }
-    }
-
-    public record Trace(String snippet, Location location) {
-        public String formattedString(final int padding) {
-            final String tab = " ".repeat(padding);
-            return tab + snippet + '\n' + tab + " ".repeat(location.column - 1) + '^';
-        }
-    }
+    public record Location(int lineStart, int lineEnd, int line, int column) {}
 }

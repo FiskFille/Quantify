@@ -1,8 +1,6 @@
 package com.fiskmods.quantify.lexer;
 
-import com.fiskmods.quantify.ProblemReporter;
-import com.fiskmods.quantify.QtfCompiler;
-import com.fiskmods.quantify.exception.QtfCompilerException;
+import com.fiskmods.quantify.Logger;
 import com.fiskmods.quantify.exception.QtfLexerException;
 import com.fiskmods.quantify.lexer.token.Operator;
 import com.fiskmods.quantify.lexer.token.Token;
@@ -15,25 +13,17 @@ import static com.fiskmods.quantify.lexer.token.Operator.*;
 import static com.fiskmods.quantify.lexer.token.TokenClass.*;
 
 public class QtfLexer {
-    private final String fileName;
     private final TextScanner scanner;
-    private final ProblemReporter problems;
+    private final Logger logger;
 
-    public QtfLexer(final String fileName, final TextScanner scanner, final ProblemReporter problems) {
-        this.fileName = fileName;
+    public QtfLexer(final TextScanner scanner, final Logger logger) {
         this.scanner = scanner;
-        this.problems = problems;
+        this.logger = logger;
     }
 
-    public QtfLexer(final String fileName, final String text, final ProblemReporter problems) {
-        this(fileName, new TextScanner(text), problems);
-    }
-
-    public void read(final Consumer<Token> tokenConsumer) throws QtfCompilerException {
-        read(new TokenGenerator(scanner, tokenConsumer));
-    }
-
-    private void read(final TokenGenerator tokens) throws QtfCompilerException {
+    public boolean read(final Consumer<Token> tokenConsumer) {
+        final TokenGenerator tokens = new TokenGenerator(scanner, tokenConsumer);
+        boolean success = true;
         char c;
 
         while (scanner.hasNext()) {
@@ -50,16 +40,15 @@ public class QtfLexer {
                 if (readUnsafe(tokens, c)) {
                     continue;
                 }
-                problems.report("Unknown symbol '%s'".formatted(c), scanner, fileName);
+                logger.logError("Unknown symbol '%s'".formatted(c));
             } catch (final QtfLexerException e) {
-                if (QtfCompiler.DEBUG) {
-                    e.printStackTrace();
-                }
-                problems.report(e.getMessage(), scanner, fileName);
+                logger.logError(e.getMessage());
             }
 
             scanner.advance();
+            success = false;
         }
+        return success;
     }
 
     private boolean readUnsafe(final TokenGenerator tokens, final char c) throws QtfLexerException {

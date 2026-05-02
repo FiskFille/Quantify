@@ -7,6 +7,7 @@ import com.fiskmods.quantify.jvm.JvmClassComposer;
 import com.fiskmods.quantify.jvm.JvmCompiler;
 import com.fiskmods.quantify.jvm.JvmRunnable;
 import com.fiskmods.quantify.lexer.QtfLexer;
+import com.fiskmods.quantify.lexer.TextScanner;
 import com.fiskmods.quantify.lexer.token.Token;
 import com.fiskmods.quantify.library.QtfLibrary;
 import com.fiskmods.quantify.member.QtfListener;
@@ -16,10 +17,10 @@ import com.fiskmods.quantify.parser.SyntaxContext;
 import com.fiskmods.quantify.parser.SyntaxTree;
 import org.jspecify.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import javax.tools.DiagnosticListener;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
@@ -53,44 +54,26 @@ public class QtfCompiler {
         return libraries.size();
     }
 
-    public QtfScript compile(final String fileName, final String text, final QtfListener listener, final ProblemReporter problems) throws QtfCompilerException {
-        final List<Token> tokens = new ArrayList<>();
-        final QtfLexer lexer = new QtfLexer(fileName, text, problems);
-        lexer.read(tokens::add);
-        if (QtfCompiler.DEBUG) {
-            System.out.println(tokens);
-        }
+    public QtfScript compile(
+            final QtfSourceFile sourceFile,
+            final QtfListener listener,
+            final @Nullable DiagnosticListener<QtfSourceFile> diagnostics) throws QtfCompilerException {
 
-        problems.flush();
-
-        final SyntaxContext context = new SyntaxContext(this);
-        final SyntaxTree syntaxTree = new SyntaxTree(context);
-        final QtfParser parser = new QtfParser(tokens.iterator(), context);
+        final TextScanner scanner = readFile(sourceFile);
+        final Logger logger = new LoggerImpl(sourceFile, scanner, new PrintWriter(System.err), diagnostics);
 
         try {
-            parser.parse(syntaxTree, false);
-        } catch (final QtfParseException e) {
-            if (QtfCompiler.DEBUG) {
-                e.printStackTrace();
-            }
-            final int startIndex = e.getRange().startIndex();
-            problems.report(e.getMessage(), startIndex, text, fileName);
+            final List<Token> tokens = tokenize(scanner, logger);
+            final SyntaxTree syntaxTree = parse(tokens.iterator(), logger);
+
+            return compile(syntaxTree, listener);
+        } catch (final QtfCompilerException e) {
+            throw QtfCompilerException.attachSource(e, sourceFile);
         }
-
-        problems.flush();
-        return compile(syntaxTree, listener);
     }
 
-    public QtfScript compile(final String fileName, final String text, final QtfListener listener) throws QtfCompilerException {
-        return compile(fileName, text, listener, ProblemReporter.EARLY_EXIT);
-    }
-
-    public QtfScript compile(final String text, final QtfListener listener, final ProblemReporter problems) throws QtfCompilerException {
-        return compile("<unknown>", text, listener, problems);
-    }
-
-    public QtfScript compile(final String text, final QtfListener listener) throws QtfCompilerException {
-        return compile(text, listener, ProblemReporter.EARLY_EXIT);
+    public QtfScript compile(final QtfSourceFile sourceFile, final QtfListener listener) throws QtfCompilerException {
+        return compile(sourceFile, listener, null);
     }
 
     public QtfScript compile(final SyntaxTree tree, final QtfListener listener) throws QtfCompilerException {
@@ -105,6 +88,44 @@ public class QtfCompiler {
             return new QtfScript(runnable, memory, tree.context().getInputs());
         } catch (final Exception e) {
             throw new QtfCompilerException(e);
+        }
+    }
+
+    private TextScanner readFile(final QtfSourceFile sourceFile) throws QtfCompilerException {
+        try {
+            final String text = sourceFile.getCharContent(false).toString();
+            return new TextScanner(text);
+        } catch (final IOException e) {
+            throw new QtfCompilerException(e, sourceFile);
+        }
+    }
+
+    private List<Token> tokenize(final TextScanner scanner, final Logger logger) throws QtfCompilerException {
+        final List<Token> tokens = new ArrayList<>();
+
+        final QtfLexer lexer = new QtfLexer(scanner, logger);
+        if (lexer.read(tokens::add)) {
+            if (QtfCompiler.DEBUG) {
+                System.out.println(tokens);
+            }
+            return tokens;
+        }
+
+        throw new QtfCompilerException("Invalid source");
+    }
+
+    private SyntaxTree parse(final Iterator<Token> tokens, final Logger logger) throws QtfCompilerException {
+        try {
+            final SyntaxContext context = new SyntaxContext(this);
+            final SyntaxTree syntaxTree = new SyntaxTree(context);
+
+            final QtfParser parser = new QtfParser(tokens, context);
+            parser.parse(syntaxTree, false);
+
+            return syntaxTree;
+        } catch (final QtfParseException e) {
+            logger.logError(e.getMessage(), e.getRange().startIndex());
+            throw new QtfCompilerException("Syntax error");
         }
     }
 
