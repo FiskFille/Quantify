@@ -16,24 +16,23 @@ import java.util.function.UnaryOperator;
 record StatementBody(SyntaxTree tree) implements JvmFunction {
     static final StatementBodyParser PARSER = new StatementBodyParser(Scope::copy);
 
-    static StatementBodyParser parser(Namespace namespace) {
+    static StatementBodyParser parser(final Namespace namespace) {
         return new StatementBodyParser(t -> t.copy(namespace));
     }
 
     @Override
-    public void apply(MethodVisitor mv) {
-        tree.flatten().apply(mv);
+    public void apply(final MethodVisitor mv) {
+        tree.apply(mv);
     }
 
     record StatementBodyParser(UnaryOperator<Scope> scope) implements SyntaxParser<StatementBody> {
         @Override
-        public StatementBody accept(QtfParser parser, SyntaxContext context) throws QtfParseException {
+        public StatementBody accept(final QtfParser parser, final SyntaxContext context) throws QtfParseException {
             parser.next(TokenClass.OPEN_BRACES);
             context.push(scope);
 
-            SyntaxTree syntaxTree = new SyntaxTree(context);
             parser.clearPeekedToken();
-            parser.parse(syntaxTree, true);
+            final SyntaxTree syntaxTree = parser.parse(true);
 
             context.pop();
             parser.next(TokenClass.CLOSE_BRACES);

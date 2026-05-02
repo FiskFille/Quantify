@@ -19,10 +19,12 @@ public class QtfParser extends IteratorTokenStream {
         this.context = context;
     }
 
-    public void parse(final SyntaxTree syntaxTree, final boolean isEnclosed) throws QtfParseException {
+    public SyntaxTree parse(final boolean isEnclosed) throws QtfParseException {
+        final List<JvmFunction> elements = new ArrayList<>(64);
+
         while (hasNext()) {
             if (isEnclosed && peek().type() == TokenClass.CLOSE_BRACES) {
-                return;
+                break;
             }
             if (peek().type() == TokenClass.TERMINATOR) {
                 clearPeekedToken();
@@ -32,9 +34,11 @@ public class QtfParser extends IteratorTokenStream {
             final SyntaxParser<?> syntax = SyntaxSelector.selectSyntax(context, peek());
             final JvmFunction element = next(syntax);
             if (element != null) {
-                syntaxTree.elements().add(element);
+                elements.add(element);
             }
         }
+
+        return SyntaxTree.of(elements);
     }
 
     public void expectLineBreak() throws QtfParseException {

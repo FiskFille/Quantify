@@ -1,16 +1,26 @@
 package com.fiskmods.quantify.parser;
 
 import com.fiskmods.quantify.jvm.JvmFunction;
+import org.objectweb.asm.MethodVisitor;
 
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
-public record SyntaxTree(SyntaxContext context, List<JvmFunction> elements) {
-    public SyntaxTree(SyntaxContext context) {
-        this(context, new ArrayList<>());
+public final class SyntaxTree implements JvmFunction {
+    private final List<? extends JvmFunction> elements;
+
+    public SyntaxTree(final List<? extends JvmFunction> elements) {
+        this.elements = elements;
     }
 
-    public JvmFunction flatten() {
-        return mv -> elements.forEach(t -> t.apply(mv));
+    public static SyntaxTree of(final Collection<? extends JvmFunction> elements) {
+        return new SyntaxTree(List.copyOf(elements));
+    }
+
+    @Override
+    public void apply(final MethodVisitor mv) {
+        for (final JvmFunction function : elements) {
+            function.apply(mv);
+        }
     }
 }

@@ -63,10 +63,12 @@ public class QtfCompiler {
         final Logger logger = new LoggerImpl(sourceFile, scanner, new PrintWriter(System.err), diagnostics);
 
         try {
-            final List<Token> tokens = tokenize(scanner, logger);
-            final SyntaxTree syntaxTree = parse(tokens.iterator(), logger);
+            final SyntaxContext context = new SyntaxContext(this);
 
-            return compile(syntaxTree, listener);
+            final List<Token> tokens = tokenize(scanner, logger);
+            final SyntaxTree syntaxTree = parse(tokens.iterator(), context, logger);
+
+            return compile(syntaxTree, context, listener);
         } catch (final QtfCompilerException e) {
             throw QtfCompilerException.attachSource(e, sourceFile);
         }
@@ -76,16 +78,16 @@ public class QtfCompiler {
         return compile(sourceFile, listener, null);
     }
 
-    public QtfScript compile(final SyntaxTree tree, final QtfListener listener) throws QtfCompilerException {
+    public QtfScript compile(final SyntaxTree tree, final SyntaxContext context, final QtfListener listener) throws QtfCompilerException {
         try {
             if (classLoader == null) {
                 classLoader = classLoaderFactory.get();
             }
             final String className = nameProvider.next();
-            final QtfMemory memory = tree.context().createMemory(listener);
-            final JvmClassComposer composer = tree.context().createClassComposer(className);
-            final JvmRunnable runnable = JvmCompiler.compile(tree.flatten(), composer, className, classLoader);
-            return new QtfScript(runnable, memory, tree.context().getInputs());
+            final QtfMemory memory = context.createMemory(listener);
+            final JvmClassComposer composer = context.createClassComposer(className);
+            final JvmRunnable runnable = JvmCompiler.compile(tree, composer, className, classLoader);
+            return new QtfScript(runnable, memory, context.getInputs());
         } catch (final Exception e) {
             throw new QtfCompilerException(e);
         }
@@ -114,15 +116,10 @@ public class QtfCompiler {
         throw new QtfCompilerException("Invalid source");
     }
 
-    private SyntaxTree parse(final Iterator<Token> tokens, final Logger logger) throws QtfCompilerException {
+    private SyntaxTree parse(final Iterator<Token> tokens, final SyntaxContext context, final Logger logger) throws QtfCompilerException {
         try {
-            final SyntaxContext context = new SyntaxContext(this);
-            final SyntaxTree syntaxTree = new SyntaxTree(context);
-
             final QtfParser parser = new QtfParser(tokens, context);
-            parser.parse(syntaxTree, false);
-
-            return syntaxTree;
+            return parser.parse(false);
         } catch (final QtfParseException e) {
             logger.logError(e.getMessage(), e.getRange().startIndex());
             throw new QtfCompilerException("Syntax error");
