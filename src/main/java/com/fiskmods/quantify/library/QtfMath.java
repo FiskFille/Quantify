@@ -1,9 +1,14 @@
 package com.fiskmods.quantify.library;
 
+import com.fiskmods.quantify.jvm.FunctionAddress;
+
 @SuppressWarnings("unused")
 public final class QtfMath {
     private static final String MATH = "java/lang/Math";
     private static final String QTF_MATH = "com/fiskmods/quantify/library/QtfMath";
+
+    public static final FunctionAddress SQUARE = FunctionAddress.create(QTF_MATH, "square", 1);
+    public static final FunctionAddress CUBE = FunctionAddress.create(QTF_MATH, "cube", 1);
 
     public static final QtfLibrary LIBRARY = QtfLibrary.create("lang/Math", b -> b
             .addFunction(MATH, "sin", 1)
@@ -18,8 +23,8 @@ public final class QtfMath {
             .addFunction(MATH, "log1p", 1)
             .addFunction(MATH, "sqrt", 1)
             .addFunction(MATH, "cbrt", 1)
-            .addFunction(QTF_MATH, "square", 1)
-            .addFunction(QTF_MATH, "cube", 1)
+            .addFunction(SQUARE.name(), SQUARE)
+            .addFunction(CUBE.name(), CUBE)
             .addFunction(MATH, "signum", 1)
             .addFunction(MATH, "sinh", 1)
             .addFunction(MATH, "cosh", 1)

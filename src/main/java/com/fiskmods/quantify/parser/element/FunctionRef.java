@@ -15,6 +15,15 @@ import org.objectweb.asm.Opcodes;
 import java.util.List;
 
 record FunctionRef(FunctionAddress address, Value[] args, boolean hasResult) implements Value {
+
+    static FunctionRef call(final FunctionAddress address, final Value... args) {
+        return new FunctionRef(address, args, true);
+    }
+
+    static FunctionRef run(final FunctionAddress address, final Value... args) {
+        return new FunctionRef(address, args, false);
+    }
+
     static SyntaxParser<FunctionRef> parser(final FunctionAddress func, final boolean hasResult) {
         return new FunctionRefParser(func, hasResult);
     }

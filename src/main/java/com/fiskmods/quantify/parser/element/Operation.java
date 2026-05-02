@@ -1,21 +1,22 @@
 package com.fiskmods.quantify.parser.element;
 
 import com.fiskmods.quantify.lexer.token.Operator;
+import com.fiskmods.quantify.library.QtfMath;
 import org.objectweb.asm.MethodVisitor;
 
 record Operation(Value left, Value right, Operator op) implements Value {
     @Override
-    public void apply(MethodVisitor mv) {
+    public void apply(final MethodVisitor mv) {
         left.apply(mv);
         right.apply(mv);
         op.apply(mv);
     }
 
-    static Value wrap(Value left, Value right, Operator op) {
+    static Value wrap(final Value left, final Value right, final Operator op) {
         switch (op) {
             case MUL, AND -> {
                 // Any multiplication where one term is 0 or 1 is redundant
-                if (left instanceof NumLiteral(double value)) {
+                if (left instanceof NumLiteral(final double value)) {
                     if (value == 0) {
                         return left;
                     }
@@ -23,7 +24,7 @@ record Operation(Value left, Value right, Operator op) implements Value {
                         return right;
                     }
                 }
-                if (right instanceof NumLiteral(double value)) {
+                if (right instanceof NumLiteral(final double value)) {
                     if (value == 0) {
                         return right;
                     }
@@ -33,17 +34,26 @@ record Operation(Value left, Value right, Operator op) implements Value {
                 }
             }
             case DIV -> {
-                if (left instanceof NumLiteral(double value) && value == 0) {
+                if (left instanceof NumLiteral(final double value) && value == 0) {
                     // Any division where the dividend is 0 is redundant
                     return left;
                 }
-                if (right instanceof NumLiteral(double value) && value == 1) {
+                if (right instanceof NumLiteral(final double value) && value == 1) {
                     // Any division where the divisor is 1 is redundant
                     return left;
                 }
             }
+            case POW -> {
+                if (right instanceof NumLiteral(final double exponent)) {
+                    if (exponent == 1) return left; // x^y=x for y=1
+                    else if (!(left instanceof NumLiteral)) {
+                        if (exponent == 2) return FunctionRef.call(QtfMath.SQUARE, left);
+                        if (exponent == 3) return FunctionRef.call(QtfMath.CUBE, left);
+                    }
+                }
+            }
         }
-        if (left instanceof NumLiteral(double l) && right instanceof NumLiteral(double r)) {
+        if (left instanceof NumLiteral(final double l) && right instanceof NumLiteral(final double r)) {
             // Pre-compute literal arithmetic
             return new NumLiteral(op.applyAsDouble(l, r));
         }
