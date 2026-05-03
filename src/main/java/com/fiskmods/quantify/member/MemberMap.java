@@ -10,17 +10,18 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiConsumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class MemberMap {
     private final Map<String, Member<?>> members = new HashMap<>();
 
-    public void inherit(MemberMap other) {
+    public void inherit(final MemberMap other) {
         members.putAll(other.members);
     }
 
-    public void inheritAllExcept(MemberMap other, MemberType<?> exceptType) {
-        for (Map.Entry<String, Member<?>> e : other.members.entrySet()) {
+    public void inheritAllExcept(final MemberMap other, final MemberType<?> exceptType) {
+        for (final Map.Entry<String, Member<?>> e : other.members.entrySet()) {
             if (e.getValue().type() == exceptType) {
                 continue;
             }
@@ -28,77 +29,72 @@ public class MemberMap {
         }
     }
 
-    public void forEach(BiConsumer<String, Member<?>> action) {
+    public void forEach(final BiConsumer<String, Member<?>> action) {
         members.forEach(action);
     }
 
-    public Optional<Member<?>> find(String name) {
+    public Optional<Member<?>> find(final String name) {
         return Optional.ofNullable(members.get(name));
     }
 
-    public boolean has(String name) {
+    public boolean has(final String name) {
         return find(name).isPresent();
     }
 
-    @SuppressWarnings("unchecked")
-    public <T> Optional<T> find(String name, MemberType<T> expectedType) {
-        Member<?> member = members.get(name);
-        return member != null && member.type() == expectedType ?
-                (Optional<T>) Optional.of(member.value()) : Optional.empty();
+    public <T> Optional<T> find(final String name, final MemberType<T> expectedType) {
+        return find(name).filter(expectedType)
+                .map(member -> member.<T>uncheckedCast().value);
     }
 
-    public boolean has(String name, MemberType<?> expectedType) {
-        return find(name, expectedType).isPresent();
+    public boolean has(final String name, final MemberType<?> expectedType) {
+        return find(name).filter(expectedType).isPresent();
     }
 
-    public void nameCheck(String name) throws QtfException {
+    public void nameCheck(final String name) throws QtfException {
         if (members.containsKey(name)) {
             throw new QtfException("Duplicate member '%s'".formatted(name));
         }
     }
 
-    public <T> void put(String name, MemberType<T> type, T value) throws QtfException {
+    public <T> void put(final String name, final MemberType<T> type, final T value) throws QtfException {
         nameCheck(name);
-        Member<T> member = new Member<>(type, value);
-        members.put(name, member);
+        members.put(name, new Member<>(type, value));
     }
 
-    public <T> T put(String name, MemberType<T> type, Supplier<T> valueSupplier) throws QtfException {
+    public <T extends Value & Assignable> VarAddress<T> putVariable(final String name, final Function<String, VarAddress<T>> address) throws QtfException {
         nameCheck(name);
-        T value = valueSupplier.get();
-        Member<T> member = new Member<>(type, value);
-        members.put(name, member);
+        final VarAddress<T> value = address.apply(name);
+        members.put(name, new Member<>(MemberType.VARIABLE, value));
         return value;
     }
 
-    @SuppressWarnings("unchecked")
-    public <T extends Value & Assignable> VarAddress<T> put(String name, Supplier<VarAddress<T>> valueSupplier)
-            throws QtfException {
-        return (VarAddress<T>) this.<VarAddress<?>> put(name, MemberType.VARIABLE, valueSupplier::get);
+    public <T extends Value & Assignable> VarAddress<T> putVariable(final String name, final Supplier<VarAddress<T>> address) throws QtfException {
+        return putVariable(name, ignored -> address.get());
     }
 
-    @SuppressWarnings("unchecked")
-    public <T> T get(String name, MemberType<T> expectedType) throws QtfException {
-        Member<?> foundMember = members.get(name);
+    public <T extends Value & Assignable> VarAddress<T> putVariable(final String name, final VarAddress<T> address) throws QtfException {
+        return putVariable(name, () -> address);
+    }
+
+    public <T> T get(final String name, final MemberType<T> expectedType) throws QtfException {
+        final Member<?> foundMember = members.get(name);
         if (foundMember == null) {
             throw QtfErrors.undefined(expectedType, name);
         }
-        foundMember.typeCheck(name, expectedType);
-        return (T) foundMember.value();
+        return foundMember.cast(name, expectedType).value;
     }
 
     public record Member<T>(MemberType<T> type, T value) {
-        public void typeCheck(String name, MemberType<?> expectedType) throws QtfException {
+        public <R> Member<R> cast(final String name, final MemberType<R> expectedType) throws QtfException {
             if (type != expectedType) {
-                throw new QtfException("Expected '%s' to be a %s, was %s"
-                        .formatted(name, expectedType.name(), type.name()));
+                throw new QtfException("Expected '%s' to be a %s, was %s".formatted(name, expectedType.name(), type.name()));
             }
+            return uncheckedCast();
         }
 
         @SuppressWarnings("unchecked")
-        public <U> Member<U> cast(String name, MemberType<U> expectedType) throws QtfException {
-            typeCheck(name, expectedType);
-            return (Member<U>) this;
+        private  <R> Member<R> uncheckedCast() {
+            return (Member<R>) this;
         }
     }
 }

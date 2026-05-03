@@ -18,7 +18,7 @@ import com.fiskmods.quantify.parser.element.Assignable;
 import com.fiskmods.quantify.parser.element.Value;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.ToIntFunction;
 import java.util.stream.Collectors;
 
 public class SyntaxContext implements ScopeProvider {
@@ -33,8 +33,7 @@ public class SyntaxContext implements ScopeProvider {
     private final Map<String, Integer> inputs = new HashMap<>();
     private final List<JvmFunctionDefinition> functionDefinitions = new ArrayList<>();
 
-    private final List<String> outputs = new ArrayList<>();
-    private final AtomicInteger outputIndex = new AtomicInteger();
+    private final Outputs outputs = new Outputs();
 
     private final LibraryMap libraries;
 
@@ -83,22 +82,20 @@ public class SyntaxContext implements ScopeProvider {
     }
 
     public VarAddress<NumVar> addInputVariable(final String name, final int index) throws QtfException {
-        final VarAddress<NumVar> var = globalScope.members.put("in:" + name,
-                () -> VarAddress.arrayAccess(INPUT_ID, index));
-        inputs.put(name, index);
-        return var;
+        return globalScope.members.putVariable("in:" + name, () -> {
+            final VarAddress<NumVar> var = VarAddress.arrayAccess(INPUT_ID, index);
+            inputs.put(name, index);
+            return var;
+        });
     }
 
     @SuppressWarnings("unchecked")
     public <T extends Value & Assignable> VarAddress<T> addPublicVar(final String name, final VarType<T> type) throws QtfException {
         if (type == VarType.STRUCT) {
-            return (VarAddress<T>) scope().members.put(name, () -> VarAddress.create(VarType.STRUCT,
-                    Struct.create(name, OUTPUT_ID, outputIndex, outputs), false));
+            return (VarAddress<T>) globalScope.members.putVariable(name, Struct.create(OUTPUT_ID, outputs::size, outputs.storePrefixed(name)));
+        } else {
+            return (VarAddress<T>) globalScope.members.putVariable(name, VarAddress.arrayAccess(OUTPUT_ID, outputs::store));
         }
-        final VarAddress<NumVar> var = globalScope.members.put(name,
-                () -> VarAddress.arrayAccess(OUTPUT_ID, outputIndex.getAndIncrement()));
-        outputs.add(name);
-        return (VarAddress<T>) var;
     }
 
     public int defineFunction(final JvmFunctionDefinition definition) {
@@ -162,6 +159,17 @@ public class SyntaxContext implements ScopeProvider {
         @Override
         public boolean hasConstant(final String name) {
             return hasMember(name, MemberType.CONSTANT);
+        }
+    }
+
+    private static class Outputs extends ArrayList<String> {
+        public int store(final String name) {
+            add(name);
+            return size() - 1;
+        }
+
+        public ToIntFunction<String> storePrefixed(final String prefix) {
+            return name -> store(prefix + '.' + name);
         }
     }
 }

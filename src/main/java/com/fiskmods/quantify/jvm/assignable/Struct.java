@@ -13,87 +13,91 @@ import com.fiskmods.quantify.parser.element.Assignable;
 import com.fiskmods.quantify.parser.element.Value;
 import org.objectweb.asm.MethodVisitor;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.IntSupplier;
+import java.util.function.ToIntFunction;
 
 import static org.objectweb.asm.Opcodes.*;
 
-public abstract class Struct implements Namespace, Value, Assignable {
+public interface Struct extends Namespace, Value, Assignable {
     @Override
-    public void apply(MethodVisitor mv) {
+    default void apply(final MethodVisitor mv) {
     }
 
     @Override
-    public void set(MethodVisitor mv, Value value) {
+    default void set(final MethodVisitor mv, final Value value) {
     }
 
     @Override
-    public void modify(MethodVisitor mv, Value value, Operator op) {
+    default void modify(final MethodVisitor mv, final Value value, final Operator op) {
     }
 
     @Override
-    public void lerp(MethodVisitor mv, Value value, Value progress, boolean rotational) {
+    default void lerp(final MethodVisitor mv, final Value value, final Value progress, final boolean rotational) {
     }
 
     @Override
-    public FunctionAddress getFunction(String name) throws QtfException {
+    default FunctionAddress getFunction(final String name) throws QtfException {
         throw QtfErrors.undefined(MemberType.FUNCTION, name);
     }
 
     @Override
-    public boolean hasFunction(String name) {
+    default boolean hasFunction(final String name) {
         return false;
     }
 
     @Override
-    public double getConstant(String name) {
+    default double getConstant(final String name) {
         return 0;
     }
 
     @Override
-    public boolean hasConstant(String name) {
+    default boolean hasConstant(final String name) {
         return false;
     }
 
-    public void expand(String name) throws QtfException {
+    default void expand(final String name) throws QtfException {
     }
 
-    public static Struct create(int index) {
-        return new RootStruct(index, new AtomicInteger());
+    static VarAddress<Struct> create(final int index, final IntSupplier arraySize, final ToIntFunction<String> arrayStore) {
+        final Struct struct = new StructImpl(index, arraySize, arrayStore);
+        return VarAddress.create(VarType.STRUCT, struct, false);
     }
 
-    public static Struct create(String name, int index, AtomicInteger localIndex, List<String> outputs) {
-        return new PublicStruct(name, index, localIndex, outputs);
+    static VarAddress<Struct> create(final int index) {
+        final AtomicInteger i = new AtomicInteger();
+        final Struct struct = new StructImpl(index, i::get, ignored -> i.getAndIncrement());
+
+        return VarAddress.create(VarType.STRUCT, struct, false);
     }
 
-    public static VarAddress<Struct> createVar(int index) {
-        return VarAddress.create(VarType.STRUCT, create(index), false);
-    }
-
-    private static class RootStruct extends Struct {
+    class StructImpl implements Struct {
         private final MemberMap members = new MemberMap();
         private final int index;
 
-        private final AtomicInteger localIndex;
+        private final IntSupplier arraySize;
+        private final ToIntFunction<String> arrayStore;
 
-        public RootStruct(int index, AtomicInteger localIndex) {
+        private StructImpl(final int index, final IntSupplier arraySize, final ToIntFunction<String> arrayStore) {
             this.index = index;
-            this.localIndex = localIndex;
+            this.arraySize = arraySize;
+            this.arrayStore = arrayStore;
         }
 
         @Override
-        public void init(MethodVisitor mv) {
-            JvmUtil.iconst(mv, localIndex.get());
+        public void init(final MethodVisitor mv) {
+            final int capacity = arraySize.getAsInt();
+            JvmUtil.iconst(mv, capacity);
             mv.visitIntInsn(NEWARRAY, T_DOUBLE);
             mv.visitVarInsn(ASTORE, index);
         }
 
         @Override
-        public void expand(String name) throws QtfException {
-            Optional<MemberMap.Member<?>> member = members.find(name);
+        public void expand(final String name) throws QtfException {
+            final Optional<MemberMap.Member<?>> member = members.find(name);
             if (member.isEmpty()) {
-                members.put(name, () -> new VarAddress.Impl<>(VarType.STRUCT, new Child(), false));
+                members.putVariable(name, VarAddress.create(VarType.STRUCT, new Child(), false));
             } else {
                 member.get().cast(name, MemberType.VARIABLE)
                         .value().typeCheck(name, VarType.STRUCT);
@@ -102,67 +106,37 @@ public abstract class Struct implements Namespace, Value, Assignable {
 
         @Override
         @SuppressWarnings("unchecked")
-        public <T extends Value & Assignable> VarAddress<T> computeVariable(
-                VarType<T> type, String name, int modifiers) throws QtfException {
-
+        public <T extends Value & Assignable> VarAddress<T> computeVariable(final VarType<T> type, final String name, final int modifiers) throws QtfException {
             if (type == null || members.has(name)) {
-                return members.get(name, MemberType.VARIABLE)
-                        .cast(name, type);
+                return members.get(name, MemberType.VARIABLE).cast(name, type);
             }
 
-            VarAddress<T> var;
             if (type == VarType.STRUCT) {
-                var = (VarAddress<T>) members.put(name,
-                        () -> VarAddress.create(VarType.STRUCT, new Child(), false));
+                return (VarAddress<T>) members.putVariable(name, VarAddress.create(VarType.STRUCT, new Child(), false));
             } else {
-                var = (VarAddress<T>) members.put(name,
-                        () -> VarAddress.arrayAccess(index, localIndex.getAndIncrement()));
+                return (VarAddress<T>) members.putVariable(name, VarAddress.arrayAccess(index, arrayStore));
             }
-            onVariableAdded(name, var);
-            return var;
-        }
-
-        public <T extends Value & Assignable> void onVariableAdded(String name, VarAddress<T> var) {
         }
 
         @Override
-        public boolean hasVariable(String name) {
-            Optional<MemberMap.Member<?>> member = members.find(name);
-            return member.isEmpty() || member.get().type() == MemberType.VARIABLE;
+        public boolean hasVariable(final String name) {
+            return members.find(name).map(MemberType.VARIABLE::test)
+                    .orElse(true);
         }
 
-        private static class Child extends Struct {
+        private static class Child implements Struct {
             @Override
-            public void init(MethodVisitor mv) {
+            public void init(final MethodVisitor mv) {
             }
 
             @Override
-            public <T extends Value & Assignable> VarAddress<T> computeVariable(
-                    VarType<T> type, String name, int modifiers) {
-                return null;
+            public <T extends Value & Assignable> VarAddress<T> computeVariable(final VarType<T> type, final String name, final int modifiers) throws QtfException {
+                throw QtfErrors.undefined(MemberType.VARIABLE, name);
             }
 
             @Override
-            public boolean hasVariable(String name) {
+            public boolean hasVariable(final String name) {
                 return false;
-            }
-        }
-    }
-
-    private static class PublicStruct extends RootStruct {
-        private final String rootName;
-        private final List<String> outputs;
-
-        public PublicStruct(String name, int index, AtomicInteger localIndex, List<String> outputs) {
-            super(index, localIndex);
-            this.rootName = name;
-            this.outputs = outputs;
-        }
-
-        @Override
-        public <T extends Value & Assignable> void onVariableAdded(String name, VarAddress<T> var) {
-            if (var.type() == VarType.NUM) {
-                outputs.add(rootName + '.' + name);
             }
         }
     }

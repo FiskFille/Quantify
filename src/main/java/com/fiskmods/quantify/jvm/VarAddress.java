@@ -8,6 +8,9 @@ import com.fiskmods.quantify.parser.element.Assignable;
 import com.fiskmods.quantify.parser.element.Value;
 import org.objectweb.asm.MethodVisitor;
 
+import java.util.function.Function;
+import java.util.function.ToIntFunction;
+
 public interface VarAddress<T extends Value & Assignable> extends Value, Assignable {
     VarType<T> type();
 
@@ -77,6 +80,10 @@ public interface VarAddress<T extends Value & Assignable> extends Value, Assigna
 
     static VarAddress<NumVar> arrayAccess(final int id, final int arrayIndex) {
         return new Impl<>(VarType.NUM, new NumVar.ArrayAccess(id, arrayIndex), false);
+    }
+
+    static <T> Function<T, VarAddress<NumVar>> arrayAccess(final int id, final ToIntFunction<T> arrayIndex) {
+        return t -> arrayAccess(id, arrayIndex.applyAsInt(t));
     }
 
     record Impl<T extends Value & Assignable>(VarType<T> type, T access, boolean isNegated) implements VarAddress<T> {

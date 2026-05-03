@@ -19,13 +19,13 @@ public class Scope {
 
     protected int localIndexOffset = 3;
 
-    public Scope(Namespace namespace, int level) {
+    public Scope(final Namespace namespace, final int level) {
         this.namespace = namespace;
         this.level = level;
     }
 
-    public Scope copy(Namespace namespace) {
-        Scope scope = new Scope(namespace, level + 1);
+    public Scope copy(final Namespace namespace) {
+        final Scope scope = new Scope(namespace, level + 1);
         scope.lerpProgress = lerpProgress;
         scope.localIndexOffset = localIndexOffset;
         scope.members.inherit(members);
@@ -36,7 +36,7 @@ public class Scope {
         return copy(namespace);
     }
 
-    public void setNamespace(Namespace namespace) {
+    public void setNamespace(final Namespace namespace) {
         this.namespace = namespace;
     }
 
@@ -44,7 +44,7 @@ public class Scope {
         return namespace;
     }
 
-    public void setLerpProgress(Value lerpProgress) {
+    public void setLerpProgress(final Value lerpProgress) {
         this.lerpProgress = lerpProgress;
     }
 
@@ -56,20 +56,19 @@ public class Scope {
         return level > 0;
     }
 
-    public <T extends Value & Assignable> VarAddress<T> addLocalVariable(
-            String name, VarType<T> type, IntFunction<VarAddress<T>> supplier) throws QtfException {
-        return members.put(name, () -> {
-            VarAddress<T> var = supplier.apply(localIndexOffset);
+    public <T extends Value & Assignable> VarAddress<T> addLocalVariable(final String name, final VarType<T> type, final IntFunction<VarAddress<T>> supplier) throws QtfException {
+        return members.putVariable(name, () -> {
+            final VarAddress<T> var = supplier.apply(localIndexOffset);
             localIndexOffset += type.size();
             return var;
         });
     }
 
-    public VarAddress<NumVar> addLocalVariable(String name) throws QtfException {
+    public VarAddress<NumVar> addLocalVariable(final String name) throws QtfException {
         return addLocalVariable(name, VarType.NUM, VarAddress::local);
     }
 
-    public VarAddress<Struct> addStruct(String name) throws QtfException {
-        return addLocalVariable(name, VarType.STRUCT, Struct::createVar);
+    public VarAddress<Struct> addStruct(final String name) throws QtfException {
+        return addLocalVariable(name, VarType.STRUCT, Struct::create);
     }
 }

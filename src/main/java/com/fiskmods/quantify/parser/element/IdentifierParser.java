@@ -92,6 +92,7 @@ class IdentifierParser {
 
     private static <T extends JvmFunction> T parseStruct(final QtfParser parser, final Struct struct, Token child, Token.Range range, final ParserSupplier<T> nextParser) throws QtfParseException {
         final StringBuilder name = new StringBuilder(child.getString());
+        final Token.Range firstRange = child.range();
 
         while (parser.isNext(TokenClass.DOT)) {
             parser.clearPeekedToken();
@@ -101,7 +102,7 @@ class IdentifierParser {
             try {
                 struct.expand(name.toString());
             } catch (final QtfException e) {
-                throw new QtfParseException(e, range.union(child.range()));
+                throw new QtfParseException(e, firstRange);
             }
 
             name.append('.').append(childName);
