@@ -1,7 +1,6 @@
 package com.fiskmods.quantify.member;
 
 import com.fiskmods.quantify.exception.QtfException;
-import com.fiskmods.quantify.parser.SyntaxContext;
 
 public class FunctionScope extends Scope {
     private final String[] parameters;
@@ -13,12 +12,11 @@ public class FunctionScope extends Scope {
         this.parameters = parameters;
     }
 
-    public static FunctionScope create(final SyntaxContext context, final String[] parameters) throws QtfException {
-        final Scope prevScope = context.scope();
-        final FunctionScope scope = new FunctionScope(prevScope.namespace, parameters, 0);
-        scope.lerpProgress = prevScope.lerpProgress;
+    public static FunctionScope create(final Scope inScope, final String[] parameters) throws QtfException {
+        final FunctionScope scope = new FunctionScope(inScope.namespace, parameters, 0);
+        scope.lerpProgress = inScope.lerpProgress;
         scope.localIndexOffset = 0;
-        scope.members.inheritAllExcept(prevScope.members, MemberType.VARIABLE);
+        scope.members.inheritAllExcept(inScope.members, MemberType.VARIABLE);
 
         for (final String param : parameters) {
             scope.addLocalVariable(param);

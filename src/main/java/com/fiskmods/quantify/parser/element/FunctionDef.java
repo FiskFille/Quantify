@@ -10,6 +10,7 @@ import com.fiskmods.quantify.lexer.token.Token;
 import com.fiskmods.quantify.lexer.token.TokenClass;
 import com.fiskmods.quantify.member.FunctionScope;
 import com.fiskmods.quantify.member.MemberType;
+import com.fiskmods.quantify.member.Scope;
 import com.fiskmods.quantify.parser.QtfParser;
 import com.fiskmods.quantify.parser.SyntaxContext;
 import com.fiskmods.quantify.parser.SyntaxParser;
@@ -20,7 +21,7 @@ import java.util.Set;
 
 import static org.objectweb.asm.Opcodes.*;
 
-record FunctionDef(String name, DefinedFunctionAddress address, JvmFunction body, ReturnValueType returnValue)
+record FunctionDef(String name, boolean isVisible, DefinedFunctionAddress address, JvmFunction body, ReturnValueType returnValue)
         implements JvmFunctionDefinition {
     static final SyntaxParser<JvmFunction> PARSER = new FunctionDefParser();
 
@@ -42,6 +43,10 @@ record FunctionDef(String name, DefinedFunctionAddress address, JvmFunction body
         };
     }
 
+    private static String createName(final String name, final int index) {
+        return "$" + index + "_" + name;
+    }
+
     private static class FunctionDefParser implements SyntaxParser<JvmFunction> {
         @Override
         public JvmFunction accept(final QtfParser parser, final SyntaxContext context) throws QtfParseException {
@@ -59,12 +64,13 @@ record FunctionDef(String name, DefinedFunctionAddress address, JvmFunction body
 
             parser.next(TokenClass.OPEN_PARENTHESIS);
             final String[] parameters = parseParameters(parser);
+            final Scope parentScope = context.scope();
             final FunctionScope scope;
             final JvmFunction body;
             final ReturnValueType returnValue;
 
             try {
-                scope = FunctionScope.create(context, parameters);
+                scope = FunctionScope.create(parentScope, parameters);
             } catch (final QtfException e) {
                 throw new QtfParseException(e, identifier.range());
             }
@@ -87,8 +93,9 @@ record FunctionDef(String name, DefinedFunctionAddress address, JvmFunction body
                 returnValue = scope.hasReturnValue() ? ReturnValueType.EXPLICIT : ReturnValueType.MISSING;
             }
 
-            final int index = context.defineFunction(new FunctionDef(name, address, body, returnValue));
-            address.name = "f" + index + "_" + name;
+            final boolean isVisible = !parentScope.isInnerScope();
+            final int index = context.defineFunction(new FunctionDef(name, isVisible, address, body, returnValue));
+            address.name = createName(name, index);
             return null;
         }
 

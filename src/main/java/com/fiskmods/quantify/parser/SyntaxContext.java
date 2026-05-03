@@ -108,6 +108,7 @@ public class SyntaxContext implements ScopeProvider {
 
     public Map<String, FunctionAddress> getFunctions() {
         return functionDefinitions.stream()
+                .filter(JvmFunctionDefinition::isVisible)
                 .collect(Collectors.toMap(
                         JvmFunctionDefinition::name,
                         JvmFunctionDefinition::address
