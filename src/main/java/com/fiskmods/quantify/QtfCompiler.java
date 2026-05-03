@@ -50,7 +50,12 @@ public class QtfCompiler {
             final List<Token> tokens = tokenize(scanner, logger);
             final SyntaxTree syntaxTree = parse(tokens.iterator(), context, logger);
 
-            return classCompiler.compile(syntaxTree, context);
+            final Class<?> c = classCompiler.compile(syntaxTree, context::createClassComposer);
+            return new QtfCompilationUnit(c,
+                    context.getInputs(),
+                    context.getOutputs(),
+                    context.getFunctions()
+            );
         } catch (final QtfCompilerException e) {
             throw QtfCompilerException.attachSource(e, sourceFile);
         }

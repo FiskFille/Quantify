@@ -16,6 +16,7 @@ import com.fiskmods.quantify.member.Scope;
 import com.fiskmods.quantify.member.ScopeProvider;
 import com.fiskmods.quantify.parser.element.Assignable;
 import com.fiskmods.quantify.parser.element.Value;
+import com.fiskmods.quantify.util.IndexMap;
 
 import java.util.*;
 import java.util.function.ToIntFunction;
@@ -112,12 +113,12 @@ public class SyntaxContext implements ScopeProvider {
                 ));
     }
 
-    public Map<String, Integer> getInputs() {
-        return inputs;
+    public IndexMap<String> getInputs() {
+        return IndexMap.of(Collections.unmodifiableMap(inputs));
     }
 
-    public List<String> getOutputs() {
-        return outputs;
+    public IndexMap<String> getOutputs() {
+        return IndexMap.of(Collections.unmodifiableList(outputs));
     }
 
     public JvmClassComposer createClassComposer(final String className) {

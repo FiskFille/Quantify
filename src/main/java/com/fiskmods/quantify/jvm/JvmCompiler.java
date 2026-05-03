@@ -1,8 +1,6 @@
 package com.fiskmods.quantify.jvm;
 
-import com.fiskmods.quantify.QtfCompilationUnit;
 import com.fiskmods.quantify.QtfCompiler;
-import com.fiskmods.quantify.parser.SyntaxContext;
 import org.jspecify.annotations.Nullable;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
@@ -15,6 +13,7 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static org.objectweb.asm.Opcodes.*;
@@ -35,23 +34,17 @@ public class JvmCompiler {
         this.nextName = nextName;
     }
 
-    public QtfCompilationUnit compile(final JvmFunction function, final SyntaxContext context) {
+    public Class<?> compile(final JvmFunction function, final Function<String, JvmClassComposer> composer) {
         final String className = nextName.get();
         final String binaryName = className.replace('/', '.');
 
-        final JvmClassComposer composer = context.createClassComposer(className);
-
-        final byte[] bytes = writeClass(className, function, composer);
+        final byte[] bytes = writeClass(className, function, composer.apply(className));
         final Class<?> c = classLoader.defineClass(binaryName, bytes);
 
         if (QtfCompiler.DEBUG) {
             writeClassFile(c, bytes);
         }
-        return new QtfCompilationUnit(c,
-                context.getInputs(),
-                context.getOutputs(),
-                context.getFunctions()
-        );
+        return c;
     }
 
     private byte[] writeClass(final String className, final JvmFunction function, final JvmClassComposer composer) {

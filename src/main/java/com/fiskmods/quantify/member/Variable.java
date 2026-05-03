@@ -1,8 +1,7 @@
 package com.fiskmods.quantify.member;
 
 import com.fiskmods.quantify.jvm.JvmRunnable;
-
-import java.util.List;
+import com.fiskmods.quantify.util.IndexMap;
 
 public class Variable implements VarReference {
     private VarReference reference = VarReference.EMPTY;
@@ -29,7 +28,7 @@ public class Variable implements VarReference {
         return reference.isEmpty();
     }
 
-    public static QtfListener.Resolver resolve(final List<String> outputs, final JvmRunnable runnable) {
-        return (var, name) -> var.reference = runnable.resolve(outputs.indexOf(name));
+    public static QtfListener.Resolver resolve(final IndexMap<String> outputs, final JvmRunnable runnable) {
+        return (var, name) -> var.reference = runnable.resolve(outputs.get(name));
     }
 }
