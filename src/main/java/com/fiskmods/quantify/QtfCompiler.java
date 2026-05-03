@@ -111,15 +111,6 @@ public class QtfCompiler {
         }
     }
 
-    /**
-     * Triggers garbage collection on the ClassLoader so that any scripts
-     * loaded from it can be released from memory.
-     */
-    public void flush() {
-        classLoader = null;
-        System.gc();
-    }
-
     private record NameProvider(String path, AtomicInteger id) {
         public NameProvider(final String path) {
             this(path, new AtomicInteger());
