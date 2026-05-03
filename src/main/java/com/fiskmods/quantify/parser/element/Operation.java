@@ -1,5 +1,6 @@
 package com.fiskmods.quantify.parser.element;
 
+import com.fiskmods.quantify.jvm.VarAddress;
 import com.fiskmods.quantify.lexer.token.Operator;
 import com.fiskmods.quantify.library.QtfMath;
 import org.objectweb.asm.MethodVisitor;
@@ -46,7 +47,10 @@ record Operation(Value left, Value right, Operator op) implements Value {
             case POW -> {
                 if (right instanceof NumLiteral(final double exponent)) {
                     if (exponent == 1) return left; // x^y=x for y=1
-                    else if (!(left instanceof NumLiteral)) {
+                    else if (VarAddress.isVar(left)) {
+                        if (exponent == 2) return wrap(left, left, Operator.MUL);
+                        if (exponent == 3) return wrap(left, wrap(left, left, Operator.MUL), Operator.MUL);
+                    } else if (!(left instanceof NumLiteral)) {
                         if (exponent == 2) return FunctionRef.call(QtfMath.SQUARE, left);
                         if (exponent == 3) return FunctionRef.call(QtfMath.CUBE, left);
                     }
