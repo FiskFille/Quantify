@@ -20,7 +20,7 @@ import java.util.Set;
 
 import static org.objectweb.asm.Opcodes.*;
 
-record FunctionDef(DefinedFunctionAddress address, JvmFunction body, ReturnValueType returnValue)
+record FunctionDef(String name, DefinedFunctionAddress address, JvmFunction body, ReturnValueType returnValue)
         implements JvmFunctionDefinition {
     static final SyntaxParser<JvmFunction> PARSER = new FunctionDefParser();
 
@@ -28,7 +28,7 @@ record FunctionDef(DefinedFunctionAddress address, JvmFunction body, ReturnValue
     public JvmClassComposer define(final String className) {
         address.owner = className;
         return cw -> {
-            final MethodVisitor mv = cw.visitMethod(ACC_STATIC | ACC_PRIVATE, address.name, address.descriptor, null, null);
+            final MethodVisitor mv = cw.visitMethod(ACC_STATIC | ACC_PUBLIC, address.name, address.descriptor, null, null);
             body.apply(mv);
 
             if (returnValue == ReturnValueType.MISSING) {
@@ -87,7 +87,7 @@ record FunctionDef(DefinedFunctionAddress address, JvmFunction body, ReturnValue
                 returnValue = scope.hasReturnValue() ? ReturnValueType.EXPLICIT : ReturnValueType.MISSING;
             }
 
-            final int index = context.defineFunction(new FunctionDef(address, body, returnValue));
+            final int index = context.defineFunction(new FunctionDef(name, address, body, returnValue));
             address.name = "f" + index + "_" + name;
             return null;
         }

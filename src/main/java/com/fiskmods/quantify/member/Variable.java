@@ -1,6 +1,8 @@
 package com.fiskmods.quantify.member;
 
-import com.fiskmods.quantify.parser.SyntaxContext;
+import com.fiskmods.quantify.jvm.JvmRunnable;
+
+import java.util.List;
 
 public class Variable implements VarReference {
     private VarReference reference = VarReference.EMPTY;
@@ -18,7 +20,7 @@ public class Variable implements VarReference {
     }
 
     @Override
-    public void set(double value) {
+    public void set(final double value) {
         reference.set(value);
     }
 
@@ -27,8 +29,7 @@ public class Variable implements VarReference {
         return reference.isEmpty();
     }
 
-    public static QtfListener.Resolver resolve(SyntaxContext context, QtfMemory memory) {
-        return (var, name) -> var.reference
-                = memory.resolve(context.getOutputs().indexOf(name));
+    public static QtfListener.Resolver resolve(final List<String> outputs, final JvmRunnable runnable) {
+        return (var, name) -> var.reference = runnable.resolve(outputs.indexOf(name));
     }
 }

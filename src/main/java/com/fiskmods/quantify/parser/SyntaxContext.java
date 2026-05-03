@@ -1,6 +1,5 @@
 package com.fiskmods.quantify.parser;
 
-import com.fiskmods.quantify.library.LibraryMap;
 import com.fiskmods.quantify.exception.QtfException;
 import com.fiskmods.quantify.jvm.FunctionAddress;
 import com.fiskmods.quantify.jvm.JvmClassComposer;
@@ -10,13 +9,17 @@ import com.fiskmods.quantify.jvm.assignable.NumVar;
 import com.fiskmods.quantify.jvm.assignable.Struct;
 import com.fiskmods.quantify.jvm.assignable.VarInfo;
 import com.fiskmods.quantify.jvm.assignable.VarType;
-import com.fiskmods.quantify.member.*;
+import com.fiskmods.quantify.library.LibraryMap;
+import com.fiskmods.quantify.member.MemberType;
+import com.fiskmods.quantify.member.Namespace;
+import com.fiskmods.quantify.member.Scope;
+import com.fiskmods.quantify.member.ScopeProvider;
 import com.fiskmods.quantify.parser.element.Assignable;
 import com.fiskmods.quantify.parser.element.Value;
-import org.jspecify.annotations.Nullable;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 public class SyntaxContext implements ScopeProvider {
     private static final int INPUT_ID = 1;
@@ -74,6 +77,11 @@ public class SyntaxContext implements ScopeProvider {
         }
     }
 
+    @Override
+    public int stackDepth() {
+        return currentScope.size();
+    }
+
     public VarAddress<NumVar> addInputVariable(final String name, final int index) throws QtfException {
         final VarAddress<NumVar> var = globalScope.members.put("in:" + name,
                 () -> VarAddress.arrayAccess(INPUT_ID, index));
@@ -98,6 +106,14 @@ public class SyntaxContext implements ScopeProvider {
         return functionDefinitions.size() - 1;
     }
 
+    public Map<String, FunctionAddress> getFunctions() {
+        return functionDefinitions.stream()
+                .collect(Collectors.toMap(
+                        JvmFunctionDefinition::name,
+                        JvmFunctionDefinition::address
+                ));
+    }
+
     public Map<String, Integer> getInputs() {
         return inputs;
     }
@@ -110,19 +126,6 @@ public class SyntaxContext implements ScopeProvider {
         return functionDefinitions.stream()
                 .map(t -> t.define(className))
                 .reduce(JvmClassComposer.DO_NOTHING, JvmClassComposer::andThen);
-    }
-
-    public QtfMemory createMemory(final @Nullable QtfListener listener) throws QtfException {
-        if (currentScope.size() > 1) {
-            throw new QtfException("Unbalanced stack: " + currentScope.size());
-        }
-
-        final List<String> outputs = getOutputs();
-        final QtfMemory memory = new QtfMemory(new double[outputs.size()]);
-        if (listener != null) {
-            listener.listen(Variable.resolve(this, memory), outputs::stream);
-        }
-        return memory;
     }
 
     private class DefaultNamespace implements Namespace {

@@ -17,6 +17,8 @@ public interface ScopeProvider {
 
     void pop();
 
+    int stackDepth();
+
     default void push(final UnaryOperator<Scope> scope) {
         push(scope.apply(scope()));
     }

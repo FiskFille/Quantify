@@ -1,6 +1,9 @@
 package com.fiskmods.quantify.jvm;
 
-@FunctionalInterface
 public interface JvmFunctionDefinition {
+    String name();
+
+    FunctionAddress address();
+
     JvmClassComposer define(String className);
 }

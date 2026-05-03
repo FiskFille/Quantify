@@ -21,6 +21,7 @@ public class QtfParser extends IteratorTokenStream {
 
     public SyntaxTree parse(final boolean isEnclosed) throws QtfParseException {
         final List<JvmFunction> elements = new ArrayList<>(64);
+        final int stack = context.stackDepth();
 
         while (hasNext()) {
             if (isEnclosed && peek().type() == TokenClass.CLOSE_BRACES) {
@@ -36,6 +37,14 @@ public class QtfParser extends IteratorTokenStream {
             if (element != null) {
                 elements.add(element);
             }
+        }
+
+        final int currentStack = context.stackDepth();
+        if (stack != currentStack) {
+            final Token last = last();
+            throw new QtfParseException("Unbalanced stack: " + currentStack, "expected" + stack,
+                    last != null ? last.range() : new Token.Range(0, 0)
+            );
         }
 
         return SyntaxTree.of(elements);
