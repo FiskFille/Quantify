@@ -17,25 +17,25 @@ public final class SimpleNamespace implements Namespace {
     private final Map<String, FunctionAddress> functions;
     private final Map<String, Double> constants;
 
-    public SimpleNamespace(String namespaceName, Map<String, FunctionAddress> functions, Map<String, Double> constants) {
+    public SimpleNamespace(final String namespaceName, final Map<String, FunctionAddress> functions, final Map<String, Double> constants) {
         this.namespaceName = namespaceName;
         this.functions = new HashMap<>(functions);
         this.constants = new HashMap<>(constants);
     }
 
     @Override
-    public <T extends Value & Assignable> VarAddress<T> computeVariable(VarType<T> type, String name, int modifiers) throws QtfException {
+    public <T extends Value & Assignable> VarAddress<T> computeVariable(final VarType<T> type, final String name, final int modifiers) throws QtfException {
         throw QtfErrors.undefined(MemberType.VARIABLE, name, namespaceName);
     }
 
     @Override
-    public boolean hasVariable(String name) {
+    public boolean hasVariable(final String name) {
         return false;
     }
 
     @Override
-    public FunctionAddress getFunction(String name) throws QtfException {
-        FunctionAddress func = functions.get(name);
+    public FunctionAddress getFunction(final String name) throws QtfException {
+        final FunctionAddress func = functions.get(name);
         if (func == null) {
             throw QtfErrors.undefined(MemberType.FUNCTION, name, namespaceName);
         }
@@ -43,13 +43,13 @@ public final class SimpleNamespace implements Namespace {
     }
 
     @Override
-    public boolean hasFunction(String name) {
+    public boolean hasFunction(final String name) {
         return functions.containsKey(name);
     }
 
     @Override
-    public double getConstant(String name) throws QtfException {
-        Double constant = constants.get(name);
+    public double getConstant(final String name) throws QtfException {
+        final Double constant = constants.get(name);
         if (constant == null) {
             throw QtfErrors.undefined(MemberType.CONSTANT, name, namespaceName);
         }
@@ -57,11 +57,11 @@ public final class SimpleNamespace implements Namespace {
     }
 
     @Override
-    public boolean hasConstant(String name) {
+    public boolean hasConstant(final String name) {
         return constants.containsKey(name);
     }
 
-    public static Builder builder(String name) {
+    public static Builder builder(final String name) {
         return new Builder(name);
     }
 
@@ -71,23 +71,27 @@ public final class SimpleNamespace implements Namespace {
         private final Map<String, FunctionAddress> functions = new HashMap<>();
         private final Map<String, Double> constants = new HashMap<>();
 
-        private Builder(String namespaceName) {
+        private Builder(final String namespaceName) {
             this.namespaceName = namespaceName;
         }
 
-        public Builder addConstant(String name, double value) {
+        public Builder addConstant(final String name, final double value) {
             functions.remove(name);
             constants.put(name, value);
             return this;
         }
 
-        public Builder addFunction(String name, FunctionAddress function) {
+        public Builder addFunction(final String name, final FunctionAddress function) {
             constants.remove(name);
             functions.put(name, function);
             return this;
         }
 
-        public Builder addFunction(String owner, String name, int parameters) {
+        public Builder addFunction(final FunctionAddress function) {
+            return addFunction(function.name(), function);
+        }
+
+        public Builder addFunction(final String owner, final String name, final int parameters) {
             return addFunction(name, FunctionAddress.create(owner, name, parameters));
         }
 

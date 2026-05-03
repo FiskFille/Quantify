@@ -10,6 +10,8 @@ public final class QtfMath {
     public static final FunctionAddress SQUARE = FunctionAddress.create(QTF_MATH, "square", 1);
     public static final FunctionAddress CUBE = FunctionAddress.create(QTF_MATH, "cube", 1);
 
+    public static final FunctionAddress WRAP_TO_PI = FunctionAddress.create(QTF_MATH, "wrapToPi", 1);
+
     public static final QtfLibrary LIBRARY = QtfLibrary.create("lang/Math", b -> b
             .addFunction(MATH, "sin", 1)
             .addFunction(MATH, "cos", 1)
@@ -23,8 +25,8 @@ public final class QtfMath {
             .addFunction(MATH, "log1p", 1)
             .addFunction(MATH, "sqrt", 1)
             .addFunction(MATH, "cbrt", 1)
-            .addFunction(SQUARE.name(), SQUARE)
-            .addFunction(CUBE.name(), CUBE)
+            .addFunction(SQUARE)
+            .addFunction(CUBE)
             .addFunction(MATH, "signum", 1)
             .addFunction(MATH, "sinh", 1)
             .addFunction(MATH, "cosh", 1)
@@ -35,7 +37,7 @@ public final class QtfMath {
             .addFunction(MATH, "floor", 1)
             .addFunction(MATH, "ceil", 1)
             .addFunction(QTF_MATH, "wrapTo180", 1)
-            .addFunction(QTF_MATH, "wrapToPi", 1)
+            .addFunction(WRAP_TO_PI)
 
             .addFunction(MATH, "min", 2)
             .addFunction(MATH, "max", 2)
