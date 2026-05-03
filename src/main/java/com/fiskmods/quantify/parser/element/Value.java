@@ -15,18 +15,23 @@ public interface Value extends JvmFunction {
     }
 
     @Override
-    default Value negateIf(boolean shouldNegate) {
+    default Value negateIf(final boolean shouldNegate) {
         return (Value) JvmFunction.super.negateIf(shouldNegate);
     }
 
     record NegatedValue(Value val) implements Value {
+        @Override
+        public boolean isNegated() {
+            return true;
+        }
+
         @Override
         public Value negate() {
             return val;
         }
 
         @Override
-        public void apply(MethodVisitor mv) {
+        public void apply(final MethodVisitor mv) {
             val.apply(mv);
             mv.visitInsn(DNEG);
         }

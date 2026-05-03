@@ -18,20 +18,16 @@ record Operation(Value left, Value right, Operator op) implements Value {
             case MUL, AND -> {
                 // Any multiplication where one term is 0 or 1 is redundant
                 if (left instanceof NumLiteral(final double value)) {
-                    if (value == 0) {
-                        return left;
-                    }
-                    if (value == 1) {
-                        return right;
-                    }
+                    if (value == 0) return left;
+                    if (value == 1) return right;
                 }
                 if (right instanceof NumLiteral(final double value)) {
-                    if (value == 0) {
-                        return right;
-                    }
-                    if (value == 1) {
-                        return left;
-                    }
+                    if (value == 0) return right;
+                    if (value == 1) return left;
+                }
+
+                if (left.isNegated() && right.isNegated()) {
+                    return wrap(left.negate(), right.negate(), op);
                 }
             }
             case DIV -> {
