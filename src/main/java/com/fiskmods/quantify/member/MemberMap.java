@@ -3,8 +3,6 @@ package com.fiskmods.quantify.member;
 import com.fiskmods.quantify.exception.QtfErrors;
 import com.fiskmods.quantify.exception.QtfException;
 import com.fiskmods.quantify.jvm.VarAddress;
-import com.fiskmods.quantify.parser.element.Assignable;
-import com.fiskmods.quantify.parser.element.Value;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -61,19 +59,19 @@ public class MemberMap {
         members.put(name, new Member<>(type, value));
     }
 
-    public <T extends Value & Assignable> VarAddress<T> putVariable(final String name, final Function<String, VarAddress<T>> address) throws QtfException {
+    public <T extends VarAddress> T putVariable(final String name, final Function<String, T> address) throws QtfException {
         nameCheck(name);
-        final VarAddress<T> value = address.apply(name);
+        final T value = address.apply(name);
         members.put(name, new Member<>(MemberType.VARIABLE, value));
         return value;
     }
 
-    public <T extends Value & Assignable> VarAddress<T> putVariable(final String name, final Supplier<VarAddress<T>> address) throws QtfException {
-        return putVariable(name, ignored -> address.get());
+    public <T extends VarAddress> T putVariable(final String name, final Supplier<T> address) throws QtfException {
+        return this.<T>putVariable(name, ignored -> address.get());
     }
 
-    public <T extends Value & Assignable> VarAddress<T> putVariable(final String name, final VarAddress<T> address) throws QtfException {
-        return putVariable(name, () -> address);
+    public <T extends VarAddress> T putVariable(final String name, final T address) throws QtfException {
+        return this.<T>putVariable(name, () -> address);
     }
 
     public <T> T get(final String name, final MemberType<T> expectedType) throws QtfException {

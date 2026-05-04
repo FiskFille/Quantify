@@ -7,7 +7,7 @@ import com.fiskmods.quantify.library.QtfLibrary;
 import java.util.function.Predicate;
 
 public record MemberType<T>(String name, boolean isLocal) implements Predicate<MemberMap.Member<?>> {
-    public static final MemberType<VarAddress<?>> VARIABLE = new MemberType<>("variable", true);
+    public static final MemberType<VarAddress> VARIABLE = new MemberType<>("variable", true);
     public static final MemberType<Double> CONSTANT = new MemberType<>("constant", true);
     public static final MemberType<FunctionAddress> FUNCTION = new MemberType<>("function", true);
 

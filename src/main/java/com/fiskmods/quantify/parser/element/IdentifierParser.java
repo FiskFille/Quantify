@@ -58,8 +58,8 @@ class IdentifierParser {
                     return parser.next(nextParser.apply(childName, range, namespace));
                 }
 
-                if (parentType == MemberType.VARIABLE && ((VarAddress<?>) parent.get().value()).is(VarType.STRUCT)) {
-                    final Struct struct = (Struct) ((VarAddress<?>) parent.get().value()).access();
+                if (parentType == MemberType.VARIABLE && ((VarAddress) parent.get().value()).is(VarType.STRUCT)) {
+                    final Struct struct = (Struct) parent.get().value();
                     return parseStruct(parser, struct, child, identifier.range(), nextParser);
                 }
 

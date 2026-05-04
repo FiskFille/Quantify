@@ -6,13 +6,10 @@ import com.fiskmods.quantify.jvm.VarAddress;
 import com.fiskmods.quantify.jvm.assignable.VarInfo;
 import com.fiskmods.quantify.jvm.assignable.VarType;
 import com.fiskmods.quantify.member.Namespace;
-import com.fiskmods.quantify.parser.element.Assignable;
-import com.fiskmods.quantify.parser.element.Value;
 
-public record FallbackNamespace(Namespace namespace, Namespace fallback) implements Namespace  {
+public record FallbackNamespace(Namespace namespace, Namespace fallback) implements Namespace {
     @Override
-    public <T extends Value & Assignable> VarAddress<T> computeVariable(
-            VarType<T> type, String name, int modifiers) throws QtfException {
+    public <T extends VarAddress> T computeVariable(final VarType<T> type, final String name, final int modifiers) throws QtfException {
         if ((modifiers & VarInfo.DEFINITION) != 0 || namespace.hasVariable(name)) {
             return namespace.computeVariable(type, name, modifiers);
         }
@@ -20,12 +17,12 @@ public record FallbackNamespace(Namespace namespace, Namespace fallback) impleme
     }
 
     @Override
-    public boolean hasVariable(String name) {
+    public boolean hasVariable(final String name) {
         return namespace.hasVariable(name) || fallback.hasVariable(name);
     }
 
     @Override
-    public FunctionAddress getFunction(String name) throws QtfException {
+    public FunctionAddress getFunction(final String name) throws QtfException {
         if (namespace.hasFunction(name)) {
             return namespace.getFunction(name);
         }
@@ -33,12 +30,12 @@ public record FallbackNamespace(Namespace namespace, Namespace fallback) impleme
     }
 
     @Override
-    public boolean hasFunction(String name) {
+    public boolean hasFunction(final String name) {
         return namespace.hasFunction(name) || fallback.hasFunction(name);
     }
 
     @Override
-    public double getConstant(String name) throws QtfException {
+    public double getConstant(final String name) throws QtfException {
         if (namespace.hasConstant(name)) {
             return namespace.getConstant(name);
         }
@@ -46,7 +43,7 @@ public record FallbackNamespace(Namespace namespace, Namespace fallback) impleme
     }
 
     @Override
-    public boolean hasConstant(String name) {
+    public boolean hasConstant(final String name) {
         return namespace.hasConstant(name) || fallback.hasConstant(name);
     }
 }

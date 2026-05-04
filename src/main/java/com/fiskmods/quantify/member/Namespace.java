@@ -5,11 +5,9 @@ import com.fiskmods.quantify.jvm.FunctionAddress;
 import com.fiskmods.quantify.jvm.VarAddress;
 import com.fiskmods.quantify.jvm.assignable.VarType;
 import com.fiskmods.quantify.library.FallbackNamespace;
-import com.fiskmods.quantify.parser.element.Assignable;
-import com.fiskmods.quantify.parser.element.Value;
 
 public interface Namespace {
-    <T extends Value & Assignable> VarAddress<T> computeVariable(VarType<T> type, String name, int modifiers) throws QtfException;
+    <T extends VarAddress> T computeVariable(VarType<T> type, String name, int modifiers) throws QtfException;
 
     boolean hasVariable(String name);
 
@@ -21,7 +19,7 @@ public interface Namespace {
 
     boolean hasConstant(String name);
 
-    default Namespace fallback(Namespace fallbackNamespace) {
+    default Namespace fallback(final Namespace fallbackNamespace) {
         if (fallbackNamespace == this) {
             return this;
         }

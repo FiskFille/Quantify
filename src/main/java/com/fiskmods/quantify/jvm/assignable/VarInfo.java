@@ -7,14 +7,12 @@ import com.fiskmods.quantify.lexer.token.Token;
 import com.fiskmods.quantify.lexer.token.TokenClass;
 import com.fiskmods.quantify.parser.QtfParser;
 import com.fiskmods.quantify.parser.SyntaxContext;
-import com.fiskmods.quantify.parser.element.Assignable;
-import com.fiskmods.quantify.parser.element.Value;
 
-public record VarInfo<T extends Value & Assignable>(String name, VarType<T> type) {
+public record VarInfo<T extends VarAddress>(String name, VarType<T> type) {
     public static final int DEFINITION = 0x1;
     public static final int PUBLIC = 0x2;
 
-    public VarAddress<T> define(final SyntaxContext context, final boolean isPublic) throws QtfException {
+    public T define(final SyntaxContext context, final boolean isPublic) throws QtfException {
         if (isPublic) {
             return context.addPublicVar(name, type);
         } else {
@@ -22,7 +20,7 @@ public record VarInfo<T extends Value & Assignable>(String name, VarType<T> type
         }
     }
 
-    public static <T extends Value & Assignable> VarAddress<T> define(final String name, final VarType<T> type, final SyntaxContext context, final boolean isPublic) throws QtfException {
+    public static <T extends VarAddress> T define(final String name, final VarType<T> type, final SyntaxContext context, final boolean isPublic) throws QtfException {
         if (isPublic) {
             return context.addPublicVar(name, type);
         } else {
@@ -30,7 +28,7 @@ public record VarInfo<T extends Value & Assignable>(String name, VarType<T> type
         }
     }
 
-    public static <T extends Value & Assignable> VarAddress<T> define(final String name, final VarType<T> type, final SyntaxContext context, final int modifiers) throws QtfException {
+    public static <T extends VarAddress> T define(final String name, final VarType<T> type, final SyntaxContext context, final int modifiers) throws QtfException {
         return define(name, type, context, (modifiers & PUBLIC) != 0);
     }
 

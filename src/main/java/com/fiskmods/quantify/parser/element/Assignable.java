@@ -14,7 +14,7 @@ import org.objectweb.asm.MethodVisitor;
 public interface Assignable extends JvmFunction {
     void set(MethodVisitor mv, Value value);
 
-    default void init(MethodVisitor mv) {
+    default void init(final MethodVisitor mv) {
         set(mv, Value.ZERO);
     }
 
@@ -22,14 +22,14 @@ public interface Assignable extends JvmFunction {
 
     void lerp(MethodVisitor mv, Value value, Value progress, boolean rotational);
 
-    static <T extends Value & Assignable> SyntaxParser<Assignable> parse(VarType<T> type, int modifiers) {
+    static <T extends VarAddress> SyntaxParser<Assignable> parse(final VarType<T> type, final int modifiers) {
         return (parser, context) -> {
-            VarAddress<T> var = nextVariable(parser, type, modifiers);
+            final T var = nextVariable(parser, type, modifiers);
             return parser.next(parse(var, modifiers));
         };
     }
 
-    static SyntaxParser<Assignable> parse(VarAddress<?> firstVar, int modifiers) {
+    static <T extends VarAddress> SyntaxParser<Assignable> parse(final T firstVar, final int modifiers) {
         return (parser, context) -> {
             if (parser.isNext(TokenClass.COMMA)) {
                 return parser.next(VariableList.parse(firstVar, modifiers));
@@ -38,18 +38,17 @@ public interface Assignable extends JvmFunction {
         };
     }
 
-    static <T extends Value & Assignable> VarAddress<T> nextVariable(
-            QtfParser parser, VarType<T> type, int modifiers) throws QtfParseException {
-
-        boolean isNegated = isNegated(parser, (modifiers & VarInfo.DEFINITION) != 0);
-        VarAddress<T> var = parser.next(VariableParser.refOrDef(type, modifiers));
+    @SuppressWarnings("unchecked")
+    static <T extends VarAddress> T nextVariable(final QtfParser parser, final VarType<T> type, final int modifiers) throws QtfParseException {
+        final boolean isNegated = isNegated(parser, (modifiers & VarInfo.DEFINITION) != 0);
+        final T var = parser.next(VariableParser.refOrDef(type, modifiers));
         if (isNegated) {
-            return VarAddress.create(var, true);
+            return (T) var.negate();
         }
         return var;
     }
 
-    private static boolean isNegated(QtfParser parser, boolean isDefinition) {
+    private static boolean isNegated(final QtfParser parser, final boolean isDefinition) {
         // Negated LHS variables are not allowed in assignments
         if (!isDefinition && parser.isNext(TokenClass.OPERATOR, Operator.SUB)) {
             parser.clearPeekedToken();

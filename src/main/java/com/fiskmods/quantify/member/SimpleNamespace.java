@@ -5,8 +5,6 @@ import com.fiskmods.quantify.exception.QtfException;
 import com.fiskmods.quantify.jvm.FunctionAddress;
 import com.fiskmods.quantify.jvm.VarAddress;
 import com.fiskmods.quantify.jvm.assignable.VarType;
-import com.fiskmods.quantify.parser.element.Assignable;
-import com.fiskmods.quantify.parser.element.Value;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -24,7 +22,7 @@ public final class SimpleNamespace implements Namespace {
     }
 
     @Override
-    public <T extends Value & Assignable> VarAddress<T> computeVariable(final VarType<T> type, final String name, final int modifiers) throws QtfException {
+    public <T extends VarAddress> T computeVariable(final VarType<T> type, final String name, final int modifiers) throws QtfException {
         throw QtfErrors.undefined(MemberType.VARIABLE, name, namespaceName);
     }
 

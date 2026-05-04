@@ -9,7 +9,6 @@ import com.fiskmods.quantify.lexer.token.Operator;
 import com.fiskmods.quantify.member.MemberMap;
 import com.fiskmods.quantify.member.MemberType;
 import com.fiskmods.quantify.member.Namespace;
-import com.fiskmods.quantify.parser.element.Assignable;
 import com.fiskmods.quantify.parser.element.Value;
 import org.objectweb.asm.MethodVisitor;
 
@@ -20,7 +19,22 @@ import java.util.function.ToIntFunction;
 
 import static org.objectweb.asm.Opcodes.*;
 
-public interface Struct extends Namespace, Value, Assignable {
+public interface Struct extends VarAddress, Namespace {
+    @Override
+    default VarType<Struct> type() {
+        return VarType.STRUCT;
+    }
+
+    @Override
+    default boolean isNegated() {
+        return false;
+    }
+
+    @Override
+    default Struct negate() {
+        return this;
+    }
+
     @Override
     default void apply(final MethodVisitor mv) {
     }
@@ -60,16 +74,13 @@ public interface Struct extends Namespace, Value, Assignable {
     default void expand(final String name) throws QtfException {
     }
 
-    static VarAddress<Struct> create(final int index, final IntSupplier arraySize, final ToIntFunction<String> arrayStore) {
-        final Struct struct = new StructImpl(index, arraySize, arrayStore);
-        return VarAddress.create(VarType.STRUCT, struct, false);
+    static Struct of(final int index, final IntSupplier arraySize, final ToIntFunction<String> arrayStore) {
+        return new StructImpl(index, arraySize, arrayStore);
     }
 
-    static VarAddress<Struct> create(final int index) {
+    static Struct of(final int index) {
         final AtomicInteger i = new AtomicInteger();
-        final Struct struct = new StructImpl(index, i::get, ignored -> i.getAndIncrement());
-
-        return VarAddress.create(VarType.STRUCT, struct, false);
+        return new StructImpl(index, i::get, ignored -> i.getAndIncrement());
     }
 
     class StructImpl implements Struct {
@@ -97,7 +108,7 @@ public interface Struct extends Namespace, Value, Assignable {
         public void expand(final String name) throws QtfException {
             final Optional<MemberMap.Member<?>> member = members.find(name);
             if (member.isEmpty()) {
-                members.putVariable(name, VarAddress.create(VarType.STRUCT, new Child(), false));
+                members.putVariable(name, new ChildStruct());
             } else {
                 member.get().cast(name, MemberType.VARIABLE)
                         .value().typeCheck(name, VarType.STRUCT);
@@ -106,15 +117,15 @@ public interface Struct extends Namespace, Value, Assignable {
 
         @Override
         @SuppressWarnings("unchecked")
-        public <T extends Value & Assignable> VarAddress<T> computeVariable(final VarType<T> type, final String name, final int modifiers) throws QtfException {
+        public <T extends VarAddress> T computeVariable(final VarType<T> type, final String name, final int modifiers) throws QtfException {
             if (type == null || members.has(name)) {
                 return members.get(name, MemberType.VARIABLE).cast(name, type);
             }
 
             if (type == VarType.STRUCT) {
-                return (VarAddress<T>) members.putVariable(name, VarAddress.create(VarType.STRUCT, new Child(), false));
+                return (T) members.putVariable(name, new ChildStruct());
             } else {
-                return (VarAddress<T>) members.putVariable(name, VarAddress.arrayAccess(index, arrayStore));
+                return (T) members.putVariable(name, ArrayVar.of(index, arrayStore));
             }
         }
 
@@ -124,13 +135,13 @@ public interface Struct extends Namespace, Value, Assignable {
                     .orElse(true);
         }
 
-        private static class Child implements Struct {
+        private static final class ChildStruct implements Struct {
             @Override
             public void init(final MethodVisitor mv) {
             }
 
             @Override
-            public <T extends Value & Assignable> VarAddress<T> computeVariable(final VarType<T> type, final String name, final int modifiers) throws QtfException {
+            public <T extends VarAddress> T computeVariable(final VarType<T> type, final String name, final int modifiers) throws QtfException {
                 throw QtfErrors.undefined(MemberType.VARIABLE, name);
             }
 

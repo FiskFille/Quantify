@@ -1,8 +1,7 @@
 package com.fiskmods.quantify.member;
 
 import com.fiskmods.quantify.exception.QtfException;
-import com.fiskmods.quantify.jvm.VarAddress;
-import com.fiskmods.quantify.jvm.assignable.NumVar;
+import com.fiskmods.quantify.jvm.assignable.LocalVar;
 import com.fiskmods.quantify.jvm.assignable.Struct;
 
 import java.util.Optional;
@@ -39,11 +38,11 @@ public interface ScopeProvider {
         type.scope(this).members.put(name, type, value);
     }
 
-    default VarAddress<NumVar> addLocalVariable(final String name) throws QtfException {
+    default LocalVar addLocalVariable(final String name) throws QtfException {
         return scope().addLocalVariable(name);
     }
 
-    default VarAddress<Struct> addStruct(final String name) throws QtfException {
+    default Struct addStruct(final String name) throws QtfException {
         return scope().addStruct(name);
     }
 

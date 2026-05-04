@@ -50,9 +50,9 @@ record VariableParser(boolean isPublic) implements SyntaxParser<JvmFunction> {
         return assignOrInit(parser, var, type, isPublic);
     }
 
-    private <T extends Value & Assignable> @Nullable JvmFunction parseMultiVar(final QtfParser parser, final SyntaxContext context, final VarType<T> type, final List<Token> identifiers) throws QtfParseException {
+    private <T extends VarAddress> @Nullable JvmFunction parseMultiVar(final QtfParser parser, final SyntaxContext context, final VarType<T> type, final List<Token> identifiers) throws QtfParseException {
         @SuppressWarnings("unchecked")
-        final VarAddress<T>[] vars = new VarAddress[identifiers.size()];
+        final T[] vars = (T[]) new VarAddress[identifiers.size()];
 
         for (int i = 0; i < vars.length; i++) {
             final Token identifier = identifiers.get(i);
@@ -96,17 +96,17 @@ record VariableParser(boolean isPublic) implements SyntaxParser<JvmFunction> {
         }
     }
 
-    static <T extends Value & Assignable> SyntaxParser<VarAddress<T>> refOrDef(final VarType<T> type, final int modifiers) {
+    static <T extends VarAddress> SyntaxParser<T> refOrDef(final VarType<T> type, final int modifiers) {
         return (modifiers & VarInfo.DEFINITION) != 0 ? def(type, modifiers) : ref(type);
     }
 
-    static <T extends Value & Assignable> SyntaxParser<VarAddress<T>> ref(final VarType<T> type) {
+    static <T extends VarAddress> SyntaxParser<T> ref(final VarType<T> type) {
         return IdentifierParser.from((name, range, namespace)
                 -> (parser, context) -> compute(name, range, namespace, type, 0)
         );
     }
 
-    static <T extends Value & Assignable> SyntaxParser<VarAddress<T>> def(final VarType<T> type, final int modifiers) {
+    static <T extends VarAddress> SyntaxParser<T> def(final VarType<T> type, final int modifiers) {
         return (parser, context) -> {
             final Token identifier = parser.next(TokenClass.IDENTIFIER);
             final String name = identifier.getString();
@@ -115,12 +115,12 @@ record VariableParser(boolean isPublic) implements SyntaxParser<JvmFunction> {
         };
     }
 
-    static <T extends Value & Assignable> SyntaxParser<VarAddress<T>> def(final String name, final Token.Range range, final VarType<T> type, final int modifiers) {
+    static <T extends VarAddress> SyntaxParser<T> def(final String name, final Token.Range range, final VarType<T> type, final int modifiers) {
         // Definitions always belong to the default namespace
         return (parser, context) -> compute(name, range, context.getDefaultNamespace(), type, modifiers);
     }
 
-    static <T extends Value & Assignable> VarAddress<T> compute(final String name, final Token.Range range, final Namespace namespace, final VarType<T> type, final int modifiers) throws QtfParseException {
+    static <T extends VarAddress> T compute(final String name, final Token.Range range, final Namespace namespace, final VarType<T> type, final int modifiers) throws QtfParseException {
         try {
             return namespace.computeVariable(type, name, modifiers);
         } catch (final QtfException e) {

@@ -22,8 +22,8 @@ class InputParser implements SyntaxParser<Assignment> {
 
         final Token identifier = parser.next(TokenClass.IDENTIFIER);
         final String name = identifier.getString();
-        final VarAddress<?> var;
-        final VarAddress<?> inputVar;
+        final VarAddress var;
+        final VarAddress inputVar;
 
         try {
             var = context.addLocalVariable(name);

@@ -5,7 +5,7 @@ import com.fiskmods.quantify.jvm.FunctionAddress;
 import com.fiskmods.quantify.jvm.JvmClassComposer;
 import com.fiskmods.quantify.jvm.JvmFunctionDefinition;
 import com.fiskmods.quantify.jvm.VarAddress;
-import com.fiskmods.quantify.jvm.assignable.NumVar;
+import com.fiskmods.quantify.jvm.assignable.ArrayVar;
 import com.fiskmods.quantify.jvm.assignable.Struct;
 import com.fiskmods.quantify.jvm.assignable.VarInfo;
 import com.fiskmods.quantify.jvm.assignable.VarType;
@@ -14,8 +14,6 @@ import com.fiskmods.quantify.member.MemberType;
 import com.fiskmods.quantify.member.Namespace;
 import com.fiskmods.quantify.member.Scope;
 import com.fiskmods.quantify.member.ScopeProvider;
-import com.fiskmods.quantify.parser.element.Assignable;
-import com.fiskmods.quantify.parser.element.Value;
 import com.fiskmods.quantify.util.IndexMap;
 
 import java.util.*;
@@ -82,20 +80,20 @@ public class SyntaxContext implements ScopeProvider {
         return currentScope.size();
     }
 
-    public VarAddress<NumVar> addInputVariable(final String name, final int index) throws QtfException {
-        return globalScope.members.putVariable("in:" + name, () -> {
-            final VarAddress<NumVar> var = VarAddress.arrayAccess(INPUT_ID, index);
+    public ArrayVar addInputVariable(final String name, final int index) throws QtfException {
+        return globalScope.members.<ArrayVar>putVariable("in:" + name, () -> {
+            final ArrayVar var = ArrayVar.of(INPUT_ID, index);
             inputs.put(name, index);
             return var;
         });
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends Value & Assignable> VarAddress<T> addPublicVar(final String name, final VarType<T> type) throws QtfException {
+    public <T extends VarAddress> T addPublicVar(final String name, final VarType<T> type) throws QtfException {
         if (type == VarType.STRUCT) {
-            return (VarAddress<T>) globalScope.members.putVariable(name, Struct.create(OUTPUT_ID, outputs::size, outputs.storePrefixed(name)));
+            return (T) globalScope.members.putVariable(name, Struct.of(OUTPUT_ID, outputs::size, outputs.storePrefixed(name)));
         } else {
-            return (VarAddress<T>) globalScope.members.putVariable(name, VarAddress.arrayAccess(OUTPUT_ID, outputs::store));
+            return (T) globalScope.members.putVariable(name, ArrayVar.of(OUTPUT_ID, outputs::store));
         }
     }
 
@@ -129,7 +127,7 @@ public class SyntaxContext implements ScopeProvider {
 
     private class DefaultNamespace implements Namespace {
         @Override
-        public <T extends Value & Assignable> VarAddress<T> computeVariable(final VarType<T> type, final String name, final int modifiers) throws QtfException {
+        public <T extends VarAddress> T computeVariable(final VarType<T> type, final String name, final int modifiers) throws QtfException {
             if ((modifiers & VarInfo.DEFINITION) != 0) {
                 return VarInfo.define(name, type, SyntaxContext.this, modifiers);
             }

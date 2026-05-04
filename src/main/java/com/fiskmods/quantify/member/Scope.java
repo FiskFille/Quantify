@@ -2,13 +2,12 @@ package com.fiskmods.quantify.member;
 
 import com.fiskmods.quantify.exception.QtfException;
 import com.fiskmods.quantify.jvm.VarAddress;
-import com.fiskmods.quantify.jvm.assignable.NumVar;
+import com.fiskmods.quantify.jvm.assignable.LocalVar;
 import com.fiskmods.quantify.jvm.assignable.Struct;
-import com.fiskmods.quantify.jvm.assignable.VarType;
-import com.fiskmods.quantify.parser.element.Assignable;
 import com.fiskmods.quantify.parser.element.Value;
 
 import java.util.function.IntFunction;
+import java.util.function.Supplier;
 
 public class Scope {
     public final MemberMap members = new MemberMap();
@@ -56,19 +55,19 @@ public class Scope {
         return level > 0;
     }
 
-    public <T extends Value & Assignable> VarAddress<T> addLocalVariable(final String name, final VarType<T> type, final IntFunction<VarAddress<T>> supplier) throws QtfException {
-        return members.putVariable(name, () -> {
-            final VarAddress<T> var = supplier.apply(localIndexOffset);
-            localIndexOffset += type.size();
+    public <T extends VarAddress> T addLocalVariable(final String name, final IntFunction<T> supplier) throws QtfException {
+        return members.putVariable(name, (Supplier<T>) () -> {
+            final T var = supplier.apply(localIndexOffset);
+            localIndexOffset += var.type().size();
             return var;
         });
     }
 
-    public VarAddress<NumVar> addLocalVariable(final String name) throws QtfException {
-        return addLocalVariable(name, VarType.NUM, VarAddress::local);
+    public LocalVar addLocalVariable(final String name) throws QtfException {
+        return addLocalVariable(name, LocalVar::of);
     }
 
-    public VarAddress<Struct> addStruct(final String name) throws QtfException {
-        return addLocalVariable(name, VarType.STRUCT, Struct::create);
+    public Struct addStruct(final String name) throws QtfException {
+        return addLocalVariable(name, Struct::of);
     }
 }

@@ -33,7 +33,7 @@ interface Assignment extends JvmFunction {
 
     static SyntaxParser<Assignment> parserFrom(final String name, final Token.Range range, final Namespace namespace) {
         return (parser, context) -> {
-            final VarAddress<?> firstVar = VariableParser.compute(name, range, namespace, VarType.NUM, 0);
+            final VarAddress firstVar = VariableParser.compute(name, range, namespace, VarType.NUM, 0);
 
             if (parser.isNext(TokenClass.COMMA)) {
                 final VariableList<?> list = parser.next(VariableList.parse(firstVar, 0));
