@@ -47,7 +47,7 @@ record VariableParser(boolean isPublic) implements SyntaxParser<JvmFunction> {
         } catch (final QtfException e) {
             throw new QtfParseException(e, identifier.range());
         }
-        return assignOrInit(parser, var, type, isPublic);
+        return assignOrInit(parser, context, var, type, isPublic);
     }
 
     private <T extends VarAddress> @Nullable JvmFunction parseMultiVar(final QtfParser parser, final SyntaxContext context, final VarType<T> type, final List<Token> identifiers) throws QtfParseException {
@@ -65,12 +65,12 @@ record VariableParser(boolean isPublic) implements SyntaxParser<JvmFunction> {
         }
 
         final Assignable var = new VariableList<>(vars);
-        return assignOrInit(parser, var, type, isPublic);
+        return assignOrInit(parser, context, var, type, isPublic);
     }
 
-    private static @Nullable JvmFunction assignOrInit(final QtfParser parser, final Assignable assignable, final VarType<?> type, final boolean isPublic) throws QtfParseException {
+    private static @Nullable JvmFunction assignOrInit(final QtfParser parser, final SyntaxContext context, final Assignable assignable, final VarType<?> type, final boolean isPublic) throws QtfParseException {
         if (type.isAssignable() && parser.isNext(TokenClass.ASSIGNMENT, null)) {
-            return parser.next(Assignment.parser(assignable, true));
+            return Assignment.parser(assignable, true).accept(parser, context);
         }
 
         // Public var storage needs no initialization
@@ -111,7 +111,7 @@ record VariableParser(boolean isPublic) implements SyntaxParser<JvmFunction> {
             final Token identifier = parser.next(TokenClass.IDENTIFIER);
             final String name = identifier.getString();
 
-            return parser.next(def(name, identifier.range(), type, modifiers));
+            return def(name, identifier.range(), type, modifiers).accept(parser, context);
         };
     }
 

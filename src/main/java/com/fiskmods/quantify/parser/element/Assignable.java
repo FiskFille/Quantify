@@ -8,6 +8,7 @@ import com.fiskmods.quantify.jvm.assignable.VarType;
 import com.fiskmods.quantify.lexer.token.Operator;
 import com.fiskmods.quantify.lexer.token.TokenClass;
 import com.fiskmods.quantify.parser.QtfParser;
+import com.fiskmods.quantify.parser.SyntaxContext;
 import com.fiskmods.quantify.parser.SyntaxParser;
 import org.objectweb.asm.MethodVisitor;
 
@@ -24,24 +25,24 @@ public interface Assignable extends JvmFunction {
 
     static <T extends VarAddress> SyntaxParser<Assignable> parse(final VarType<T> type, final int modifiers) {
         return (parser, context) -> {
-            final T var = nextVariable(parser, type, modifiers);
-            return parser.next(parse(var, modifiers));
+            final T var = nextVariable(parser, context, type, modifiers);
+            return parse(var, modifiers).accept(parser, context);
         };
     }
 
     static <T extends VarAddress> SyntaxParser<Assignable> parse(final T firstVar, final int modifiers) {
         return (parser, context) -> {
             if (parser.isNext(TokenClass.COMMA)) {
-                return parser.next(VariableList.parse(firstVar, modifiers));
+                return VariableList.parse(firstVar, modifiers).accept(parser, context);
             }
             return firstVar;
         };
     }
 
     @SuppressWarnings("unchecked")
-    static <T extends VarAddress> T nextVariable(final QtfParser parser, final VarType<T> type, final int modifiers) throws QtfParseException {
+    static <T extends VarAddress> T nextVariable(final QtfParser parser, final SyntaxContext context, final VarType<T> type, final int modifiers) throws QtfParseException {
         final boolean isNegated = isNegated(parser, (modifiers & VarInfo.DEFINITION) != 0);
-        final T var = parser.next(VariableParser.refOrDef(type, modifiers));
+        final T var = VariableParser.refOrDef(type, modifiers).accept(parser, context);
         if (isNegated) {
             return (T) var.negate();
         }

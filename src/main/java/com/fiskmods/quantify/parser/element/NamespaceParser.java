@@ -43,6 +43,6 @@ class NamespaceParser implements SyntaxParser<JvmFunction> {
             }
             return null;
         }
-        return parser.next(StatementBody.parser(namespace));
+        return StatementBody.parser(namespace).accept(parser, context);
     }
 }

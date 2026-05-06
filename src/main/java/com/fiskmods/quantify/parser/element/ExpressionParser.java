@@ -17,15 +17,15 @@ class ExpressionParser implements SyntaxParser<Value> {
     static final ExpressionParser INSTANCE = new ExpressionParser();
 
     @Override
-    public Value accept(QtfParser parser, SyntaxContext context) throws QtfParseException {
-        List<Object> stack = new ArrayList<>();
-        Deque<Integer> lastPriority = new ArrayDeque<>();
+    public Value accept(final QtfParser parser, final SyntaxContext context) throws QtfParseException {
+        final List<Object> stack = new ArrayList<>();
+        final Deque<Integer> lastPriority = new ArrayDeque<>();
 
-        stack.add(parser.next(ExpressionParser::acceptValue));
+        stack.add(ExpressionParser.acceptValue(parser, context));
 
         while (parser.hasNext(QtfParser.Boundary.CLOSURE)) {
-            Operator op = parser.next(TokenClass.OPERATOR).getOperator();
-            Value right = parser.next(ExpressionParser::acceptValue);
+            final Operator op = parser.next(TokenClass.OPERATOR).getOperator();
+            final Value right = ExpressionParser.acceptValue(parser, context);
 
             while (!lastPriority.isEmpty() && lastPriority.peek() <= op.priority()) {
                 reduce(stack);
@@ -42,12 +42,12 @@ class ExpressionParser implements SyntaxParser<Value> {
         return (Value) stack.getFirst();
     }
 
-    private static Value acceptValue(QtfParser parser, SyntaxContext context) throws QtfParseException {
-        Token peeked = parser.peek();
+    private static Value acceptValue(final QtfParser parser, final SyntaxContext context) throws QtfParseException {
+        final Token peeked = parser.peek();
 
         // Consumes any leading + or - signs
         if (peeked.type() == TokenClass.OPERATOR) {
-            Operator op = peeked.getOperator();
+            final Operator op = peeked.getOperator();
             if (op == Operator.SUB) {
                 parser.clearPeekedToken();
                 return acceptValue(parser, context).negate();
@@ -58,21 +58,21 @@ class ExpressionParser implements SyntaxParser<Value> {
             }
         }
         return switch (peeked.type()) {
-            case IDENTIFIER -> parser.next(IdentifierParser.ANY_VALUE);
+            case IDENTIFIER -> IdentifierParser.ANY_VALUE.accept(parser, context);
             case OPEN_PARENTHESIS -> {
                 parser.clearPeekedToken();
-                Value val = parser.next(INSTANCE);
+                final Value val = INSTANCE.accept(parser, context);
                 parser.next(TokenClass.CLOSE_PARENTHESIS);
                 yield val;
             }
-            default -> parser.next(NumLiteral.PARSER);
+            default -> NumLiteral.PARSER.accept(parser, context);
         };
     }
 
-    private static void reduce(List<Object> stack) {
-        Value right = (Value) stack.removeLast();
-        Operator op = (Operator) stack.removeLast();
-        Value left = (Value) stack.removeLast();
+    private static void reduce(final List<Object> stack) {
+        final Value right = (Value) stack.removeLast();
+        final Operator op = (Operator) stack.removeLast();
+        final Value left = (Value) stack.removeLast();
         stack.add(Operation.wrap(left, right, op));
     }
 }

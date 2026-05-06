@@ -45,7 +45,7 @@ record VariableList<T extends VarAddress>(T[] addresses) implements Assignable {
             list.add(firstVar);
             do {
                 parser.clearPeekedToken();
-                list.add((T) Assignable.nextVariable(parser, firstVar.type(), modifiers));
+                list.add((T) Assignable.nextVariable(parser, context, firstVar.type(), modifiers));
             } while (parser.isNext(TokenClass.COMMA));
 
             return new VariableList<>(list.toArray((T[]) new VarAddress[0]));

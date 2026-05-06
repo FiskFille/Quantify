@@ -14,6 +14,7 @@ import com.fiskmods.quantify.member.MemberMap;
 import com.fiskmods.quantify.member.MemberType;
 import com.fiskmods.quantify.member.Namespace;
 import com.fiskmods.quantify.parser.QtfParser;
+import com.fiskmods.quantify.parser.SyntaxContext;
 import com.fiskmods.quantify.parser.SyntaxParser;
 
 import java.util.Optional;
@@ -33,7 +34,7 @@ class IdentifierParser {
             final String name = identifier.getString();
 
             if (!parser.isNext(TokenClass.DOT)) {
-                return parser.next(nextParser.apply(name, identifier.range(), context.namespace()));
+                return nextParser.apply(name, identifier.range(), context.namespace()).accept(parser, context);
             }
 
             parser.clearPeekedToken();
@@ -43,7 +44,7 @@ class IdentifierParser {
                 final String childName = child.getString();
                 final Token.Range range = identifier.range().union(child.range());
 
-                return parser.next(nextParser.apply(childName, range, context.getDefaultNamespace()));
+                return nextParser.apply(childName, range, context.getDefaultNamespace()).accept(parser, context);
             }
 
             final Optional<MemberMap.Member<?>> parent = context.findMember(name);
@@ -55,12 +56,12 @@ class IdentifierParser {
                     final String childName = child.getString();
                     final Token.Range range = identifier.range().union(child.range());
 
-                    return parser.next(nextParser.apply(childName, range, namespace));
+                    return nextParser.apply(childName, range, namespace).accept(parser, context);
                 }
 
                 if (parentType == MemberType.VARIABLE && ((VarAddress) parent.get().value()).is(VarType.STRUCT)) {
                     final Struct struct = (Struct) parent.get().value();
-                    return parseStruct(parser, struct, child, identifier.range(), nextParser);
+                    return parseStruct(parser, context, struct, child, identifier.range(), nextParser);
                 }
 
                 throw QtfParseException.error("expected '%s' to be a %s, was %s"
@@ -90,7 +91,7 @@ class IdentifierParser {
                 });
     }
 
-    private static <T extends JvmFunction> T parseStruct(final QtfParser parser, final Struct struct, Token child, Token.Range range, final ParserSupplier<T> nextParser) throws QtfParseException {
+    private static <T extends JvmFunction> T parseStruct(final QtfParser parser, final SyntaxContext context, final Struct struct, Token child, Token.Range range, final ParserSupplier<T> nextParser) throws QtfParseException {
         final StringBuilder name = new StringBuilder(child.getString());
         final Token.Range firstRange = child.range();
 
@@ -109,6 +110,6 @@ class IdentifierParser {
         }
 
         range = range.union(child.range());
-        return parser.next(nextParser.apply(name.toString(), range, struct));
+        return nextParser.apply(name.toString(), range, struct).accept(parser, context);
     }
 }

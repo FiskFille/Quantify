@@ -23,7 +23,7 @@ interface Assignment extends JvmFunction {
             final Token assignment = parser.next(TokenClass.ASSIGNMENT);
             final Operator op = assignment.getAssignmentOperator(context, isDefinition);
 
-            final Value value = parser.next(ExpressionParser.INSTANCE);
+            final Value value = ExpressionParser.INSTANCE.accept(parser, context);
             if (op == Operator.LERP || op == Operator.LERP_ROT) {
                 return new LerpAssignment(target, value, context.scope().getLerpProgress(), op == Operator.LERP_ROT);
             }
@@ -36,10 +36,10 @@ interface Assignment extends JvmFunction {
             final VarAddress firstVar = VariableParser.compute(name, range, namespace, VarType.NUM, 0);
 
             if (parser.isNext(TokenClass.COMMA)) {
-                final VariableList<?> list = parser.next(VariableList.parse(firstVar, 0));
-                return parser.next(parser(list, false));
+                final VariableList<?> list = VariableList.parse(firstVar, 0).accept(parser, context);
+                return parser(list, false).accept(parser, context);
             }
-            return parser.next(parser(firstVar, false));
+            return parser(firstVar, false).accept(parser, context);
         };
     }
 

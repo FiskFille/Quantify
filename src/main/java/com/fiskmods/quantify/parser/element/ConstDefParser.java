@@ -24,7 +24,7 @@ class ConstDefParser implements SyntaxParser<JvmFunction> {
             throw QtfParseException.error("definitions can't use assignment operators", assignment.range());
         }
 
-        final Value value = parser.next(ExpressionParser.INSTANCE);
+        final Value value = ExpressionParser.INSTANCE.accept(parser, context);
         if (value instanceof NumLiteral(final double v)) {
             final String name = identifier.getString();
             try {

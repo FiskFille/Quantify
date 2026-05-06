@@ -85,11 +85,11 @@ record FunctionDef(String name, boolean isVisible, DefinedFunctionAddress addres
                 }
 
                 context.push(scope);
-                body = parser.next(ExpressionParser.INSTANCE);
+                body = ExpressionParser.INSTANCE.accept(parser, context);
                 returnValue = ReturnValueType.IMPLICIT;
                 context.pop();
             } else {
-                body = parser.next(new FunctionBody.FunctionBodyParser(scope));
+                body = new FunctionBody.FunctionBodyParser(scope).accept(parser, context);
                 returnValue = scope.hasReturnValue() ? ReturnValueType.EXPLICIT : ReturnValueType.MISSING;
             }
 

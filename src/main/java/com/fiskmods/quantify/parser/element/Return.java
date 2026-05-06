@@ -12,16 +12,16 @@ record Return(Value value) implements Value {
     static final ReturnParser INSTANCE = new ReturnParser();
 
     @Override
-    public void apply(MethodVisitor mv) {
+    public void apply(final MethodVisitor mv) {
         value.apply(mv);
         mv.visitInsn(Opcodes.DRETURN);
     }
 
     record ReturnParser() implements SyntaxParser<Return> {
         @Override
-        public Return accept(QtfParser parser, SyntaxContext context) throws QtfParseException {
+        public Return accept(final QtfParser parser, final SyntaxContext context) throws QtfParseException {
             parser.clearPeekedToken();
-            Value value = parser.next(ExpressionParser.INSTANCE);
+            final Value value = ExpressionParser.INSTANCE.accept(parser, context);
             parser.skip(TokenClass.TERMINATOR);
 
             // Intentionally trigger exception if there are more tokens after return value

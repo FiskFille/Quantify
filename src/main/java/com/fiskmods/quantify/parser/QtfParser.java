@@ -33,7 +33,7 @@ public class QtfParser extends IteratorTokenStream {
             }
 
             final SyntaxParser<?> syntax = SyntaxSelector.selectSyntax(context, peek());
-            final JvmFunction element = next(syntax);
+            final JvmFunction element = syntax.accept(this, context);
             if (element != null) {
                 elements.add(element);
             }
@@ -56,15 +56,11 @@ public class QtfParser extends IteratorTokenStream {
         }
     }
 
-    public <T extends JvmFunction> T next(final SyntaxParser<T> syntaxParser) throws QtfParseException {
-        return syntaxParser.accept(this, context);
-    }
-
     public <T extends JvmFunction> List<T> nextSequence(final SyntaxParser<T> syntaxParser, final TokenClass delimiter)
             throws QtfParseException {
         final List<T> list = new ArrayList<>();
         while (true) {
-            list.add(next(syntaxParser));
+            list.add(syntaxParser.accept(this, context));
 
             if (isNext(delimiter)) {
                 clearPeekedToken();

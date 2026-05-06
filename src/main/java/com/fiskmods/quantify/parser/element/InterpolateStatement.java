@@ -37,7 +37,7 @@ record InterpolateStatement(Value progress, @Nullable VarAddress substitution, J
 
             final Token token = parser.next(TokenClass.INTERPOLATE);
             parser.next(TokenClass.OPEN_PARENTHESIS);
-            progress = parser.next(ExpressionParser.INSTANCE);
+            progress = ExpressionParser.INSTANCE.accept(parser, context);
             parser.next(TokenClass.CLOSE_PARENTHESIS);
             parser.skip(TokenClass.TERMINATOR);
 
@@ -56,11 +56,11 @@ record InterpolateStatement(Value progress, @Nullable VarAddress substitution, J
                 }
             }
 
-            final StatementBody body = parser.next(new StatementBody.StatementBodyParser(t -> {
+            final StatementBody body = new StatementBody.StatementBodyParser(t -> {
                 final Scope scope = t.copy();
                 scope.setLerpProgress(substitution != null ? substitution : progress);
                 return scope;
-            }));
+            }).accept(parser, context);
             return new InterpolateStatement(progress, substitution, body);
         }
     }

@@ -40,7 +40,7 @@ record FunctionRef(FunctionAddress address, Value[] args, boolean hasResult) imp
             } catch (final QtfException e) {
                 throw new QtfParseException(e, range);
             }
-            return parser.next(parser(func, hasResult));
+            return parser(func, hasResult).accept(parser, context);
         };
     }
 
