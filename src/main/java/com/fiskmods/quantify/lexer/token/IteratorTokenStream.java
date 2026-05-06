@@ -6,13 +6,17 @@ import org.jspecify.annotations.Nullable;
 import java.util.Iterator;
 import java.util.Objects;
 
-public class IteratorTokenStream implements TokenStream {
+public final class IteratorTokenStream implements TokenStream {
     private final Iterator<Token> tokens;
 
     private @Nullable Token peekedToken, lastToken, eofToken;
 
-    public IteratorTokenStream(final Iterator<Token> tokens) {
+    private IteratorTokenStream(final Iterator<Token> tokens) {
         this.tokens = tokens;
+    }
+
+    public static IteratorTokenStream of(final Iterator<Token> tokens) {
+        return new IteratorTokenStream(tokens);
     }
 
     @Override

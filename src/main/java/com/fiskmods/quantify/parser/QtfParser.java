@@ -2,20 +2,21 @@ package com.fiskmods.quantify.parser;
 
 import com.fiskmods.quantify.exception.QtfParseException;
 import com.fiskmods.quantify.jvm.JvmFunction;
-import com.fiskmods.quantify.lexer.token.IteratorTokenStream;
 import com.fiskmods.quantify.lexer.token.Token;
 import com.fiskmods.quantify.lexer.token.TokenClass;
+import com.fiskmods.quantify.lexer.token.TokenStream;
 import com.fiskmods.quantify.parser.element.SyntaxSelector;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
-public class QtfParser extends IteratorTokenStream {
+public class QtfParser implements TokenStream {
+    private final TokenStream tokens;
     private final SyntaxContext context;
 
-    public QtfParser(final Iterator<Token> tokens, final SyntaxContext context) {
-        super(tokens);
+    public QtfParser(final TokenStream tokens, final SyntaxContext context) {
+        this.tokens = tokens;
         this.context = context;
     }
 
@@ -48,6 +49,57 @@ public class QtfParser extends IteratorTokenStream {
         }
 
         return SyntaxTree.of(elements);
+    }
+
+    @Override
+    public void clearPeekedToken() {
+        tokens.clearPeekedToken();
+    }
+
+    @Override
+    public Token peek() {
+        return tokens.peek();
+    }
+
+    @Nullable
+    @Override
+    public Token last() {
+        return tokens.last();
+    }
+
+    @Override
+    public boolean hasNext() {
+        return tokens.hasNext();
+    }
+
+    @Override
+    public boolean hasNext(final Boundary boundary) {
+        return tokens.hasNext(boundary);
+    }
+
+    @Override
+    public Token next() {
+        return tokens.next();
+    }
+
+    @Override
+    public Token next(final TokenClass expectedClass) throws QtfParseException {
+        return tokens.next(expectedClass);
+    }
+
+    @Override
+    public boolean isNext(final TokenClass expectedClass) {
+        return tokens.isNext(expectedClass);
+    }
+
+    @Override
+    public boolean isNext(final TokenClass expectedClass, final Object expectedValue) {
+        return tokens.isNext(expectedClass, expectedValue);
+    }
+
+    @Override
+    public boolean skip(final TokenClass tokenClass) {
+        return tokens.skip(tokenClass);
     }
 
     public void expectLineBreak() throws QtfParseException {

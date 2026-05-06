@@ -5,7 +5,9 @@ import com.fiskmods.quantify.exception.QtfParseException;
 import com.fiskmods.quantify.jvm.JvmCompiler;
 import com.fiskmods.quantify.lexer.QtfLexer;
 import com.fiskmods.quantify.lexer.TextScanner;
+import com.fiskmods.quantify.lexer.token.IteratorTokenStream;
 import com.fiskmods.quantify.lexer.token.Token;
+import com.fiskmods.quantify.lexer.token.TokenStream;
 import com.fiskmods.quantify.library.LibraryMap;
 import com.fiskmods.quantify.parser.QtfParser;
 import com.fiskmods.quantify.parser.SyntaxContext;
@@ -16,7 +18,6 @@ import javax.tools.DiagnosticListener;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -47,8 +48,8 @@ public class QtfCompiler {
         try {
             final SyntaxContext context = new SyntaxContext(libraries);
 
-            final List<Token> tokens = tokenize(scanner, logger);
-            final SyntaxTree syntaxTree = parse(tokens.iterator(), context, logger);
+            final TokenStream tokens = tokenize(scanner, logger);
+            final SyntaxTree syntaxTree = parse(tokens, context, logger);
 
             final Class<?> c = classCompiler.compile(syntaxTree, context::createClassComposer);
             return new QtfCompilationUnit(c,
@@ -70,7 +71,7 @@ public class QtfCompiler {
         }
     }
 
-    private List<Token> tokenize(final TextScanner scanner, final Logger logger) throws QtfCompilerException {
+    private TokenStream tokenize(final TextScanner scanner, final Logger logger) throws QtfCompilerException {
         final List<Token> tokens = new ArrayList<>();
 
         final QtfLexer lexer = new QtfLexer(scanner, logger);
@@ -78,13 +79,13 @@ public class QtfCompiler {
             if (QtfCompiler.DEBUG) {
                 System.out.println(tokens);
             }
-            return tokens;
+            return IteratorTokenStream.of(tokens.iterator());
         }
 
         throw new QtfCompilerException("Invalid source");
     }
 
-    private SyntaxTree parse(final Iterator<Token> tokens, final SyntaxContext context, final Logger logger) throws QtfCompilerException {
+    private SyntaxTree parse(final TokenStream tokens, final SyntaxContext context, final Logger logger) throws QtfCompilerException {
         try {
             final QtfParser parser = new QtfParser(tokens, context);
             return parser.parse(false);
