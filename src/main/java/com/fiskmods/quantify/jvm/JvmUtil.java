@@ -1,8 +1,8 @@
 package com.fiskmods.quantify.jvm;
 
 import com.fiskmods.quantify.lexer.token.Operator;
-import com.fiskmods.quantify.parser.element.NumLiteral;
-import com.fiskmods.quantify.parser.element.Value;
+import com.fiskmods.quantify.parser.tree.NumLiteral;
+import com.fiskmods.quantify.parser.tree.Value;
 import org.objectweb.asm.MethodVisitor;
 
 import static org.objectweb.asm.Opcodes.*;

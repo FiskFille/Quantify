@@ -16,6 +16,8 @@ import com.fiskmods.quantify.member.Namespace;
 import com.fiskmods.quantify.parser.QtfParser;
 import com.fiskmods.quantify.parser.SyntaxContext;
 import com.fiskmods.quantify.parser.SyntaxParser;
+import com.fiskmods.quantify.parser.tree.NumLiteral;
+import com.fiskmods.quantify.parser.tree.Value;
 
 import java.util.Optional;
 
@@ -72,13 +74,13 @@ class IdentifierParser {
     }
 
     private static SyntaxParser<?> lineStart(final String name, final Token.Range range, final Namespace namespace) {
-        return FunctionRef.tryParse(name, range, namespace, false)
-                .or(Assignment.parserFrom(name, range, namespace));
+        return FunctionRefParser.tryParse(name, range, namespace, false)
+                .or(AssignmentParser.parserFrom(name, range, namespace));
     }
 
     @SuppressWarnings("unchecked")
     static SyntaxParser<Value> anyValue(final String name, final Token.Range range, final Namespace namespace) {
-        return (SyntaxParser<Value>) FunctionRef.tryParse(name, range, namespace, true)
+        return (SyntaxParser<Value>) FunctionRefParser.tryParse(name, range, namespace, true)
                 .or((parser, context) -> {
                     try {
                         if (namespace.hasConstant(name)) {

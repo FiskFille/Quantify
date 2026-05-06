@@ -7,6 +7,8 @@ import com.fiskmods.quantify.lexer.token.TokenClass;
 import com.fiskmods.quantify.parser.QtfParser;
 import com.fiskmods.quantify.parser.SyntaxContext;
 import com.fiskmods.quantify.parser.SyntaxParser;
+import com.fiskmods.quantify.parser.tree.Operation;
+import com.fiskmods.quantify.parser.tree.Value;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -65,7 +67,7 @@ class ExpressionParser implements SyntaxParser<Value> {
                 parser.next(TokenClass.CLOSE_PARENTHESIS);
                 yield val;
             }
-            default -> NumLiteral.PARSER.accept(parser, context);
+            default -> NumLiteralParser.PARSER.accept(parser, context);
         };
     }
 

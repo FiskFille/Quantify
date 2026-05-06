@@ -4,7 +4,7 @@ import com.fiskmods.quantify.exception.QtfException;
 import com.fiskmods.quantify.jvm.VarAddress;
 import com.fiskmods.quantify.jvm.assignable.LocalVar;
 import com.fiskmods.quantify.jvm.assignable.Struct;
-import com.fiskmods.quantify.parser.element.Value;
+import com.fiskmods.quantify.parser.tree.Value;
 
 import java.util.function.IntFunction;
 import java.util.function.Supplier;

@@ -10,6 +10,8 @@ import com.fiskmods.quantify.member.MemberType;
 import com.fiskmods.quantify.parser.QtfParser;
 import com.fiskmods.quantify.parser.SyntaxContext;
 import com.fiskmods.quantify.parser.SyntaxParser;
+import com.fiskmods.quantify.parser.tree.NumLiteral;
+import com.fiskmods.quantify.parser.tree.Value;
 
 class ConstDefParser implements SyntaxParser<JvmFunction> {
     static final ConstDefParser INSTANCE = new ConstDefParser();

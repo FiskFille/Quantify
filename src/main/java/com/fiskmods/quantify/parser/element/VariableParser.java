@@ -13,8 +13,11 @@ import com.fiskmods.quantify.member.Namespace;
 import com.fiskmods.quantify.parser.QtfParser;
 import com.fiskmods.quantify.parser.SyntaxContext;
 import com.fiskmods.quantify.parser.SyntaxParser;
+import com.fiskmods.quantify.parser.tree.Assignable;
+import com.fiskmods.quantify.parser.tree.VariableList;
 import org.jspecify.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -70,7 +73,7 @@ record VariableParser(boolean isPublic) implements SyntaxParser<JvmFunction> {
 
     private static @Nullable JvmFunction assignOrInit(final QtfParser parser, final SyntaxContext context, final Assignable assignable, final VarType<?> type, final boolean isPublic) throws QtfParseException {
         if (type.isAssignable() && parser.isNext(TokenClass.ASSIGNMENT, null)) {
-            return Assignment.parser(assignable, true).accept(parser, context);
+            return AssignmentParser.parser(assignable, true).accept(parser, context);
         }
 
         // Public var storage needs no initialization
@@ -126,5 +129,19 @@ record VariableParser(boolean isPublic) implements SyntaxParser<JvmFunction> {
         } catch (final QtfException e) {
             throw new QtfParseException(e, range);
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    static <T extends VarAddress> SyntaxParser<VariableList<T>> parseList(final T firstVar, final int modifiers) {
+        return (parser, context) -> {
+            final List<T> list = new ArrayList<>();
+            list.add(firstVar);
+            do {
+                parser.clearPeekedToken();
+                list.add((T) AssignableParser.nextVariable(parser, context, firstVar.type(), modifiers));
+            } while (parser.isNext(TokenClass.COMMA));
+
+            return new VariableList<>(list.toArray((T[]) new VarAddress[0]));
+        };
     }
 }

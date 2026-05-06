@@ -9,7 +9,7 @@ import com.fiskmods.quantify.lexer.token.Operator;
 import com.fiskmods.quantify.member.MemberMap;
 import com.fiskmods.quantify.member.MemberType;
 import com.fiskmods.quantify.member.Namespace;
-import com.fiskmods.quantify.parser.element.Value;
+import com.fiskmods.quantify.parser.tree.Value;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.Optional;

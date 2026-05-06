@@ -8,6 +8,7 @@ import com.fiskmods.quantify.lexer.token.TokenClass;
 import com.fiskmods.quantify.parser.QtfParser;
 import com.fiskmods.quantify.parser.SyntaxContext;
 import com.fiskmods.quantify.parser.SyntaxParser;
+import com.fiskmods.quantify.parser.tree.Assignment;
 
 class InputParser implements SyntaxParser<Assignment> {
     static final InputParser INSTANCE = new InputParser();

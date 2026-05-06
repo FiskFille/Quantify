@@ -4,8 +4,8 @@ import com.fiskmods.quantify.jvm.JvmUtil;
 import com.fiskmods.quantify.jvm.VarAddress;
 import com.fiskmods.quantify.lexer.token.Operator;
 import com.fiskmods.quantify.library.QtfMath;
-import com.fiskmods.quantify.parser.element.NumLiteral;
-import com.fiskmods.quantify.parser.element.Value;
+import com.fiskmods.quantify.parser.tree.NumLiteral;
+import com.fiskmods.quantify.parser.tree.Value;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.function.Function;

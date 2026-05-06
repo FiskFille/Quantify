@@ -2,8 +2,8 @@ package com.fiskmods.quantify.jvm;
 
 import com.fiskmods.quantify.exception.QtfException;
 import com.fiskmods.quantify.jvm.assignable.VarType;
-import com.fiskmods.quantify.parser.element.Assignable;
-import com.fiskmods.quantify.parser.element.Value;
+import com.fiskmods.quantify.parser.tree.Assignable;
+import com.fiskmods.quantify.parser.tree.Value;
 
 public interface VarAddress extends Value, Assignable {
     VarType<?> type();

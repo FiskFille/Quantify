@@ -11,13 +11,13 @@ public class SyntaxSelector {
             case IMPORT -> checkScope(ImportParser.INSTANCE, context, next);
             case INPUT -> checkScope(InputParser.INSTANCE, context, next);
             case PUBLIC -> checkScope(VariableParser.PUBLIC, context, next);
-            case IF -> IfStatement.PARSER;
-            case INTERPOLATE -> InterpolateStatement.PARSER;
+            case IF -> IfStatementParser.PARSER;
+            case INTERPOLATE -> InterpolateStatementParser.PARSER;
             case NAMESPACE -> NamespaceParser.INSTANCE;
             case VAR -> VariableParser.LOCAL;
             case CONST -> ConstDefParser.INSTANCE;
-            case FUNC -> FunctionDef.PARSER;
-            case RETURN -> Return.INSTANCE;
+            case FUNC -> FunctionDefParser.PARSER;
+            case RETURN -> ReturnParser.INSTANCE;
 
             default -> IdentifierParser.LINE_START;
         };

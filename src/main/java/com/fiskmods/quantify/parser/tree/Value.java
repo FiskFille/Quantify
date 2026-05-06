@@ -1,4 +1,4 @@
-package com.fiskmods.quantify.parser.element;
+package com.fiskmods.quantify.parser.tree;
 
 import com.fiskmods.quantify.jvm.JvmFunction;
 import org.objectweb.asm.MethodVisitor;

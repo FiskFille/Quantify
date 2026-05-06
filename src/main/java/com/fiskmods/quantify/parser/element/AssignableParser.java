@@ -1,7 +1,6 @@
 package com.fiskmods.quantify.parser.element;
 
 import com.fiskmods.quantify.exception.QtfParseException;
-import com.fiskmods.quantify.jvm.JvmFunction;
 import com.fiskmods.quantify.jvm.VarAddress;
 import com.fiskmods.quantify.jvm.assignable.VarInfo;
 import com.fiskmods.quantify.jvm.assignable.VarType;
@@ -10,37 +9,27 @@ import com.fiskmods.quantify.lexer.token.TokenClass;
 import com.fiskmods.quantify.parser.QtfParser;
 import com.fiskmods.quantify.parser.SyntaxContext;
 import com.fiskmods.quantify.parser.SyntaxParser;
-import org.objectweb.asm.MethodVisitor;
+import com.fiskmods.quantify.parser.tree.Assignable;
 
-public interface Assignable extends JvmFunction {
-    void set(MethodVisitor mv, Value value);
-
-    default void init(final MethodVisitor mv) {
-        set(mv, Value.ZERO);
-    }
-
-    void modify(MethodVisitor mv, Value value, Operator op);
-
-    void lerp(MethodVisitor mv, Value value, Value progress, boolean rotational);
-
-    static <T extends VarAddress> SyntaxParser<Assignable> parse(final VarType<T> type, final int modifiers) {
+class AssignableParser {
+    public static <T extends VarAddress> SyntaxParser<Assignable> parse(final VarType<T> type, final int modifiers) {
         return (parser, context) -> {
             final T var = nextVariable(parser, context, type, modifiers);
             return parse(var, modifiers).accept(parser, context);
         };
     }
 
-    static <T extends VarAddress> SyntaxParser<Assignable> parse(final T firstVar, final int modifiers) {
+    public static <T extends VarAddress> SyntaxParser<Assignable> parse(final T firstVar, final int modifiers) {
         return (parser, context) -> {
             if (parser.isNext(TokenClass.COMMA)) {
-                return VariableList.parse(firstVar, modifiers).accept(parser, context);
+                return VariableParser.parseList(firstVar, modifiers).accept(parser, context);
             }
             return firstVar;
         };
     }
 
     @SuppressWarnings("unchecked")
-    static <T extends VarAddress> T nextVariable(final QtfParser parser, final SyntaxContext context, final VarType<T> type, final int modifiers) throws QtfParseException {
+    public static <T extends VarAddress> T nextVariable(final QtfParser parser, final SyntaxContext context, final VarType<T> type, final int modifiers) throws QtfParseException {
         final boolean isNegated = isNegated(parser, (modifiers & VarInfo.DEFINITION) != 0);
         final T var = VariableParser.refOrDef(type, modifiers).accept(parser, context);
         if (isNegated) {

@@ -2,7 +2,7 @@ package com.fiskmods.quantify.jvm;
 
 import com.fiskmods.quantify.exception.QtfParseException;
 import com.fiskmods.quantify.lexer.token.Token;
-import com.fiskmods.quantify.parser.element.Value;
+import com.fiskmods.quantify.parser.tree.Value;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
