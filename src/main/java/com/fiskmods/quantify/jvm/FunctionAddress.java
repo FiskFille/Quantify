@@ -2,9 +2,7 @@ package com.fiskmods.quantify.jvm;
 
 import com.fiskmods.quantify.exception.QtfParseException;
 import com.fiskmods.quantify.lexer.token.Token;
-import com.fiskmods.quantify.parser.tree.Value;
 import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
 
 public interface FunctionAddress {
     String owner();
@@ -22,13 +20,6 @@ public interface FunctionAddress {
 
     default void visit(final MethodVisitor mv, final int opcode, final boolean isInterface) {
         mv.visitMethodInsn(opcode, owner(), name(), descriptor(), isInterface);
-    }
-
-    default void run(final MethodVisitor mv, final Value[] args) {
-        for (final Value arg : args) {
-            arg.apply(mv);
-        }
-        visit(mv, Opcodes.INVOKESTATIC, false);
     }
 
     default void validateParameters(final int arguments, final Token.Range location) throws QtfParseException {

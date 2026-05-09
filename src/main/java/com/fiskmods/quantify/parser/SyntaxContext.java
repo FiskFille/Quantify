@@ -2,7 +2,6 @@ package com.fiskmods.quantify.parser;
 
 import com.fiskmods.quantify.exception.QtfException;
 import com.fiskmods.quantify.jvm.FunctionAddress;
-import com.fiskmods.quantify.jvm.JvmClassComposer;
 import com.fiskmods.quantify.jvm.JvmFunctionDefinition;
 import com.fiskmods.quantify.jvm.VarAddress;
 import com.fiskmods.quantify.jvm.assignable.ArrayVar;
@@ -117,12 +116,6 @@ public class SyntaxContext implements ScopeProvider {
 
     public IndexMap<String> getOutputs() {
         return IndexMap.of(Collections.unmodifiableList(outputs));
-    }
-
-    public JvmClassComposer createClassComposer(final String className) {
-        return functionDefinitions.stream()
-                .map(t -> t.define(className))
-                .reduce(JvmClassComposer.DO_NOTHING, JvmClassComposer::andThen);
     }
 
     private class DefaultNamespace implements Namespace {

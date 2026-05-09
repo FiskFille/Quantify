@@ -11,7 +11,7 @@ import com.fiskmods.quantify.lexer.token.TokenStream;
 import com.fiskmods.quantify.library.LibraryMap;
 import com.fiskmods.quantify.parser.QtfParser;
 import com.fiskmods.quantify.parser.SyntaxContext;
-import com.fiskmods.quantify.parser.SyntaxTree;
+import com.fiskmods.quantify.parser.tree.Tree;
 import org.jspecify.annotations.Nullable;
 
 import javax.tools.DiagnosticListener;
@@ -49,9 +49,9 @@ public class QtfCompiler {
             final SyntaxContext context = new SyntaxContext(libraries);
 
             final TokenStream tokens = tokenize(scanner, logger);
-            final SyntaxTree syntaxTree = parse(tokens, context, logger);
+            final var trees = parse(tokens, context, logger);
 
-            final Class<?> c = classCompiler.compile(syntaxTree, context::createClassComposer);
+            final Class<?> c = classCompiler.compile(trees);
             return new QtfCompilationUnit(c,
                     context.getInputs(),
                     context.getOutputs(),
@@ -85,7 +85,7 @@ public class QtfCompiler {
         throw new QtfCompilerException("Invalid source");
     }
 
-    private SyntaxTree parse(final TokenStream tokens, final SyntaxContext context, final Logger logger) throws QtfCompilerException {
+    private List<? extends Tree> parse(final TokenStream tokens, final SyntaxContext context, final Logger logger) throws QtfCompilerException {
         try {
             final QtfParser parser = new QtfParser(tokens, context);
             return parser.parse(false);

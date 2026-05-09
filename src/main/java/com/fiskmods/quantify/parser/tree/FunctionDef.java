@@ -1,33 +1,15 @@
 package com.fiskmods.quantify.parser.tree;
 
 import com.fiskmods.quantify.jvm.FunctionAddress;
-import com.fiskmods.quantify.jvm.JvmClassComposer;
-import com.fiskmods.quantify.jvm.JvmFunction;
 import com.fiskmods.quantify.jvm.JvmFunctionDefinition;
-import org.objectweb.asm.MethodVisitor;
 
-import static org.objectweb.asm.Opcodes.*;
-
-public record FunctionDef(String name, boolean isVisible, DefinedFunctionAddress address, JvmFunction body, ReturnValueType returnValue)
-        implements JvmFunctionDefinition {
-
-    @Override
-    public JvmClassComposer define(final String className) {
-        address.owner = className;
-        return cw -> {
-            final MethodVisitor mv = cw.visitMethod(ACC_STATIC | ACC_PUBLIC, address.name, address.descriptor, null, null);
-            body.apply(mv);
-
-            if (returnValue == ReturnValueType.MISSING) {
-                mv.visitInsn(DCONST_0);
-                mv.visitInsn(DRETURN);
-            } else if (returnValue == ReturnValueType.IMPLICIT) {
-                mv.visitInsn(DRETURN);
-            }
-            mv.visitMaxs(0, 0);
-            mv.visitEnd();
-        };
-    }
+public record FunctionDef(
+        String name,
+        boolean isVisible,
+        DefinedFunctionAddress address,
+        Tree body,
+        ReturnValueType returnValue
+) implements Tree, JvmFunctionDefinition {
 
     public enum ReturnValueType {
         MISSING, IMPLICIT, EXPLICIT
@@ -57,6 +39,11 @@ public record FunctionDef(String name, boolean isVisible, DefinedFunctionAddress
         @Override
         public int parameters() {
             return parameters;
+        }
+
+        @Override
+        public String toString() {
+            return getLoggingName();
         }
     }
 }

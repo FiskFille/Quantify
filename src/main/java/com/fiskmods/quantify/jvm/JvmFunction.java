@@ -25,25 +25,6 @@ public interface JvmFunction {
 
     void apply(MethodVisitor mv);
 
-    default JvmFunction andThen(final JvmFunction next) {
-        return mv -> {
-            apply(mv);
-            next.apply(mv);
-        };
-    }
-
-    default boolean isNegated() {
-        return false;
-    }
-
-    default JvmFunction negate() {
-        return new NegatedJvmFunction(this);
-    }
-
-    default JvmFunction negateIf(final boolean shouldNegate) {
-        return shouldNegate ? negate() : this;
-    }
-
     static JvmFunction insn(final int opcode) {
         return mv -> mv.visitInsn(opcode);
     }
@@ -60,23 +41,5 @@ public interface JvmFunction {
             mv.visitInsn(DCONST_1);
             mv.visitLabel(end);
         };
-    }
-
-    record NegatedJvmFunction(JvmFunction function) implements JvmFunction {
-        @Override
-        public void apply(final MethodVisitor mv) {
-            function.apply(mv);
-            mv.visitInsn(DNEG);
-        }
-
-        @Override
-        public boolean isNegated() {
-            return true;
-        }
-
-        @Override
-        public JvmFunction negate() {
-            return function;
-        }
     }
 }

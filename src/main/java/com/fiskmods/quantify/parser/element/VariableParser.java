@@ -2,7 +2,6 @@ package com.fiskmods.quantify.parser.element;
 
 import com.fiskmods.quantify.exception.QtfException;
 import com.fiskmods.quantify.exception.QtfParseException;
-import com.fiskmods.quantify.jvm.JvmFunction;
 import com.fiskmods.quantify.jvm.VarAddress;
 import com.fiskmods.quantify.jvm.assignable.VarInfo;
 import com.fiskmods.quantify.jvm.assignable.VarType;
@@ -14,19 +13,20 @@ import com.fiskmods.quantify.parser.QtfParser;
 import com.fiskmods.quantify.parser.SyntaxContext;
 import com.fiskmods.quantify.parser.SyntaxParser;
 import com.fiskmods.quantify.parser.tree.Assignable;
+import com.fiskmods.quantify.parser.tree.Value;
+import com.fiskmods.quantify.parser.tree.VarDefinitionTree;
 import com.fiskmods.quantify.parser.tree.VariableList;
-import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-record VariableParser(boolean isPublic) implements SyntaxParser<JvmFunction> {
+record VariableParser(boolean isPublic) implements SyntaxParser<VarDefinitionTree> {
     static final VariableParser LOCAL = new VariableParser(false);
     static final VariableParser PUBLIC = new VariableParser(true);
 
     @Override
-    public JvmFunction accept(final QtfParser parser, final SyntaxContext context) throws QtfParseException {
+    public VarDefinitionTree accept(final QtfParser parser, final SyntaxContext context) throws QtfParseException {
         if (isPublic)
             parser.next(TokenClass.PUBLIC);
         parser.next(TokenClass.VAR);
@@ -41,46 +41,44 @@ record VariableParser(boolean isPublic) implements SyntaxParser<JvmFunction> {
         }
     }
 
-    private @Nullable JvmFunction parseSingleVar(final QtfParser parser, final SyntaxContext context, final VarType<?> type, final Token identifier) throws QtfParseException {
+    private VarDefinitionTree parseSingleVar(final QtfParser parser, final SyntaxContext context, final VarType<?> type, final Token identifier) throws QtfParseException {
         final String name = identifier.getString();
-        final Assignable var;
+        final VarAddress var;
 
         try {
             var = VarInfo.define(name, type, context, isPublic);
         } catch (final QtfException e) {
             throw new QtfParseException(e, identifier.range());
         }
-        return assignOrInit(parser, context, var, type, isPublic);
+        return assignOrInit(parser, context, var, type);
     }
 
-    private <T extends VarAddress> @Nullable JvmFunction parseMultiVar(final QtfParser parser, final SyntaxContext context, final VarType<T> type, final List<Token> identifiers) throws QtfParseException {
-        @SuppressWarnings("unchecked")
-        final T[] vars = (T[]) new VarAddress[identifiers.size()];
+    private <T extends VarAddress> VarDefinitionTree parseMultiVar(final QtfParser parser, final SyntaxContext context, final VarType<T> type, final List<Token> identifiers) throws QtfParseException {
+        final List<VarAddress> vars = new ArrayList<>(identifiers.size());
 
-        for (int i = 0; i < vars.length; i++) {
-            final Token identifier = identifiers.get(i);
+        for (final Token identifier : identifiers) {
             final String varName = identifier.getString();
             try {
-                vars[i] = VarInfo.define(varName, type, context, isPublic);
+                vars.add(VarInfo.define(varName, type, context, isPublic));
             } catch (final QtfException e) {
                 throw new QtfParseException(e, identifier.range());
             }
         }
 
-        final Assignable var = new VariableList<>(vars);
-        return assignOrInit(parser, context, var, type, isPublic);
+        final Assignable var = new VariableList(vars);
+        return assignOrInit(parser, context, var, type);
     }
 
-    private static @Nullable JvmFunction assignOrInit(final QtfParser parser, final SyntaxContext context, final Assignable assignable, final VarType<?> type, final boolean isPublic) throws QtfParseException {
-        if (type.isAssignable() && parser.isNext(TokenClass.ASSIGNMENT, null)) {
-            return AssignmentParser.parser(assignable, true).accept(parser, context);
-        }
+    private VarDefinitionTree assignOrInit(final QtfParser parser, final SyntaxContext context, final Assignable assignable, final VarType<?> type) throws QtfParseException {
+        final Value initializer;
 
-        // Public var storage needs no initialization
-        if (isPublic) {
-            return null;
+        if (type.isAssignable() && parser.isNext(TokenClass.ASSIGNMENT, null)) {
+            parser.next(TokenClass.ASSIGNMENT);
+            initializer = ExpressionParser.INSTANCE.accept(parser, context);
+        } else {
+            initializer = null;
         }
-        return assignable::init;
+        return new VarDefinitionTree(assignable, type, initializer, isPublic);
     }
 
     private static Optional<VarType<?>> extractType(final QtfParser parser) throws QtfParseException {
@@ -131,17 +129,16 @@ record VariableParser(boolean isPublic) implements SyntaxParser<JvmFunction> {
         }
     }
 
-    @SuppressWarnings("unchecked")
-    static <T extends VarAddress> SyntaxParser<VariableList<T>> parseList(final T firstVar, final int modifiers) {
+    static SyntaxParser<VariableList> parseList(final VarAddress firstVar, final int modifiers) {
         return (parser, context) -> {
-            final List<T> list = new ArrayList<>();
+            final List<VarAddress> list = new ArrayList<>();
             list.add(firstVar);
             do {
                 parser.clearPeekedToken();
-                list.add((T) AssignableParser.nextVariable(parser, context, firstVar.type(), modifiers));
+                list.add(AssignableParser.nextVariable(parser, context, firstVar.type(), modifiers));
             } while (parser.isNext(TokenClass.COMMA));
 
-            return new VariableList<>(list.toArray((T[]) new VarAddress[0]));
+            return new VariableList(list);
         };
     }
 }

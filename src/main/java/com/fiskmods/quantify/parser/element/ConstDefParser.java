@@ -2,7 +2,6 @@ package com.fiskmods.quantify.parser.element;
 
 import com.fiskmods.quantify.exception.QtfException;
 import com.fiskmods.quantify.exception.QtfParseException;
-import com.fiskmods.quantify.jvm.JvmFunction;
 import com.fiskmods.quantify.lexer.token.Operator;
 import com.fiskmods.quantify.lexer.token.Token;
 import com.fiskmods.quantify.lexer.token.TokenClass;
@@ -11,13 +10,14 @@ import com.fiskmods.quantify.parser.QtfParser;
 import com.fiskmods.quantify.parser.SyntaxContext;
 import com.fiskmods.quantify.parser.SyntaxParser;
 import com.fiskmods.quantify.parser.tree.NumLiteral;
+import com.fiskmods.quantify.parser.tree.Tree;
 import com.fiskmods.quantify.parser.tree.Value;
 
-class ConstDefParser implements SyntaxParser<JvmFunction> {
+class ConstDefParser implements SyntaxParser<Tree> {
     static final ConstDefParser INSTANCE = new ConstDefParser();
 
     @Override
-    public JvmFunction accept(final QtfParser parser, final SyntaxContext context) throws QtfParseException {
+    public Tree accept(final QtfParser parser, final SyntaxContext context) throws QtfParseException {
         parser.clearPeekedToken();
         final Token identifier = parser.next(TokenClass.IDENTIFIER);
         final Token assignment = parser.next(TokenClass.ASSIGNMENT);

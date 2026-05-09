@@ -3,16 +3,12 @@ package com.fiskmods.quantify.parser.tree;
 import com.fiskmods.quantify.jvm.VarAddress;
 import com.fiskmods.quantify.lexer.token.Operator;
 import com.fiskmods.quantify.library.QtfMath;
-import org.objectweb.asm.MethodVisitor;
 
-public record Operation(Value left, Value right, Operator op) implements Value {
-    @Override
-    public void apply(final MethodVisitor mv) {
-        left.apply(mv);
-        right.apply(mv);
-        op.apply(mv);
-    }
-
+public record Operation(
+        Value left,
+        Value right,
+        Operator op
+) implements Value {
     public static Value wrap(final Value left, final Value right, final Operator op) {
         switch (op) {
             case MUL, AND -> {

@@ -1,6 +1,8 @@
 package com.fiskmods.quantify.jvm;
 
 import com.fiskmods.quantify.QtfCompiler;
+import com.fiskmods.quantify.parser.tree.Tree;
+import com.fiskmods.quantify.parser.tree.TreeVisitor;
 import org.jspecify.annotations.Nullable;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
@@ -13,7 +15,7 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.function.Function;
+import java.util.List;
 import java.util.function.Supplier;
 
 import static org.objectweb.asm.Opcodes.*;
@@ -34,11 +36,11 @@ public class JvmCompiler {
         this.nextName = nextName;
     }
 
-    public Class<?> compile(final JvmFunction function, final Function<String, JvmClassComposer> composer) {
+    public Class<?> compile(final List<? extends Tree> trees) {
         final String className = nextName.get();
         final String binaryName = className.replace('/', '.');
 
-        final byte[] bytes = writeClass(className, function, composer.apply(className));
+        final byte[] bytes = writeClass(className, trees);
         final Class<?> c = classLoader.defineClass(binaryName, bytes);
 
         if (QtfCompiler.DEBUG) {
@@ -47,7 +49,7 @@ public class JvmCompiler {
         return c;
     }
 
-    private byte[] writeClass(final String className, final JvmFunction function, final JvmClassComposer composer) {
+    private byte[] writeClass(final String className, final List<? extends Tree> trees) {
         final ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
         cw.visit(CLASS_FILE_VERSION, ACC_PUBLIC | ACC_SUPER | ACC_FINAL, className, null, JVM_RUNNABLE, null);
 
@@ -59,10 +61,13 @@ public class JvmCompiler {
         mv.visitMaxs(1, 1);
         mv.visitEnd();
 
-        composer.compose(cw);
-
         mv = cw.visitMethod(ACC_PROTECTED, "run", "([D[D)V", null, null);
-        function.apply(mv);
+        final TreeVisitor visitor = new JvmTreeVisitor(className, cw, mv);
+
+        for (final Tree tree : trees) {
+            visitor.visitTree(tree);
+        }
+
         mv.visitInsn(RETURN);
         mv.visitMaxs(0, 0);
         mv.visitEnd();

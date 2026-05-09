@@ -1,13 +1,13 @@
 package com.fiskmods.quantify.parser.element;
 
 import com.fiskmods.quantify.exception.QtfParseException;
-import com.fiskmods.quantify.jvm.JvmFunction;
 import com.fiskmods.quantify.lexer.token.TokenClass;
 import com.fiskmods.quantify.parser.QtfParser;
 import com.fiskmods.quantify.parser.SyntaxContext;
 import com.fiskmods.quantify.parser.SyntaxParser;
+import com.fiskmods.quantify.parser.tree.BlockTree;
 import com.fiskmods.quantify.parser.tree.IfStatement;
-import com.fiskmods.quantify.parser.tree.StatementBody;
+import com.fiskmods.quantify.parser.tree.Tree;
 import com.fiskmods.quantify.parser.tree.Value;
 
 class IfStatementParser implements SyntaxParser<IfStatement> {
@@ -21,8 +21,8 @@ class IfStatementParser implements SyntaxParser<IfStatement> {
         parser.next(TokenClass.CLOSE_PARENTHESIS);
         parser.skip(TokenClass.TERMINATOR);
 
-        final StatementBody body = StatementBodyParser.PARSER.accept(parser, context);
-        JvmFunction elseBody = null;
+        final BlockTree body = BlockParser.parseBlock(parser, context);
+        Tree elseBody = null;
         parser.skip(TokenClass.TERMINATOR);
 
         if (parser.isNext(TokenClass.ELSE)) {
@@ -30,7 +30,7 @@ class IfStatementParser implements SyntaxParser<IfStatement> {
             if (parser.isNext(TokenClass.IF)) {
                 elseBody = this.accept(parser, context);
             } else {
-                elseBody = StatementBodyParser.PARSER.accept(parser, context);
+                elseBody = BlockParser.parseBlock(parser, context);
             }
         }
         return new IfStatement(condition, body, elseBody);

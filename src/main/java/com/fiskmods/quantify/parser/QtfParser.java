@@ -1,11 +1,11 @@
 package com.fiskmods.quantify.parser;
 
 import com.fiskmods.quantify.exception.QtfParseException;
-import com.fiskmods.quantify.jvm.JvmFunction;
 import com.fiskmods.quantify.lexer.token.Token;
 import com.fiskmods.quantify.lexer.token.TokenClass;
 import com.fiskmods.quantify.lexer.token.TokenStream;
 import com.fiskmods.quantify.parser.element.SyntaxSelector;
+import com.fiskmods.quantify.parser.tree.Tree;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -20,8 +20,8 @@ public class QtfParser implements TokenStream {
         this.context = context;
     }
 
-    public SyntaxTree parse(final boolean isEnclosed) throws QtfParseException {
-        final List<JvmFunction> elements = new ArrayList<>(64);
+    public List<? extends Tree> parse(final boolean isEnclosed) throws QtfParseException {
+        final List<Tree> elements = new ArrayList<>(64);
         final int stack = context.stackDepth();
 
         while (hasNext()) {
@@ -34,7 +34,7 @@ public class QtfParser implements TokenStream {
             }
 
             final SyntaxParser<?> syntax = SyntaxSelector.selectSyntax(context, peek());
-            final JvmFunction element = syntax.accept(this, context);
+            final Tree element = syntax.accept(this, context);
             if (element != null) {
                 elements.add(element);
             }
@@ -48,7 +48,7 @@ public class QtfParser implements TokenStream {
             );
         }
 
-        return SyntaxTree.of(elements);
+        return elements;
     }
 
     @Override
@@ -108,7 +108,7 @@ public class QtfParser implements TokenStream {
         }
     }
 
-    public <T extends JvmFunction> List<T> nextSequence(final SyntaxParser<T> syntaxParser, final TokenClass delimiter)
+    public <T extends Tree> List<T> nextSequence(final SyntaxParser<T> syntaxParser, final TokenClass delimiter)
             throws QtfParseException {
         final List<T> list = new ArrayList<>();
         while (true) {

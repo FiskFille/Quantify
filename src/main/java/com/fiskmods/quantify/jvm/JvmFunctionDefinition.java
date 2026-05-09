@@ -6,6 +6,4 @@ public interface JvmFunctionDefinition {
     boolean isVisible();
 
     FunctionAddress address();
-
-    JvmClassComposer define(String className);
 }

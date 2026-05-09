@@ -3,6 +3,7 @@ package com.fiskmods.quantify.parser.element;
 import com.fiskmods.quantify.exception.QtfException;
 import com.fiskmods.quantify.exception.QtfParseException;
 import com.fiskmods.quantify.jvm.VarAddress;
+import com.fiskmods.quantify.jvm.assignable.VarType;
 import com.fiskmods.quantify.lexer.Keywords;
 import com.fiskmods.quantify.lexer.token.Token;
 import com.fiskmods.quantify.lexer.token.TokenClass;
@@ -11,9 +12,9 @@ import com.fiskmods.quantify.member.Scope;
 import com.fiskmods.quantify.parser.QtfParser;
 import com.fiskmods.quantify.parser.SyntaxContext;
 import com.fiskmods.quantify.parser.SyntaxParser;
+import com.fiskmods.quantify.parser.tree.BlockTree;
 import com.fiskmods.quantify.parser.tree.InterpolateStatement;
 import com.fiskmods.quantify.parser.tree.NumLiteral;
-import com.fiskmods.quantify.parser.tree.StatementBody;
 import com.fiskmods.quantify.parser.tree.Value;
 
 class InterpolateStatementParser implements SyntaxParser<InterpolateStatement> {
@@ -36,7 +37,7 @@ class InterpolateStatementParser implements SyntaxParser<InterpolateStatement> {
             try {
                 // Store progress value in a variable if it's not a constant
                 if (context.hasMember(Keywords.INTERPOLATE, MemberType.VARIABLE)) {
-                    substitution = context.getMember(Keywords.INTERPOLATE, MemberType.VARIABLE);
+                    substitution = context.getVariable(Keywords.INTERPOLATE, VarType.NUM);
                 } else {
                     substitution = context.addLocalVariable(Keywords.INTERPOLATE);
                 }
@@ -45,11 +46,11 @@ class InterpolateStatementParser implements SyntaxParser<InterpolateStatement> {
             }
         }
 
-        final StatementBody body = new StatementBodyParser(t -> {
+        final BlockTree body = BlockParser.parseBlock(parser, context, t -> {
             final Scope scope = t.copy();
             scope.setLerpProgress(substitution != null ? substitution : progress);
             return scope;
-        }).accept(parser, context);
+        });
         return new InterpolateStatement(progress, substitution, body);
     }
 }

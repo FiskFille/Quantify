@@ -1,8 +1,10 @@
 package com.fiskmods.quantify.member;
 
 import com.fiskmods.quantify.exception.QtfException;
+import com.fiskmods.quantify.jvm.VarAddress;
 import com.fiskmods.quantify.jvm.assignable.LocalVar;
 import com.fiskmods.quantify.jvm.assignable.Struct;
+import com.fiskmods.quantify.jvm.assignable.VarType;
 
 import java.util.Optional;
 import java.util.function.UnaryOperator;
@@ -48,5 +50,9 @@ public interface ScopeProvider {
 
     default <T> T getMember(final String name, final MemberType<T> expectedType) throws QtfException {
         return expectedType.scope(this).members.get(name, expectedType);
+    }
+
+    default <T extends VarAddress> T getVariable(final String name, final VarType<T> expectedType) throws QtfException {
+        return getMember(name, MemberType.VARIABLE).cast(name, expectedType);
     }
 }

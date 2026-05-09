@@ -2,7 +2,6 @@ package com.fiskmods.quantify.parser.element;
 
 import com.fiskmods.quantify.exception.QtfException;
 import com.fiskmods.quantify.exception.QtfParseException;
-import com.fiskmods.quantify.jvm.JvmFunction;
 import com.fiskmods.quantify.lexer.Keywords;
 import com.fiskmods.quantify.lexer.token.Token;
 import com.fiskmods.quantify.lexer.token.TokenClass;
@@ -12,12 +11,13 @@ import com.fiskmods.quantify.member.Namespace;
 import com.fiskmods.quantify.parser.QtfParser;
 import com.fiskmods.quantify.parser.SyntaxContext;
 import com.fiskmods.quantify.parser.SyntaxParser;
+import com.fiskmods.quantify.parser.tree.Tree;
 
-class NamespaceParser implements SyntaxParser<JvmFunction> {
-    static final SyntaxParser<JvmFunction> INSTANCE = new NamespaceParser();
+class NamespaceParser implements SyntaxParser<Tree> {
+    static final SyntaxParser<Tree> INSTANCE = new NamespaceParser();
 
     @Override
-    public JvmFunction accept(final QtfParser parser, final SyntaxContext context) throws QtfParseException {
+    public Tree accept(final QtfParser parser, final SyntaxContext context) throws QtfParseException {
         parser.next(TokenClass.NAMESPACE);
         final Token identifier = parser.next(TokenClass.IDENTIFIER);
         final String namespaceName = identifier.getString();
@@ -43,6 +43,6 @@ class NamespaceParser implements SyntaxParser<JvmFunction> {
             }
             return null;
         }
-        return StatementBodyParser.parser(namespace).accept(parser, context);
+        return BlockParser.parseBlock(parser, context, t -> t.copy(namespace));
     }
 }

@@ -3,7 +3,6 @@ package com.fiskmods.quantify.parser.element;
 import com.fiskmods.quantify.exception.QtfException;
 import com.fiskmods.quantify.exception.QtfParseException;
 import com.fiskmods.quantify.jvm.FunctionAddress;
-import com.fiskmods.quantify.jvm.JvmFunction;
 import com.fiskmods.quantify.lexer.token.Token;
 import com.fiskmods.quantify.lexer.token.TokenClass;
 import com.fiskmods.quantify.member.FunctionScope;
@@ -13,15 +12,16 @@ import com.fiskmods.quantify.parser.QtfParser;
 import com.fiskmods.quantify.parser.SyntaxContext;
 import com.fiskmods.quantify.parser.SyntaxParser;
 import com.fiskmods.quantify.parser.tree.FunctionDef;
+import com.fiskmods.quantify.parser.tree.Tree;
 
 import java.util.HashSet;
 import java.util.Set;
 
-class FunctionDefParser implements SyntaxParser<JvmFunction> {
-    static final SyntaxParser<JvmFunction> PARSER = new FunctionDefParser();
+class FunctionDefParser implements SyntaxParser<FunctionDef> {
+    static final SyntaxParser<FunctionDef> PARSER = new FunctionDefParser();
 
     @Override
-    public JvmFunction accept(final QtfParser parser, final SyntaxContext context) throws QtfParseException {
+    public FunctionDef accept(final QtfParser parser, final SyntaxContext context) throws QtfParseException {
         final FunctionDef.DefinedFunctionAddress address = new FunctionDef.DefinedFunctionAddress();
 
         parser.clearPeekedToken();
@@ -38,7 +38,7 @@ class FunctionDefParser implements SyntaxParser<JvmFunction> {
         final String[] parameters = parseParameters(parser);
         final Scope parentScope = context.scope();
         final FunctionScope scope;
-        final JvmFunction body;
+        final Tree body;
         final FunctionDef.ReturnValueType returnValue;
 
         try {
@@ -61,14 +61,17 @@ class FunctionDefParser implements SyntaxParser<JvmFunction> {
             returnValue = FunctionDef.ReturnValueType.IMPLICIT;
             context.pop();
         } else {
-            body = new FunctionBodyParser(scope).accept(parser, context);
+            body = BlockParser.parseBlock(parser, context, scope);
             returnValue = scope.hasReturnValue() ? FunctionDef.ReturnValueType.EXPLICIT : FunctionDef.ReturnValueType.MISSING;
         }
 
         final boolean isVisible = !parentScope.isInnerScope();
-        final int index = context.defineFunction(new FunctionDef(name, isVisible, address, body, returnValue));
+        final FunctionDef func = new FunctionDef(name, isVisible, address, body, returnValue);
+
+        final int index = context.defineFunction(func);
         address.name = createName(name, index);
-        return null;
+
+        return func;
     }
 
     private String[] parseParameters(final QtfParser parser) throws QtfParseException {

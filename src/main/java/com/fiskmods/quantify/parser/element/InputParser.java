@@ -34,6 +34,6 @@ class InputParser implements SyntaxParser<Assignment> {
         }
 
         parser.expectLineBreak();
-        return new Assignment.AbsoluteAssignment(var, inputVar, null);
+        return new Assignment(var, inputVar, null);
     }
 }
