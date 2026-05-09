@@ -1,7 +1,7 @@
 package com.fiskmods.quantify.jvm;
 
 import com.fiskmods.quantify.QtfCompiler;
-import com.fiskmods.quantify.parser.tree.Tree;
+import com.fiskmods.quantify.parser.tree.Statement;
 import com.fiskmods.quantify.parser.tree.TreeVisitor;
 import org.jspecify.annotations.Nullable;
 import org.objectweb.asm.ClassReader;
@@ -36,11 +36,11 @@ public class JvmCompiler {
         this.nextName = nextName;
     }
 
-    public Class<?> compile(final List<? extends Tree> trees) {
+    public Class<?> compile(final List<? extends Statement> statements) {
         final String className = nextName.get();
         final String binaryName = className.replace('/', '.');
 
-        final byte[] bytes = writeClass(className, trees);
+        final byte[] bytes = writeClass(className, statements);
         final Class<?> c = classLoader.defineClass(binaryName, bytes);
 
         if (QtfCompiler.DEBUG) {
@@ -49,7 +49,7 @@ public class JvmCompiler {
         return c;
     }
 
-    private byte[] writeClass(final String className, final List<? extends Tree> trees) {
+    private byte[] writeClass(final String className, final List<? extends Statement> statements) {
         final ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
         cw.visit(CLASS_FILE_VERSION, ACC_PUBLIC | ACC_SUPER | ACC_FINAL, className, null, JVM_RUNNABLE, null);
 
@@ -63,10 +63,7 @@ public class JvmCompiler {
 
         mv = cw.visitMethod(ACC_PROTECTED, "run", "([D[D)V", null, null);
         final TreeVisitor visitor = new JvmTreeVisitor(className, cw, mv);
-
-        for (final Tree tree : trees) {
-            visitor.visitTree(tree);
-        }
+        statements.forEach(visitor::visitTree);
 
         mv.visitInsn(RETURN);
         mv.visitMaxs(0, 0);

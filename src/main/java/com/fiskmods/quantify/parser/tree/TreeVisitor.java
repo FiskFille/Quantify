@@ -6,7 +6,9 @@ public interface TreeVisitor {
 
     void visitAssignment(Assignment assign);
 
-    void visitBlock(BlockTree block);
+    void visitBlock(BlockStatement block);
+
+    void visitExpressionStatement(ExpressionStatement expStmt);
 
     void visitFunctionDef(FunctionDef func);
 
@@ -24,7 +26,7 @@ public interface TreeVisitor {
 
     void visitOperation(Operation op);
 
-    void visitReturn(Return ret);
+    void visitReturnStatement(ReturnStatement ret);
 
     void visitVarAddress(VarAddress var);
 
@@ -33,7 +35,8 @@ public interface TreeVisitor {
     default void visitTree(final Tree tree) {
         switch (tree) {
             case final Assignment t -> visitAssignment(t);
-            case final BlockTree t -> visitBlock(t);
+            case final BlockStatement t -> visitBlock(t);
+            case final ExpressionStatement t -> visitExpressionStatement(t);
             case final FunctionDef t -> visitFunctionDef(t);
             case final FunctionRef t -> visitFunctionRef(t);
             case final IfStatement t -> visitIfStatement(t);
@@ -42,7 +45,7 @@ public interface TreeVisitor {
             case final NegatedValue t -> visitNegatedValue(t);
             case final NumLiteral t -> visitNumLiteral(t);
             case final Operation t -> visitOperation(t);
-            case final Return t -> visitReturn(t);
+            case final ReturnStatement t -> visitReturnStatement(t);
             case final VarAddress t -> visitVarAddress(t);
             case final VarDefinitionTree t -> visitVarDefinition(t);
             default -> throw new IllegalStateException("Unexpected value: " + tree);

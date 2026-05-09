@@ -32,10 +32,16 @@ public class JvmTreeVisitor implements TreeVisitor {
     }
 
     @Override
-    public void visitBlock(final BlockTree block) {
-        for (final Tree stmt : block.statements()) {
-            visitTree(stmt);
-        }
+    public void visitBlock(final BlockStatement block) {
+        block.statements().forEach(this::visitTree);
+    }
+
+    @Override
+    public void visitExpressionStatement(final ExpressionStatement expStmt) {
+        visitTree(expStmt.expression());
+
+        // Pop unused value from stack
+        mv.visitInsn(POP2);
     }
 
     @Override
@@ -58,15 +64,8 @@ public class JvmTreeVisitor implements TreeVisitor {
 
     @Override
     public void visitFunctionRef(final FunctionRef func) {
-        for (final Value arg : func.args()) {
-            visitTree(arg);
-        }
+        func.args().forEach(this::visitTree);
         func.address().visit(mv, INVOKESTATIC, false);
-
-        // Pop returned function value from stack if unused
-        if (!func.hasResult()) {
-            mv.visitInsn(POP2);
-        }
     }
 
     @Override
@@ -152,7 +151,7 @@ public class JvmTreeVisitor implements TreeVisitor {
     }
 
     @Override
-    public void visitReturn(final Return ret) {
+    public void visitReturnStatement(final ReturnStatement ret) {
         visitTree(ret.value());
         mv.visitInsn(DRETURN);
     }

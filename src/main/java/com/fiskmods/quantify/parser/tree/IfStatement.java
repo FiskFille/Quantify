@@ -6,4 +6,4 @@ public record IfStatement(
         Value condition,
         Tree body,
         @Nullable Tree elseBody
-) implements Tree {}
+) implements Statement {}

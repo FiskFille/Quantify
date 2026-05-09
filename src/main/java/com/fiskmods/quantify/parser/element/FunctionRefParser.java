@@ -41,7 +41,7 @@ record FunctionRefParser(FunctionAddress func, boolean hasResult) implements Syn
 
         if (parser.isNext(TokenClass.CLOSE_PARENTHESIS)) {
             func.validateParameters(0, parser.next().range());
-            return new FunctionRef(func, List.of(), hasResult);
+            return new FunctionRef(func, List.of());
         }
 
         final List<Value> args = parser.nextSequence(ExpressionParser.INSTANCE, TokenClass.COMMA);
@@ -50,6 +50,6 @@ record FunctionRefParser(FunctionAddress func, boolean hasResult) implements Syn
         if (!hasResult) {
             parser.expectLineBreak();
         }
-        return new FunctionRef(func, args, hasResult);
+        return new FunctionRef(func, args);
     }
 }

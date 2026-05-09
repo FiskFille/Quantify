@@ -1,5 +1,5 @@
 package com.fiskmods.quantify.parser.tree;
 
-public record Return(
+public record ReturnStatement(
         Value value
-) implements Value {}
+) implements Statement {}

@@ -5,4 +5,4 @@ public record LerpAssignment(
         Value value,
         Value progress,
         boolean rotational
-) implements Tree {}
+) implements Statement {}

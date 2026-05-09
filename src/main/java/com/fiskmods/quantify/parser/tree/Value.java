@@ -1,6 +1,6 @@
 package com.fiskmods.quantify.parser.tree;
 
-public interface Value extends Tree {
+public interface Value extends Expression {
     default Value negate() {
         return new NegatedValue(this);
     }

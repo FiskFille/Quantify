@@ -12,7 +12,7 @@ import com.fiskmods.quantify.member.Scope;
 import com.fiskmods.quantify.parser.QtfParser;
 import com.fiskmods.quantify.parser.SyntaxContext;
 import com.fiskmods.quantify.parser.SyntaxParser;
-import com.fiskmods.quantify.parser.tree.BlockTree;
+import com.fiskmods.quantify.parser.tree.BlockStatement;
 import com.fiskmods.quantify.parser.tree.InterpolateStatement;
 import com.fiskmods.quantify.parser.tree.NumLiteral;
 import com.fiskmods.quantify.parser.tree.Value;
@@ -46,7 +46,7 @@ class InterpolateStatementParser implements SyntaxParser<InterpolateStatement> {
             }
         }
 
-        final BlockTree body = BlockParser.parseBlock(parser, context, t -> {
+        final BlockStatement body = BlockParser.parseBlock(parser, context, t -> {
             final Scope scope = t.copy();
             scope.setLerpProgress(substitution != null ? substitution : progress);
             return scope;

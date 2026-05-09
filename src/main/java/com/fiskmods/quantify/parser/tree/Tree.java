@@ -1,4 +1,4 @@
 package com.fiskmods.quantify.parser.tree;
 
-public interface Tree {
+public sealed interface Tree permits Statement, Expression {
 }

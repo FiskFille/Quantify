@@ -9,7 +9,7 @@ public record FunctionDef(
         DefinedFunctionAddress address,
         Tree body,
         ReturnValueType returnValue
-) implements Tree, JvmFunctionDefinition {
+) implements Statement, JvmFunctionDefinition {
 
     public enum ReturnValueType {
         MISSING, IMPLICIT, EXPLICIT

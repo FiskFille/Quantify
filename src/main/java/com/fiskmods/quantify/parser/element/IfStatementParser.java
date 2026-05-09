@@ -5,7 +5,7 @@ import com.fiskmods.quantify.lexer.token.TokenClass;
 import com.fiskmods.quantify.parser.QtfParser;
 import com.fiskmods.quantify.parser.SyntaxContext;
 import com.fiskmods.quantify.parser.SyntaxParser;
-import com.fiskmods.quantify.parser.tree.BlockTree;
+import com.fiskmods.quantify.parser.tree.BlockStatement;
 import com.fiskmods.quantify.parser.tree.IfStatement;
 import com.fiskmods.quantify.parser.tree.Tree;
 import com.fiskmods.quantify.parser.tree.Value;
@@ -21,7 +21,7 @@ class IfStatementParser implements SyntaxParser<IfStatement> {
         parser.next(TokenClass.CLOSE_PARENTHESIS);
         parser.skip(TokenClass.TERMINATOR);
 
-        final BlockTree body = BlockParser.parseBlock(parser, context);
+        final BlockStatement body = BlockParser.parseBlock(parser, context);
         Tree elseBody = null;
         parser.skip(TokenClass.TERMINATOR);
 

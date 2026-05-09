@@ -7,4 +7,4 @@ public record Assignment(
         Assignable target,
         Value value,
         @Nullable Operator op
-) implements Tree {}
+) implements Statement {}

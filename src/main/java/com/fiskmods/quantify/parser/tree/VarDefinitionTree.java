@@ -8,4 +8,4 @@ public record VarDefinitionTree(
         VarType<?> type,
         @Nullable Value initializer,
         boolean isPublic
-) implements Tree {}
+) implements Statement {}

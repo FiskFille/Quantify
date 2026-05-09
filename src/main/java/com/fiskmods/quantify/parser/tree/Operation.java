@@ -4,6 +4,8 @@ import com.fiskmods.quantify.jvm.VarAddress;
 import com.fiskmods.quantify.lexer.token.Operator;
 import com.fiskmods.quantify.library.QtfMath;
 
+import java.util.List;
+
 public record Operation(
         Value left,
         Value right,
@@ -43,8 +45,8 @@ public record Operation(
                         if (exponent == 2) return wrap(left, left, Operator.MUL);
                         if (exponent == 3) return wrap(left, wrap(left, left, Operator.MUL), Operator.MUL);
                     } else if (!(left instanceof NumLiteral)) {
-                        if (exponent == 2) return FunctionRef.call(QtfMath.SQUARE, left);
-                        if (exponent == 3) return FunctionRef.call(QtfMath.CUBE, left);
+                        if (exponent == 2) return new FunctionRef(QtfMath.SQUARE, List.of(left));
+                        if (exponent == 3) return new FunctionRef(QtfMath.CUBE, List.of(left));
                     }
                 }
             }

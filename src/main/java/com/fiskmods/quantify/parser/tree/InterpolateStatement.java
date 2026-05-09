@@ -7,4 +7,4 @@ public record InterpolateStatement(
         Value progress,
         @Nullable VarAddress substitution,
         Tree body
-) implements Tree {}
+) implements Statement {}

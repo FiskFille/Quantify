@@ -5,6 +5,9 @@ import com.fiskmods.quantify.lexer.token.Token;
 import com.fiskmods.quantify.lexer.token.TokenClass;
 import com.fiskmods.quantify.lexer.token.TokenStream;
 import com.fiskmods.quantify.parser.element.SyntaxSelector;
+import com.fiskmods.quantify.parser.tree.Expression;
+import com.fiskmods.quantify.parser.tree.ExpressionStatement;
+import com.fiskmods.quantify.parser.tree.Statement;
 import com.fiskmods.quantify.parser.tree.Tree;
 import org.jspecify.annotations.Nullable;
 
@@ -20,8 +23,8 @@ public class QtfParser implements TokenStream {
         this.context = context;
     }
 
-    public List<? extends Tree> parse(final boolean isEnclosed) throws QtfParseException {
-        final List<Tree> elements = new ArrayList<>(64);
+    public List<Statement> parse(final boolean isEnclosed) throws QtfParseException {
+        final List<Statement> statements = new ArrayList<>(64);
         final int stack = context.stackDepth();
 
         while (hasNext()) {
@@ -34,9 +37,13 @@ public class QtfParser implements TokenStream {
             }
 
             final SyntaxParser<?> syntax = SyntaxSelector.selectSyntax(context, peek());
-            final Tree element = syntax.accept(this, context);
-            if (element != null) {
-                elements.add(element);
+            final Tree tree = syntax.accept(this, context);
+
+            switch (tree) {
+                case final Statement s -> statements.add(s);
+                case final Expression e -> statements.add(new ExpressionStatement(e));
+                case null -> { } // no-op
+                default -> throw new IllegalStateException("Unexpected value: " + tree);
             }
         }
 
@@ -48,7 +55,7 @@ public class QtfParser implements TokenStream {
             );
         }
 
-        return elements;
+        return statements;
     }
 
     @Override
