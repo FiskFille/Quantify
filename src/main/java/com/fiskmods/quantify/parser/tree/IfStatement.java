@@ -2,8 +2,26 @@ package com.fiskmods.quantify.parser.tree;
 
 import org.jspecify.annotations.Nullable;
 
-public record IfStatement(
-        Expression condition,
-        Statement body,
-        @Nullable Statement elseBody
-) implements Statement {}
+public final class IfStatement extends Tree implements Statement {
+    private final Expression condition;
+    private final Statement body;
+    private final @Nullable Statement elseBody;
+
+    public IfStatement(final Expression condition, final Statement body, final @Nullable Statement elseBody) {
+        this.condition = condition;
+        this.body = body;
+        this.elseBody = elseBody;
+    }
+
+    public Expression condition() {
+        return condition;
+    }
+
+    public Statement body() {
+        return body;
+    }
+
+    public @Nullable Statement elseBody() {
+        return elseBody;
+    }
+}

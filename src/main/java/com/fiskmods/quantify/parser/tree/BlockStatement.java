@@ -2,6 +2,14 @@ package com.fiskmods.quantify.parser.tree;
 
 import java.util.List;
 
-public record BlockStatement(
-        List<? extends Statement> statements
-) implements Statement {}
+public final class BlockStatement extends Tree implements Statement {
+    private final List<? extends Statement> statements;
+
+    public BlockStatement(final List<? extends Statement> statements) {
+        this.statements = statements;
+    }
+
+    public List<? extends Statement> statements() {
+        return statements;
+    }
+}

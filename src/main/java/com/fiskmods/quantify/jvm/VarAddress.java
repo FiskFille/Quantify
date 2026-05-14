@@ -30,8 +30,8 @@ public interface VarAddress extends Assignable, Expression {
     }
 
     static boolean isVar(Expression expression) {
-        while (expression instanceof NegatedExpression(final Expression e)) {
-            expression = e;
+        while (expression instanceof final NegatedExpression neg) {
+            expression = neg.expression();
         }
         return expression instanceof VarAddress;
     }

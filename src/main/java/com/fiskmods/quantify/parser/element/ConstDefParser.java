@@ -26,10 +26,10 @@ class ConstDefParser implements SyntaxParser<Object> {
         }
 
         final Expression value = ExpressionParser.INSTANCE.accept(parser, context);
-        if (value instanceof NumLiteral(final double v)) {
+        if (value instanceof final NumLiteral lit) {
             final String name = identifier.getString();
             try {
-                context.addMember(name, MemberType.CONSTANT, v);
+                context.addMember(name, MemberType.CONSTANT, lit.value());
                 return null;
             } catch (final QtfException e) {
                 throw new QtfParseException(e, identifier.range());

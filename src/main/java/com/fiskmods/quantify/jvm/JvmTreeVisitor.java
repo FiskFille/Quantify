@@ -6,8 +6,6 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 
-import java.util.List;
-
 import static org.objectweb.asm.Opcodes.*;
 
 public class JvmTreeVisitor implements TreeVisitor {
@@ -68,8 +66,8 @@ public class JvmTreeVisitor implements TreeVisitor {
 
     @Override
     public void visitIfStatement(final IfStatement ifStmt) {
-        if (ifStmt.condition() instanceof NumLiteral(final double value)) {
-            if (value > 0) {
+        if (ifStmt.condition() instanceof final NumLiteral lit) {
+            if (lit.value() > 0) {
                 visitTree(ifStmt.body());
             }
             return;
@@ -95,7 +93,7 @@ public class JvmTreeVisitor implements TreeVisitor {
 
     @Override
     public void visitInterpolateStatement(final InterpolateStatement lerp) {
-        if (lerp.progress() instanceof NumLiteral(final double value) && value == 0) {
+        if (lerp.progress() instanceof final NumLiteral lit && lit.value() == 0) {
             return;
         }
         if (lerp.substitution() != null) {
@@ -106,16 +104,16 @@ public class JvmTreeVisitor implements TreeVisitor {
 
     @Override
     public void visitLerpAssignment(final LerpAssignment assign) {
-        if (assign.progress() instanceof NumLiteral(final double v)) {
-            if (v == 0) return;
-            if (v == 1) {
+        if (assign.progress() instanceof final NumLiteral lit) {
+            if (lit.value() == 0) return;
+            if (lit.value() == 1) {
                 varVisitor(assign.target()).visitSet(assign.value());
                 return;
             }
         }
 
         // Interpolating towards 0 is the same as multiplying by (1-progress)
-        if (!assign.rotational() && assign.value() instanceof NumLiteral(final double v) && v == 0) {
+        if (!assign.rotational() && assign.value() instanceof final NumLiteral lit && lit.value() == 0) {
             varVisitor(assign.target()).visitLerpToZero(assign.progress());
             return;
         }
@@ -187,7 +185,7 @@ public class JvmTreeVisitor implements TreeVisitor {
         return switch (assign) {
             case LocalVar(final int id, final boolean ignored) -> new LocalVarVisitor(this, mv, id);
             case ArrayVar(final int id, final int arrayIndex, final boolean ignored) -> new ArrayVarVisitor(this, mv, id, arrayIndex);
-            case VariableList(final List<? extends VarAddress> addresses) -> new VarVisitorList(this, addresses);
+            case final VariableList list -> new VarVisitorList(this, list.addresses());
             default -> throw new IllegalStateException("Unexpected value: " + assign);
         };
     }
