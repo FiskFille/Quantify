@@ -20,7 +20,7 @@ public interface TreeVisitor {
 
     void visitLerpAssignment(LerpAssignment assign);
 
-    void visitNegatedValue(NegatedValue neg);
+    void visitNegatedValue(NegatedExpression neg);
 
     void visitNumLiteral(NumLiteral lit);
 
@@ -42,7 +42,7 @@ public interface TreeVisitor {
             case final IfStatement t -> visitIfStatement(t);
             case final InterpolateStatement t -> visitInterpolateStatement(t);
             case final LerpAssignment t -> visitLerpAssignment(t);
-            case final NegatedValue t -> visitNegatedValue(t);
+            case final NegatedExpression t -> visitNegatedValue(t);
             case final NumLiteral t -> visitNumLiteral(t);
             case final Operation t -> visitOperation(t);
             case final ReturnStatement t -> visitReturnStatement(t);

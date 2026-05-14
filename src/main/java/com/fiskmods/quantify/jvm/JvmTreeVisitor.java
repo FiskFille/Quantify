@@ -126,8 +126,8 @@ public class JvmTreeVisitor implements TreeVisitor {
     }
 
     @Override
-    public void visitNegatedValue(final NegatedValue neg) {
-        visitTree(neg.val());
+    public void visitNegatedValue(final NegatedExpression neg) {
+        visitTree(neg.expression());
         mv.visitInsn(DNEG);
     }
 
@@ -152,7 +152,7 @@ public class JvmTreeVisitor implements TreeVisitor {
 
     @Override
     public void visitReturnStatement(final ReturnStatement ret) {
-        visitTree(ret.value());
+        visitTree(ret.expression());
         mv.visitInsn(DRETURN);
     }
 

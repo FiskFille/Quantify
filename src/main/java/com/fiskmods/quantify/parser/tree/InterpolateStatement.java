@@ -4,7 +4,7 @@ import com.fiskmods.quantify.jvm.VarAddress;
 import org.jspecify.annotations.Nullable;
 
 public record InterpolateStatement(
-        Value progress,
+        Expression progress,
         @Nullable VarAddress substitution,
         Tree body
 ) implements Statement {}

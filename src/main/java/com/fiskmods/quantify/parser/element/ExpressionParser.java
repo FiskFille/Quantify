@@ -7,19 +7,19 @@ import com.fiskmods.quantify.lexer.token.TokenClass;
 import com.fiskmods.quantify.parser.QtfParser;
 import com.fiskmods.quantify.parser.SyntaxContext;
 import com.fiskmods.quantify.parser.SyntaxParser;
+import com.fiskmods.quantify.parser.tree.Expression;
 import com.fiskmods.quantify.parser.tree.Operation;
-import com.fiskmods.quantify.parser.tree.Value;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 
-class ExpressionParser implements SyntaxParser<Value> {
+class ExpressionParser implements SyntaxParser<Expression> {
     static final ExpressionParser INSTANCE = new ExpressionParser();
 
     @Override
-    public Value accept(final QtfParser parser, final SyntaxContext context) throws QtfParseException {
+    public Expression accept(final QtfParser parser, final SyntaxContext context) throws QtfParseException {
         final List<Object> stack = new ArrayList<>();
         final Deque<Integer> lastPriority = new ArrayDeque<>();
 
@@ -27,7 +27,7 @@ class ExpressionParser implements SyntaxParser<Value> {
 
         while (parser.hasNext(QtfParser.Boundary.CLOSURE)) {
             final Operator op = parser.next(TokenClass.OPERATOR).getOperator();
-            final Value right = ExpressionParser.acceptValue(parser, context);
+            final Expression right = ExpressionParser.acceptValue(parser, context);
 
             while (!lastPriority.isEmpty() && lastPriority.peek() <= op.priority()) {
                 reduce(stack);
@@ -41,10 +41,10 @@ class ExpressionParser implements SyntaxParser<Value> {
         while (stack.size() > 1) {
             reduce(stack);
         }
-        return (Value) stack.getFirst();
+        return (Expression) stack.getFirst();
     }
 
-    private static Value acceptValue(final QtfParser parser, final SyntaxContext context) throws QtfParseException {
+    private static Expression acceptValue(final QtfParser parser, final SyntaxContext context) throws QtfParseException {
         final Token peeked = parser.peek();
 
         // Consumes any leading + or - signs
@@ -52,8 +52,8 @@ class ExpressionParser implements SyntaxParser<Value> {
             final Operator op = peeked.getOperator();
             if (op == Operator.SUB) {
                 parser.clearPeekedToken();
-                final Value value = acceptValue(parser, context);
-                return Value.negate(value);
+                final Expression e = acceptValue(parser, context);
+                return Expression.negate(e);
             }
             if (op == Operator.ADD) {
                 parser.clearPeekedToken();
@@ -64,18 +64,18 @@ class ExpressionParser implements SyntaxParser<Value> {
             case IDENTIFIER -> IdentifierParser.ANY_VALUE.accept(parser, context);
             case OPEN_PARENTHESIS -> {
                 parser.clearPeekedToken();
-                final Value val = INSTANCE.accept(parser, context);
+                final Expression e = INSTANCE.accept(parser, context);
                 parser.next(TokenClass.CLOSE_PARENTHESIS);
-                yield val;
+                yield e;
             }
             default -> NumLiteralParser.PARSER.accept(parser, context);
         };
     }
 
     private static void reduce(final List<Object> stack) {
-        final Value right = (Value) stack.removeLast();
+        final Expression right = (Expression) stack.removeLast();
         final Operator op = (Operator) stack.removeLast();
-        final Value left = (Value) stack.removeLast();
+        final Expression left = (Expression) stack.removeLast();
         stack.add(Operation.wrap(left, right, op));
     }
 }

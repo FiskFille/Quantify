@@ -9,9 +9,9 @@ import com.fiskmods.quantify.member.MemberType;
 import com.fiskmods.quantify.parser.QtfParser;
 import com.fiskmods.quantify.parser.SyntaxContext;
 import com.fiskmods.quantify.parser.SyntaxParser;
+import com.fiskmods.quantify.parser.tree.Expression;
 import com.fiskmods.quantify.parser.tree.NumLiteral;
 import com.fiskmods.quantify.parser.tree.Tree;
-import com.fiskmods.quantify.parser.tree.Value;
 
 class ConstDefParser implements SyntaxParser<Tree> {
     static final ConstDefParser INSTANCE = new ConstDefParser();
@@ -26,7 +26,7 @@ class ConstDefParser implements SyntaxParser<Tree> {
             throw QtfParseException.error("definitions can't use assignment operators", assignment.range());
         }
 
-        final Value value = ExpressionParser.INSTANCE.accept(parser, context);
+        final Expression value = ExpressionParser.INSTANCE.accept(parser, context);
         if (value instanceof NumLiteral(final double v)) {
             final String name = identifier.getString();
             try {

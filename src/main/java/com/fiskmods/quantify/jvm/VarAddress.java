@@ -3,10 +3,10 @@ package com.fiskmods.quantify.jvm;
 import com.fiskmods.quantify.exception.QtfException;
 import com.fiskmods.quantify.jvm.assignable.VarType;
 import com.fiskmods.quantify.parser.tree.Assignable;
-import com.fiskmods.quantify.parser.tree.NegatedValue;
-import com.fiskmods.quantify.parser.tree.Value;
+import com.fiskmods.quantify.parser.tree.Expression;
+import com.fiskmods.quantify.parser.tree.NegatedExpression;
 
-public interface VarAddress extends Assignable, Value {
+public interface VarAddress extends Assignable, Expression {
     VarType<?> type();
 
     default boolean is(final VarType<?> type) {
@@ -29,10 +29,10 @@ public interface VarAddress extends Assignable, Value {
         return false;
     }
 
-    static boolean isVar(Value value) {
-        while (value instanceof NegatedValue(final Value val)) {
-            value = val;
+    static boolean isVar(Expression expression) {
+        while (expression instanceof NegatedExpression(final Expression e)) {
+            expression = e;
         }
-        return value instanceof VarAddress;
+        return expression instanceof VarAddress;
     }
 }

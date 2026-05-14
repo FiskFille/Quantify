@@ -6,9 +6,9 @@ import com.fiskmods.quantify.parser.QtfParser;
 import com.fiskmods.quantify.parser.SyntaxContext;
 import com.fiskmods.quantify.parser.SyntaxParser;
 import com.fiskmods.quantify.parser.tree.BlockStatement;
+import com.fiskmods.quantify.parser.tree.Expression;
 import com.fiskmods.quantify.parser.tree.IfStatement;
 import com.fiskmods.quantify.parser.tree.Tree;
-import com.fiskmods.quantify.parser.tree.Value;
 
 class IfStatementParser implements SyntaxParser<IfStatement> {
     static final SyntaxParser<IfStatement> PARSER = new IfStatementParser();
@@ -17,7 +17,7 @@ class IfStatementParser implements SyntaxParser<IfStatement> {
     public IfStatement accept(final QtfParser parser, final SyntaxContext context) throws QtfParseException {
         parser.next(TokenClass.IF);
         parser.next(TokenClass.OPEN_PARENTHESIS);
-        final Value condition = ExpressionParser.INSTANCE.accept(parser, context);
+        final Expression condition = ExpressionParser.INSTANCE.accept(parser, context);
         parser.next(TokenClass.CLOSE_PARENTHESIS);
         parser.skip(TokenClass.TERMINATOR);
 

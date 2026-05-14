@@ -13,7 +13,7 @@ import com.fiskmods.quantify.parser.QtfParser;
 import com.fiskmods.quantify.parser.SyntaxContext;
 import com.fiskmods.quantify.parser.SyntaxParser;
 import com.fiskmods.quantify.parser.tree.Assignable;
-import com.fiskmods.quantify.parser.tree.Value;
+import com.fiskmods.quantify.parser.tree.Expression;
 import com.fiskmods.quantify.parser.tree.VarDefinitionTree;
 import com.fiskmods.quantify.parser.tree.VariableList;
 
@@ -70,7 +70,7 @@ record VariableParser(boolean isPublic) implements SyntaxParser<VarDefinitionTre
     }
 
     private VarDefinitionTree assignOrInit(final QtfParser parser, final SyntaxContext context, final Assignable assignable, final VarType<?> type) throws QtfParseException {
-        final Value initializer;
+        final Expression initializer;
 
         if (type.isAssignable() && parser.isNext(TokenClass.ASSIGNMENT, null)) {
             parser.next(TokenClass.ASSIGNMENT);

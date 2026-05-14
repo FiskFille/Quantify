@@ -5,6 +5,6 @@ import org.jspecify.annotations.Nullable;
 
 public record Assignment(
         Assignable target,
-        Value value,
+        Expression value,
         @Nullable Operator op
 ) implements Statement {}

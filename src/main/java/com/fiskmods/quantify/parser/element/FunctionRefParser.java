@@ -9,8 +9,8 @@ import com.fiskmods.quantify.member.Namespace;
 import com.fiskmods.quantify.parser.QtfParser;
 import com.fiskmods.quantify.parser.SyntaxContext;
 import com.fiskmods.quantify.parser.SyntaxParser;
+import com.fiskmods.quantify.parser.tree.Expression;
 import com.fiskmods.quantify.parser.tree.FunctionRef;
-import com.fiskmods.quantify.parser.tree.Value;
 
 import java.util.List;
 
@@ -44,7 +44,7 @@ record FunctionRefParser(FunctionAddress func, boolean hasResult) implements Syn
             return new FunctionRef(func, List.of());
         }
 
-        final List<Value> args = parser.nextSequence(ExpressionParser.INSTANCE, TokenClass.COMMA);
+        final List<Expression> args = parser.nextSequence(ExpressionParser.INSTANCE, TokenClass.COMMA);
         func.validateParameters(args.size(), parser.next(TokenClass.CLOSE_PARENTHESIS).range());
 
         if (!hasResult) {

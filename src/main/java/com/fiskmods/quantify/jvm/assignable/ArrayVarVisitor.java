@@ -4,7 +4,7 @@ import com.fiskmods.quantify.jvm.JvmTreeVisitor;
 import com.fiskmods.quantify.jvm.JvmUtil;
 import com.fiskmods.quantify.lexer.token.Operator;
 import com.fiskmods.quantify.library.QtfMath;
-import com.fiskmods.quantify.parser.tree.Value;
+import com.fiskmods.quantify.parser.tree.Expression;
 import org.objectweb.asm.MethodVisitor;
 
 import static org.objectweb.asm.Opcodes.*;
@@ -17,7 +17,7 @@ public record ArrayVarVisitor(JvmTreeVisitor visitor, MethodVisitor mv, int id, 
     }
 
     @Override
-    public void visitModify(final Value value, final Operator operator) {
+    public void visitModify(final Expression value, final Operator operator) {
         arrayAddress();
         mv.visitInsn(DUP2);
         mv.visitInsn(DALOAD);
@@ -27,7 +27,7 @@ public record ArrayVarVisitor(JvmTreeVisitor visitor, MethodVisitor mv, int id, 
     }
 
     @Override
-    public void visitSet(final Value value) {
+    public void visitSet(final Expression value) {
         arrayAddress();
         visitor.visitTree(value);
         mv.visitInsn(DASTORE);
@@ -41,7 +41,7 @@ public record ArrayVarVisitor(JvmTreeVisitor visitor, MethodVisitor mv, int id, 
     }
 
     @Override
-    public void visitLerp(final Value value, final Value progress, final boolean rotational) {
+    public void visitLerp(final Expression value, final Expression progress, final boolean rotational) {
         arrayAddress();
         mv.visitInsn(DUP2);
         mv.visitInsn(DALOAD);
@@ -59,7 +59,7 @@ public record ArrayVarVisitor(JvmTreeVisitor visitor, MethodVisitor mv, int id, 
     }
 
     @Override
-    public void visitLerpToZero(final Value progress) {
+    public void visitLerpToZero(final Expression progress) {
         arrayAddress();
         mv.visitInsn(DUP2);
         mv.visitInsn(DALOAD);

@@ -13,16 +13,16 @@ import com.fiskmods.quantify.parser.QtfParser;
 import com.fiskmods.quantify.parser.SyntaxContext;
 import com.fiskmods.quantify.parser.SyntaxParser;
 import com.fiskmods.quantify.parser.tree.BlockStatement;
+import com.fiskmods.quantify.parser.tree.Expression;
 import com.fiskmods.quantify.parser.tree.InterpolateStatement;
 import com.fiskmods.quantify.parser.tree.NumLiteral;
-import com.fiskmods.quantify.parser.tree.Value;
 
 class InterpolateStatementParser implements SyntaxParser<InterpolateStatement> {
     static final SyntaxParser<InterpolateStatement> PARSER = new InterpolateStatementParser();
 
     @Override
     public InterpolateStatement accept(final QtfParser parser, final SyntaxContext context) throws QtfParseException {
-        final Value progress;
+        final Expression progress;
         final VarAddress substitution;
 
         final Token token = parser.next(TokenClass.INTERPOLATE);

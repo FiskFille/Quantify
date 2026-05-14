@@ -7,11 +7,11 @@ import com.fiskmods.quantify.library.QtfMath;
 import java.util.List;
 
 public record Operation(
-        Value left,
-        Value right,
+        Expression left,
+        Expression right,
         Operator op
-) implements Value {
-    public static Value wrap(final Value left, final Value right, final Operator op) {
+) implements Expression {
+    public static Expression wrap(final Expression left, final Expression right, final Operator op) {
         switch (op) {
             case MUL, AND -> {
                 // Any multiplication where one term is 0 or 1 is redundant
@@ -24,8 +24,8 @@ public record Operation(
                     if (value == 1) return left;
                 }
 
-                if (Value.isNegative(left) && Value.isNegative(right)) {
-                    return wrap(Value.negate(left), Value.negate(right), op);
+                if (Expression.isNegative(left) && Expression.isNegative(right)) {
+                    return wrap(Expression.negate(left), Expression.negate(right), op);
                 }
             }
             case DIV -> {

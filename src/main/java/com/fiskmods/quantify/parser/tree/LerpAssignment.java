@@ -2,7 +2,7 @@ package com.fiskmods.quantify.parser.tree;
 
 public record LerpAssignment(
         Assignable target,
-        Value value,
-        Value progress,
+        Expression value,
+        Expression progress,
         boolean rotational
 ) implements Statement {}

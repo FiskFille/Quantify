@@ -6,5 +6,5 @@ import java.util.List;
 
 public record FunctionRef(
         FunctionAddress address,
-        List<? extends Value> args
-) implements Value {}
+        List<? extends Expression> args
+) implements Expression {}

@@ -6,6 +6,6 @@ import org.jspecify.annotations.Nullable;
 public record VarDefinitionTree(
         Assignable target,
         VarType<?> type,
-        @Nullable Value initializer,
+        @Nullable Expression initializer,
         boolean isPublic
 ) implements Statement {}

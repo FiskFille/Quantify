@@ -1,4 +1,4 @@
 package com.fiskmods.quantify.parser.tree;
 
-public record NumLiteral(double value) implements Value {
+public record NumLiteral(double value) implements Expression {
 }

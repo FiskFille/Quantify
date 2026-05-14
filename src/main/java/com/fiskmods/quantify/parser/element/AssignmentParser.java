@@ -15,7 +15,7 @@ class AssignmentParser {
             final Token assignment = parser.next(TokenClass.ASSIGNMENT);
             final Operator op = assignment.getAssignmentOperator(context, false);
 
-            final Value value = ExpressionParser.INSTANCE.accept(parser, context);
+            final Expression value = ExpressionParser.INSTANCE.accept(parser, context);
             if (op == Operator.LERP || op == Operator.LERP_ROT) {
                 return new LerpAssignment(target, value, context.scope().getLerpProgress(), op == Operator.LERP_ROT);
             }

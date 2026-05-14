@@ -4,7 +4,7 @@ import com.fiskmods.quantify.exception.QtfException;
 import com.fiskmods.quantify.jvm.VarAddress;
 import com.fiskmods.quantify.jvm.assignable.LocalVar;
 import com.fiskmods.quantify.jvm.assignable.Struct;
-import com.fiskmods.quantify.parser.tree.Value;
+import com.fiskmods.quantify.parser.tree.Expression;
 
 import java.util.function.IntFunction;
 import java.util.function.Supplier;
@@ -14,7 +14,7 @@ public class Scope {
     protected final int level;
 
     protected Namespace namespace;
-    protected Value lerpProgress;
+    protected Expression lerpProgress;
 
     protected int localIndexOffset = 3;
 
@@ -43,11 +43,11 @@ public class Scope {
         return namespace;
     }
 
-    public void setLerpProgress(final Value lerpProgress) {
+    public void setLerpProgress(final Expression lerpProgress) {
         this.lerpProgress = lerpProgress;
     }
 
-    public Value getLerpProgress() {
+    public Expression getLerpProgress() {
         return lerpProgress;
     }
 

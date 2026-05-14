@@ -15,15 +15,15 @@ import com.fiskmods.quantify.member.Namespace;
 import com.fiskmods.quantify.parser.QtfParser;
 import com.fiskmods.quantify.parser.SyntaxContext;
 import com.fiskmods.quantify.parser.SyntaxParser;
+import com.fiskmods.quantify.parser.tree.Expression;
 import com.fiskmods.quantify.parser.tree.NumLiteral;
 import com.fiskmods.quantify.parser.tree.Tree;
-import com.fiskmods.quantify.parser.tree.Value;
 
 import java.util.Optional;
 
 class IdentifierParser {
     static final SyntaxParser<?> LINE_START = from(IdentifierParser::lineStart);
-    static final SyntaxParser<Value> ANY_VALUE = from(IdentifierParser::anyValue);
+    static final SyntaxParser<Expression> ANY_VALUE = from(IdentifierParser::anyValue);
 
     @FunctionalInterface
     interface ParserSupplier<T extends Tree> {
@@ -79,8 +79,8 @@ class IdentifierParser {
     }
 
     @SuppressWarnings("unchecked")
-    static SyntaxParser<Value> anyValue(final String name, final Token.Range range, final Namespace namespace) {
-        return (SyntaxParser<Value>) FunctionRefParser.tryParse(name, range, namespace, true)
+    static SyntaxParser<Expression> anyValue(final String name, final Token.Range range, final Namespace namespace) {
+        return (SyntaxParser<Expression>) FunctionRefParser.tryParse(name, range, namespace, true)
                 .or((parser, context) -> {
                     try {
                         if (namespace.hasConstant(name)) {
