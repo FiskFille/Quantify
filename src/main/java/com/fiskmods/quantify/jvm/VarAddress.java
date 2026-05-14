@@ -25,6 +25,10 @@ public interface VarAddress extends Assignable, Value {
         return (U) this;
     }
 
+    default boolean isNegated() {
+        return false;
+    }
+
     static boolean isVar(Value value) {
         while (value instanceof NegatedValue(final Value val)) {
             value = val;

@@ -19,9 +19,4 @@ public record ArrayVar(int id, int arrayIndex, boolean isNegated) implements Var
     public VarType<?> type() {
         return VarType.NUM;
     }
-
-    @Override
-    public ArrayVar negate() {
-        return new ArrayVar(id, arrayIndex, !isNegated);
-    }
 }

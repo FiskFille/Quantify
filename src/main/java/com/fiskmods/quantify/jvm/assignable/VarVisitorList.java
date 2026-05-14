@@ -24,12 +24,12 @@ public record VarVisitorList(JvmTreeVisitor visitor, List<? extends VarAddress> 
             boolean first = true;
 
             for (final VarAddress target : addresses) {
-                final Value v = newValue.negateIf(target.isNegated());
+                final Value v = target.isNegated() ? Value.negate(newValue) : newValue;
                 visitor.varVisitor(target).visitSet(v);
 
                 // For all targets after the first, set them to the first target
                 if (first) {
-                    newValue = target.negateIf(target.isNegated());
+                    newValue = target.isNegated() ? Value.negate(target) : target;
                     first = false;
                 }
             }
@@ -37,7 +37,7 @@ public record VarVisitorList(JvmTreeVisitor visitor, List<? extends VarAddress> 
         }
 
         for (final VarAddress target : addresses) {
-            final Value v = value.negateIf(target.isNegated());
+            final Value v = target.isNegated() ? Value.negate(value) : value;
             visitor.varVisitor(target).visitSet(v);
         }
     }
@@ -52,7 +52,7 @@ public record VarVisitorList(JvmTreeVisitor visitor, List<? extends VarAddress> 
     @Override
     public void visitModify(final Value value, final Operator op) {
         for (final VarAddress target : addresses) {
-            final Value v = value.negateIf(target.isNegated());
+            final Value v = target.isNegated() ? Value.negate(value) : value;
             visitor.varVisitor(target).visitModify(v, op);
         }
     }
@@ -60,7 +60,7 @@ public record VarVisitorList(JvmTreeVisitor visitor, List<? extends VarAddress> 
     @Override
     public void visitLerp(final Value value, final Value progress, final boolean rotational) {
         for (final VarAddress target : addresses) {
-            final Value v = value.negateIf(target.isNegated());
+            final Value v = target.isNegated() ? Value.negate(value) : value;
             visitor.varVisitor(target).visitLerp(v, progress, rotational);
         }
     }

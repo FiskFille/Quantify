@@ -24,8 +24,8 @@ public record Operation(
                     if (value == 1) return left;
                 }
 
-                if (left.isNegated() && right.isNegated()) {
-                    return wrap(left.negate(), right.negate(), op);
+                if (Value.isNegative(left) && Value.isNegative(right)) {
+                    return wrap(Value.negate(left), Value.negate(right), op);
                 }
             }
             case DIV -> {

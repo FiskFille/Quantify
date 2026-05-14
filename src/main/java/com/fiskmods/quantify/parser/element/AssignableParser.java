@@ -10,6 +10,7 @@ import com.fiskmods.quantify.parser.QtfParser;
 import com.fiskmods.quantify.parser.SyntaxContext;
 import com.fiskmods.quantify.parser.SyntaxParser;
 import com.fiskmods.quantify.parser.tree.Assignable;
+import com.fiskmods.quantify.parser.tree.Value;
 
 class AssignableParser {
     public static <T extends VarAddress> SyntaxParser<Assignable> parse(final VarType<T> type, final int modifiers) {
@@ -33,7 +34,7 @@ class AssignableParser {
         final boolean isNegated = isNegated(parser, (modifiers & VarInfo.DEFINITION) != 0);
         final T var = VariableParser.refOrDef(type, modifiers).accept(parser, context);
         if (isNegated) {
-            return (T) var.negate();
+            return (T) Value.negate(var);
         }
         return var;
     }

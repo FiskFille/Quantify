@@ -12,9 +12,4 @@ public record LocalVar(int id, boolean isNegated) implements VarAddress {
     public VarType<?> type() {
         return VarType.NUM;
     }
-
-    @Override
-    public LocalVar negate() {
-        return new LocalVar(id, !isNegated);
-    }
 }

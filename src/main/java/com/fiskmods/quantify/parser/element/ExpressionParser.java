@@ -52,7 +52,8 @@ class ExpressionParser implements SyntaxParser<Value> {
             final Operator op = peeked.getOperator();
             if (op == Operator.SUB) {
                 parser.clearPeekedToken();
-                return acceptValue(parser, context).negate();
+                final Value value = acceptValue(parser, context);
+                return Value.negate(value);
             }
             if (op == Operator.ADD) {
                 parser.clearPeekedToken();
