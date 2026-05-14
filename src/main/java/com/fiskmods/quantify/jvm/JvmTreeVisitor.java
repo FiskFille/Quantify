@@ -55,8 +55,6 @@ public class JvmTreeVisitor implements TreeVisitor {
         if (func.returnValue() == FunctionDef.ReturnValueType.MISSING) {
             mv.visitInsn(DCONST_0);
             mv.visitInsn(DRETURN);
-        } else if (func.returnValue() == FunctionDef.ReturnValueType.IMPLICIT) {
-            mv.visitInsn(DRETURN);
         }
         mv.visitMaxs(0, 0);
         mv.visitEnd();

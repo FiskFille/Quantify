@@ -6,5 +6,5 @@ import org.jspecify.annotations.Nullable;
 public record InterpolateStatement(
         Expression progress,
         @Nullable VarAddress substitution,
-        Tree body
+        Statement body
 ) implements Statement {}

@@ -7,7 +7,7 @@ public record FunctionDef(
         String name,
         boolean isVisible,
         DefinedFunctionAddress address,
-        Tree body,
+        Statement body,
         ReturnValueType returnValue
 ) implements Statement, JvmFunctionDefinition {
 

@@ -8,7 +8,6 @@ import com.fiskmods.quantify.parser.element.SyntaxSelector;
 import com.fiskmods.quantify.parser.tree.Expression;
 import com.fiskmods.quantify.parser.tree.ExpressionStatement;
 import com.fiskmods.quantify.parser.tree.Statement;
-import com.fiskmods.quantify.parser.tree.Tree;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -37,7 +36,7 @@ public class QtfParser implements TokenStream {
             }
 
             final SyntaxParser<?> syntax = SyntaxSelector.selectSyntax(context, peek());
-            final Tree tree = syntax.accept(this, context);
+            final Object tree = syntax.accept(this, context);
 
             switch (tree) {
                 case final Statement s -> statements.add(s);
@@ -115,7 +114,7 @@ public class QtfParser implements TokenStream {
         }
     }
 
-    public <T extends Tree> List<T> nextSequence(final SyntaxParser<T> syntaxParser, final TokenClass delimiter)
+    public <T> List<T> nextSequence(final SyntaxParser<T> syntaxParser, final TokenClass delimiter)
             throws QtfParseException {
         final List<T> list = new ArrayList<>();
         while (true) {

@@ -32,7 +32,7 @@ public interface TreeVisitor {
 
     void visitVarDefinition(VarDefinitionTree var);
 
-    default void visitTree(final Tree tree) {
+    default void visitTree(final Object tree) {
         switch (tree) {
             case final Assignment t -> visitAssignment(t);
             case final BlockStatement t -> visitBlock(t);

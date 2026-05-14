@@ -10,7 +10,7 @@ import com.fiskmods.quantify.parser.SyntaxParser;
 import com.fiskmods.quantify.parser.tree.*;
 
 class AssignmentParser {
-    public static SyntaxParser<Tree> parser(final Assignable target) {
+    public static SyntaxParser<?> parser(final Assignable target) {
         return (parser, context) -> {
             final Token assignment = parser.next(TokenClass.ASSIGNMENT);
             final Operator op = assignment.getAssignmentOperator(context, false);
@@ -23,7 +23,7 @@ class AssignmentParser {
         };
     }
 
-    public static SyntaxParser<Tree> parserFrom(final String name, final Token.Range range, final Namespace namespace) {
+    public static SyntaxParser<?> parserFrom(final String name, final Token.Range range, final Namespace namespace) {
         return (parser, context) -> {
             final VarAddress firstVar = VariableParser.compute(name, range, namespace, VarType.NUM, 0);
 

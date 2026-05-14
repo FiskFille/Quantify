@@ -1,12 +1,11 @@
 package com.fiskmods.quantify.parser;
 
 import com.fiskmods.quantify.exception.QtfParseException;
-import com.fiskmods.quantify.parser.tree.Tree;
 
 import java.util.function.Function;
 
 @FunctionalInterface
-public interface SyntaxParser<T extends Tree> {
+public interface SyntaxParser<T> {
     T accept(QtfParser parser, SyntaxContext context) throws QtfParseException;
 
     default SyntaxParser<?> or(final SyntaxParser<?> other) {
@@ -16,11 +15,11 @@ public interface SyntaxParser<T extends Tree> {
         };
     }
 
-    default <R extends Tree> SyntaxParser<R> sequence(final Function<T, SyntaxParser<R>> func) {
+    default <R> SyntaxParser<R> sequence(final Function<T, SyntaxParser<R>> func) {
         return (parser, context) -> func.apply(accept(parser, context)).accept(parser, context);
     }
 
-    default <R extends Tree> SyntaxParser<R> map(final Function<T, R> func) {
+    default <R> SyntaxParser<R> map(final Function<T, R> func) {
         return (parser, context) -> func.apply(accept(parser, context));
     }
 }

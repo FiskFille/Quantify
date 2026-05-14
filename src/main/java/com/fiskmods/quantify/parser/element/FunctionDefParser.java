@@ -11,8 +11,7 @@ import com.fiskmods.quantify.member.Scope;
 import com.fiskmods.quantify.parser.QtfParser;
 import com.fiskmods.quantify.parser.SyntaxContext;
 import com.fiskmods.quantify.parser.SyntaxParser;
-import com.fiskmods.quantify.parser.tree.FunctionDef;
-import com.fiskmods.quantify.parser.tree.Tree;
+import com.fiskmods.quantify.parser.tree.*;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -38,7 +37,7 @@ class FunctionDefParser implements SyntaxParser<FunctionDef> {
         final String[] parameters = parseParameters(parser);
         final Scope parentScope = context.scope();
         final FunctionScope scope;
-        final Tree body;
+        final Statement body;
         final FunctionDef.ReturnValueType returnValue;
 
         try {
@@ -57,7 +56,8 @@ class FunctionDefParser implements SyntaxParser<FunctionDef> {
             }
 
             context.push(scope);
-            body = ExpressionParser.INSTANCE.accept(parser, context);
+            final Expression e = ExpressionParser.INSTANCE.accept(parser, context);
+            body = new ReturnStatement(e);
             returnValue = FunctionDef.ReturnValueType.IMPLICIT;
             context.pop();
         } else {

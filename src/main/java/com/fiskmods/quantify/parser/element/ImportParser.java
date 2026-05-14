@@ -9,13 +9,12 @@ import com.fiskmods.quantify.member.MemberType;
 import com.fiskmods.quantify.parser.QtfParser;
 import com.fiskmods.quantify.parser.SyntaxContext;
 import com.fiskmods.quantify.parser.SyntaxParser;
-import com.fiskmods.quantify.parser.tree.Tree;
 
-class ImportParser implements SyntaxParser<Tree> {
+class ImportParser implements SyntaxParser<Object> {
     static final ImportParser INSTANCE = new ImportParser();
 
     @Override
-    public Tree accept(final QtfParser parser, final SyntaxContext context) throws QtfParseException {
+    public Object accept(final QtfParser parser, final SyntaxContext context) throws QtfParseException {
         parser.clearPeekedToken();
 
         final Token token = parser.next(TokenClass.STR_LITERAL);

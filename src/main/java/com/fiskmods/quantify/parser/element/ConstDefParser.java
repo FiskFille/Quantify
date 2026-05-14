@@ -11,13 +11,12 @@ import com.fiskmods.quantify.parser.SyntaxContext;
 import com.fiskmods.quantify.parser.SyntaxParser;
 import com.fiskmods.quantify.parser.tree.Expression;
 import com.fiskmods.quantify.parser.tree.NumLiteral;
-import com.fiskmods.quantify.parser.tree.Tree;
 
-class ConstDefParser implements SyntaxParser<Tree> {
+class ConstDefParser implements SyntaxParser<Object> {
     static final ConstDefParser INSTANCE = new ConstDefParser();
 
     @Override
-    public Tree accept(final QtfParser parser, final SyntaxContext context) throws QtfParseException {
+    public Object accept(final QtfParser parser, final SyntaxContext context) throws QtfParseException {
         parser.clearPeekedToken();
         final Token identifier = parser.next(TokenClass.IDENTIFIER);
         final Token assignment = parser.next(TokenClass.ASSIGNMENT);

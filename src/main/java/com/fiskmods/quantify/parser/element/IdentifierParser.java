@@ -17,7 +17,6 @@ import com.fiskmods.quantify.parser.SyntaxContext;
 import com.fiskmods.quantify.parser.SyntaxParser;
 import com.fiskmods.quantify.parser.tree.Expression;
 import com.fiskmods.quantify.parser.tree.NumLiteral;
-import com.fiskmods.quantify.parser.tree.Tree;
 
 import java.util.Optional;
 
@@ -26,11 +25,11 @@ class IdentifierParser {
     static final SyntaxParser<Expression> ANY_VALUE = from(IdentifierParser::anyValue);
 
     @FunctionalInterface
-    interface ParserSupplier<T extends Tree> {
+    interface ParserSupplier<T> {
         SyntaxParser<T> apply(String name, Token.Range range, Namespace namespace);
     }
 
-    static <T extends Tree> SyntaxParser<T> from(final ParserSupplier<T> nextParser) {
+    static <T> SyntaxParser<T> from(final ParserSupplier<T> nextParser) {
         return (parser, context) -> {
             final Token identifier = parser.next(TokenClass.IDENTIFIER);
             final String name = identifier.getString();
@@ -93,7 +92,7 @@ class IdentifierParser {
                 });
     }
 
-    private static <T extends Tree> T parseStruct(final QtfParser parser, final SyntaxContext context, final Struct struct, Token child, Token.Range range, final ParserSupplier<T> nextParser) throws QtfParseException {
+    private static <T> T parseStruct(final QtfParser parser, final SyntaxContext context, final Struct struct, Token child, Token.Range range, final ParserSupplier<T> nextParser) throws QtfParseException {
         final StringBuilder name = new StringBuilder(child.getString());
         final Token.Range firstRange = child.range();
 

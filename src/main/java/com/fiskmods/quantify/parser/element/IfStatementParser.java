@@ -8,7 +8,7 @@ import com.fiskmods.quantify.parser.SyntaxParser;
 import com.fiskmods.quantify.parser.tree.BlockStatement;
 import com.fiskmods.quantify.parser.tree.Expression;
 import com.fiskmods.quantify.parser.tree.IfStatement;
-import com.fiskmods.quantify.parser.tree.Tree;
+import com.fiskmods.quantify.parser.tree.Statement;
 
 class IfStatementParser implements SyntaxParser<IfStatement> {
     static final SyntaxParser<IfStatement> PARSER = new IfStatementParser();
@@ -22,13 +22,13 @@ class IfStatementParser implements SyntaxParser<IfStatement> {
         parser.skip(TokenClass.TERMINATOR);
 
         final BlockStatement body = BlockParser.parseBlock(parser, context);
-        Tree elseBody = null;
+        Statement elseBody = null;
         parser.skip(TokenClass.TERMINATOR);
 
         if (parser.isNext(TokenClass.ELSE)) {
             parser.clearPeekedToken();
             if (parser.isNext(TokenClass.IF)) {
-                elseBody = this.accept(parser, context);
+                elseBody = accept(parser, context);
             } else {
                 elseBody = BlockParser.parseBlock(parser, context);
             }

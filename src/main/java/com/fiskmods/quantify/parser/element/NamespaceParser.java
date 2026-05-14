@@ -11,13 +11,12 @@ import com.fiskmods.quantify.member.Namespace;
 import com.fiskmods.quantify.parser.QtfParser;
 import com.fiskmods.quantify.parser.SyntaxContext;
 import com.fiskmods.quantify.parser.SyntaxParser;
-import com.fiskmods.quantify.parser.tree.Tree;
 
-class NamespaceParser implements SyntaxParser<Tree> {
-    static final SyntaxParser<Tree> INSTANCE = new NamespaceParser();
+class NamespaceParser implements SyntaxParser<Object> {
+    static final SyntaxParser<?> INSTANCE = new NamespaceParser();
 
     @Override
-    public Tree accept(final QtfParser parser, final SyntaxContext context) throws QtfParseException {
+    public Object accept(final QtfParser parser, final SyntaxContext context) throws QtfParseException {
         parser.next(TokenClass.NAMESPACE);
         final Token identifier = parser.next(TokenClass.IDENTIFIER);
         final String namespaceName = identifier.getString();
