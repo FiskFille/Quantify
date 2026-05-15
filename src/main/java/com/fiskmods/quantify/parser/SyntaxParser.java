@@ -2,8 +2,6 @@ package com.fiskmods.quantify.parser;
 
 import com.fiskmods.quantify.exception.QtfParseException;
 
-import java.util.function.Function;
-
 @FunctionalInterface
 public interface SyntaxParser<T> {
     T accept(QtfParser parser, SyntaxContext context) throws QtfParseException;
@@ -13,13 +11,5 @@ public interface SyntaxParser<T> {
             final T result = accept(parser, context);
             return result != null ? result : other.accept(parser, context);
         };
-    }
-
-    default <R> SyntaxParser<R> sequence(final Function<T, SyntaxParser<R>> func) {
-        return (parser, context) -> func.apply(accept(parser, context)).accept(parser, context);
-    }
-
-    default <R> SyntaxParser<R> map(final Function<T, R> func) {
-        return (parser, context) -> func.apply(accept(parser, context));
     }
 }

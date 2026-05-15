@@ -5,6 +5,7 @@ import com.fiskmods.quantify.exception.QtfParseException;
 import com.fiskmods.quantify.jvm.VarAddress;
 import com.fiskmods.quantify.jvm.assignable.VarInfo;
 import com.fiskmods.quantify.jvm.assignable.VarType;
+import com.fiskmods.quantify.lexer.token.Operator;
 import com.fiskmods.quantify.lexer.token.Token;
 import com.fiskmods.quantify.lexer.token.TokenClass;
 import com.fiskmods.quantify.lexer.token.TokenList;
@@ -97,48 +98,41 @@ record VariableParser(boolean isPublic) implements SyntaxParser<VarDefinitionTre
         }
     }
 
-    static <T extends VarAddress> SyntaxParser<T> refOrDef(final VarType<T> type, final int modifiers) {
-        return (modifiers & VarInfo.DEFINITION) != 0 ? def(type, modifiers) : ref(type);
-    }
-
-    static <T extends VarAddress> SyntaxParser<T> ref(final VarType<T> type) {
-        return IdentifierParser.from((name, range, namespace)
-                -> (parser, context) -> compute(name, range, namespace, type, 0)
-        );
-    }
-
-    static <T extends VarAddress> SyntaxParser<T> def(final VarType<T> type, final int modifiers) {
-        return (parser, context) -> {
-            final Token identifier = parser.next(TokenClass.IDENTIFIER);
-            final String name = identifier.getString();
-
-            return def(name, identifier.range(), type, modifiers).accept(parser, context);
-        };
-    }
-
-    static <T extends VarAddress> SyntaxParser<T> def(final String name, final Token.Range range, final VarType<T> type, final int modifiers) {
-        // Definitions always belong to the default namespace
-        return (parser, context) -> compute(name, range, context.getDefaultNamespace(), type, modifiers);
-    }
-
-    static <T extends VarAddress> T compute(final String name, final Token.Range range, final Namespace namespace, final VarType<T> type, final int modifiers) throws QtfParseException {
+    static <T extends VarAddress> T compute(final String name, final Token.Range range, final Namespace namespace, final VarType<T> type) throws QtfParseException {
         try {
-            return namespace.computeVariable(type, name, modifiers);
+            return namespace.computeVariable(type, name, 0);
         } catch (final QtfException e) {
             throw new QtfParseException(e, range);
         }
     }
 
-    static SyntaxParser<VariableList> parseList(final VarAddress firstVar, final int modifiers) {
-        return (parser, context) -> {
-            final List<VarAddress> list = new ArrayList<>();
-            list.add(firstVar);
-            do {
-                parser.clearPeekedToken();
-                list.add(AssignableParser.nextVariable(parser, context, firstVar.type(), modifiers));
-            } while (parser.isNext(TokenClass.COMMA));
+    @SuppressWarnings("unchecked")
+    static <T extends VarAddress> T parseVariable(final QtfParser parser, final SyntaxContext context, final VarType<T> type) throws QtfParseException {
+        final boolean isNegated;
+        if (parser.isNext(TokenClass.OPERATOR, Operator.SUB)) {
+            parser.clearPeekedToken();
+            isNegated = true;
+        } else {
+            isNegated = false;
+        }
 
-            return new VariableList(list);
-        };
+        final T var = IdentifierParser.parseIdentifier(parser, context,
+                (name, range, namespace) -> compute(name, range, namespace, type)
+        );
+        if (isNegated) {
+            return (T) Expression.negate(var);
+        }
+        return var;
+    }
+
+    static VariableList parseList(final QtfParser parser, final SyntaxContext context, final VarAddress firstVar) throws QtfParseException {
+        final List<VarAddress> list = new ArrayList<>();
+        list.add(firstVar);
+        do {
+            parser.clearPeekedToken();
+            list.add(parseVariable(parser, context, firstVar.type()));
+        } while (parser.isNext(TokenClass.COMMA));
+
+        return new VariableList(list);
     }
 }
