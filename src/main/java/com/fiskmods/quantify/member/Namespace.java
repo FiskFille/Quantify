@@ -7,7 +7,7 @@ import com.fiskmods.quantify.jvm.assignable.VarType;
 import com.fiskmods.quantify.library.FallbackNamespace;
 
 public interface Namespace {
-    <T extends VarAddress> T computeVariable(VarType<T> type, String name, int modifiers) throws QtfException;
+    <T extends VarAddress> T computeVariable(VarType<T> type, String name) throws QtfException;
 
     boolean hasVariable(String name);
 

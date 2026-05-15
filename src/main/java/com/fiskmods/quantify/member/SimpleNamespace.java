@@ -22,7 +22,7 @@ public final class SimpleNamespace implements Namespace {
     }
 
     @Override
-    public <T extends VarAddress> T computeVariable(final VarType<T> type, final String name, final int modifiers) throws QtfException {
+    public <T extends VarAddress> T computeVariable(final VarType<T> type, final String name) throws QtfException {
         throw QtfErrors.undefined(MemberType.VARIABLE, name, namespaceName);
     }
 

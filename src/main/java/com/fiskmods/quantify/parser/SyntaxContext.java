@@ -6,7 +6,6 @@ import com.fiskmods.quantify.jvm.JvmFunctionDefinition;
 import com.fiskmods.quantify.jvm.VarAddress;
 import com.fiskmods.quantify.jvm.assignable.ArrayVar;
 import com.fiskmods.quantify.jvm.assignable.Struct;
-import com.fiskmods.quantify.jvm.assignable.VarInfo;
 import com.fiskmods.quantify.jvm.assignable.VarType;
 import com.fiskmods.quantify.library.LibraryMap;
 import com.fiskmods.quantify.member.MemberType;
@@ -120,12 +119,8 @@ public class SyntaxContext implements ScopeProvider {
 
     private class DefaultNamespace implements Namespace {
         @Override
-        public <T extends VarAddress> T computeVariable(final VarType<T> type, final String name, final int modifiers) throws QtfException {
-            if ((modifiers & VarInfo.DEFINITION) != 0) {
-                return VarInfo.define(name, type, SyntaxContext.this, modifiers);
-            }
-            return getMember(name, MemberType.VARIABLE)
-                    .cast(name, type);
+        public <T extends VarAddress> T computeVariable(final VarType<T> type, final String name) throws QtfException {
+            return getVariable(name, type);
         }
 
         @Override

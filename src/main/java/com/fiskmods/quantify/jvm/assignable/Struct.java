@@ -85,7 +85,7 @@ public interface Struct extends VarAddress, Namespace {
 
         @Override
         @SuppressWarnings("unchecked")
-        public <T extends VarAddress> T computeVariable(final VarType<T> type, final String name, final int modifiers) throws QtfException {
+        public <T extends VarAddress> T computeVariable(final VarType<T> type, final String name) throws QtfException {
             if (type == null || members.has(name)) {
                 return members.get(name, MemberType.VARIABLE).cast(name, type);
             }
@@ -105,7 +105,7 @@ public interface Struct extends VarAddress, Namespace {
 
         private static final class ChildStruct implements Struct {
             @Override
-            public <T extends VarAddress> T computeVariable(final VarType<T> type, final String name, final int modifiers) throws QtfException {
+            public <T extends VarAddress> T computeVariable(final VarType<T> type, final String name) throws QtfException {
                 throw QtfErrors.undefined(MemberType.VARIABLE, name);
             }
 

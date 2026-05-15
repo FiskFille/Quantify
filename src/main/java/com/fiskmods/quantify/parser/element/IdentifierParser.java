@@ -95,7 +95,7 @@ class IdentifierParser {
                         if (namespace.hasConstant(name)) {
                             return new NumLiteral(namespace.getConstant(name));
                         }
-                        return namespace.computeVariable(VarType.NUM, name, 0);
+                        return namespace.computeVariable(VarType.NUM, name);
                     } catch (final QtfException e) {
                         throw new QtfParseException(e, range);
                     }

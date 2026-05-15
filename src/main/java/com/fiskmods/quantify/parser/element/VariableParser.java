@@ -100,7 +100,7 @@ record VariableParser(boolean isPublic) implements SyntaxParser<VarDefinitionTre
 
     static <T extends VarAddress> T compute(final String name, final Token.Range range, final Namespace namespace, final VarType<T> type) throws QtfParseException {
         try {
-            return namespace.computeVariable(type, name, 0);
+            return namespace.computeVariable(type, name);
         } catch (final QtfException e) {
             throw new QtfParseException(e, range);
         }

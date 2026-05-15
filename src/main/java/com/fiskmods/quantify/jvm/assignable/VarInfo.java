@@ -9,9 +9,6 @@ import com.fiskmods.quantify.parser.QtfParser;
 import com.fiskmods.quantify.parser.SyntaxContext;
 
 public record VarInfo<T extends VarAddress>(String name, VarType<T> type) {
-    public static final int DEFINITION = 0x1;
-    public static final int PUBLIC = 0x2;
-
     public T define(final SyntaxContext context, final boolean isPublic) throws QtfException {
         if (isPublic) {
             return context.addPublicVar(name, type);
@@ -26,10 +23,6 @@ public record VarInfo<T extends VarAddress>(String name, VarType<T> type) {
         } else {
             return type.defineLocal(name, context.scope());
         }
-    }
-
-    public static <T extends VarAddress> T define(final String name, final VarType<T> type, final SyntaxContext context, final int modifiers) throws QtfException {
-        return define(name, type, context, (modifiers & PUBLIC) != 0);
     }
 
     public static VarInfo<?> parse(final QtfParser parser) throws QtfParseException {
