@@ -65,7 +65,7 @@ public class QtfParser extends TreeGenerator implements TokenStream {
     @Override
     public void startTree() {
         if (tokens.hasNext()) {
-            treeStack.add(tokens.peek().range());
+            treeStack.push(tokens.peek().range());
         }
     }
 
