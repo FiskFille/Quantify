@@ -16,8 +16,6 @@ import com.fiskmods.quantify.parser.QtfParser;
 import com.fiskmods.quantify.parser.SyntaxContext;
 import com.fiskmods.quantify.parser.SyntaxParser;
 import com.fiskmods.quantify.parser.tree.Expression;
-import com.fiskmods.quantify.parser.tree.NumLiteral;
-import com.fiskmods.quantify.parser.tree.VarRef;
 
 import java.util.Optional;
 
@@ -94,10 +92,10 @@ class IdentifierParser {
                 .or((parser, context) -> {
                     try {
                         if (namespace.hasConstant(name)) {
-                            return new NumLiteral(namespace.getConstant(name));
+                            return parser.newNumLiteral(namespace.getConstant(name), range);
                         }
                         final VarAddress address = namespace.computeVariable(VarType.NUM, name);
-                        return new VarRef(address, false);
+                        return parser.newVariableRef(address, false, range);
                     } catch (final QtfException e) {
                         throw new QtfParseException(e, range);
                     }

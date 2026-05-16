@@ -11,7 +11,7 @@ public final class VarDefinitionTree extends Statement {
     private final @Nullable Expression initializer;
     private final boolean isPublic;
 
-    public VarDefinitionTree(final List<? extends VarRef> targets, final VarType<?> type, final @Nullable Expression initializer, final boolean isPublic) {
+    VarDefinitionTree(final List<? extends VarRef> targets, final VarType<?> type, final @Nullable Expression initializer, final boolean isPublic) {
         this.targets = targets;
         this.type = type;
         this.initializer = initializer;

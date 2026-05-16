@@ -12,11 +12,12 @@ class NumLiteralParser implements SyntaxParser<NumLiteral> {
 
     @Override
     public NumLiteral accept(final QtfParser parser, final SyntaxContext context) throws QtfParseException {
+        parser.startTree();
         double value = parser.next(TokenClass.NUM_LITERAL).getNumber().doubleValue();
         if (parser.isNext(TokenClass.DEGREES)) {
             parser.clearPeekedToken();
             value *= Math.PI / 180;
         }
-        return new NumLiteral(value);
+        return parser.newNumLiteral(value);
     }
 }

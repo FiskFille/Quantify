@@ -11,10 +11,11 @@ import java.util.function.UnaryOperator;
 
 class BlockParser {
     private static BlockStatement parseBlock(final QtfParser parser) throws QtfParseException {
+        parser.startTree();
         parser.next(TokenClass.OPEN_BRACES);
         final var statements = parser.parse(true);
         parser.next(TokenClass.CLOSE_BRACES);
-        return new BlockStatement(statements);
+        return parser.newBlockStatement(statements);
     }
 
     static BlockStatement parseBlock(final QtfParser parser, final SyntaxContext context, final Scope scope) throws QtfParseException {

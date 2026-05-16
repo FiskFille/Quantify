@@ -8,7 +8,7 @@ public final class InterpolateStatement extends Statement {
     private final @Nullable VarAddress substitution;
     private final Statement body;
 
-    public InterpolateStatement(final Expression progress, final @Nullable VarAddress substitution, final Statement body) {
+    InterpolateStatement(final Expression progress, final @Nullable VarAddress substitution, final Statement body) {
         this.progress = progress;
         this.substitution = substitution;
         this.body = body;

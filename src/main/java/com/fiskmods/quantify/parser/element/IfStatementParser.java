@@ -15,6 +15,7 @@ class IfStatementParser implements SyntaxParser<IfStatement> {
 
     @Override
     public IfStatement accept(final QtfParser parser, final SyntaxContext context) throws QtfParseException {
+        parser.startTree();
         parser.next(TokenClass.IF);
         parser.next(TokenClass.OPEN_PARENTHESIS);
         final Expression condition = ExpressionParser.INSTANCE.accept(parser, context);
@@ -33,6 +34,6 @@ class IfStatementParser implements SyntaxParser<IfStatement> {
                 elseBody = BlockParser.parseBlock(parser, context);
             }
         }
-        return new IfStatement(condition, body, elseBody);
+        return parser.newIfStatement(condition, body, elseBody);
     }
 }

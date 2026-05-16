@@ -14,5 +14,5 @@ public interface VarVisitor {
 
     void visitLerp(Expression value, Expression progress, boolean rotational);
 
-    void visitLerpToZero(Expression progress);
+    void visitLerpToZero(final Expression value, Expression progress);
 }

@@ -17,6 +17,7 @@ class InputParser implements SyntaxParser<Assignment> {
 
     @Override
     public Assignment accept(final QtfParser parser, final SyntaxContext context) throws QtfParseException {
+        parser.startTree();
         parser.clearPeekedToken();
         parser.next(TokenClass.OPEN_BRACKETS);
         final int index = parser.next(TokenClass.NUM_LITERAL).getNumber().intValue();
@@ -24,18 +25,20 @@ class InputParser implements SyntaxParser<Assignment> {
         parser.next(TokenClass.COLON);
 
         final Token identifier = parser.next(TokenClass.IDENTIFIER);
+        final Token.Range range = identifier.range();
         final String name = identifier.getString();
         final VarRef var;
         final VarRef inputVar;
 
         try {
-            var = new VarRef(context.addLocalVariable(name), false);
-            inputVar = new VarRef(context.addInputVariable(name, index), false);
+            var = parser.newVariableRef(context.addLocalVariable(name), false, range);
+            inputVar = parser.newVariableRef(context.addInputVariable(name, index), false, range);
         } catch (final QtfException e) {
-            throw new QtfParseException(e, identifier.range());
+            throw new QtfParseException(e, range);
         }
 
+        final Assignment assignment = parser.newAssignment(List.of(var), inputVar, null);
         parser.expectLineBreak();
-        return new Assignment(List.of(var), inputVar, null);
+        return assignment;
     }
 }

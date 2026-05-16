@@ -10,7 +10,7 @@ public final class FunctionDef extends Statement implements JvmFunctionDefinitio
     private final Statement body;
     private final ReturnValueType returnValue;
 
-    public FunctionDef(final String name, final boolean isVisible, final DefinedFunctionAddress address, final Statement body, final ReturnValueType returnValue) {
+    FunctionDef(final String name, final boolean isVisible, final DefinedFunctionAddress address, final Statement body, final ReturnValueType returnValue) {
         this.name = name;
         this.isVisible = isVisible;
         this.address = address;

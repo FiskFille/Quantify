@@ -12,13 +12,17 @@ import com.fiskmods.quantify.member.Scope;
 import com.fiskmods.quantify.parser.QtfParser;
 import com.fiskmods.quantify.parser.SyntaxContext;
 import com.fiskmods.quantify.parser.SyntaxParser;
-import com.fiskmods.quantify.parser.tree.*;
+import com.fiskmods.quantify.parser.tree.BlockStatement;
+import com.fiskmods.quantify.parser.tree.Expression;
+import com.fiskmods.quantify.parser.tree.InterpolateStatement;
+import com.fiskmods.quantify.parser.tree.NumLiteral;
 
 class InterpolateStatementParser implements SyntaxParser<InterpolateStatement> {
     static final SyntaxParser<InterpolateStatement> PARSER = new InterpolateStatementParser();
 
     @Override
     public InterpolateStatement accept(final QtfParser parser, final SyntaxContext context) throws QtfParseException {
+        parser.startTree();
         final Expression finalProgress;
         VarAddress substitution = null;
 
@@ -39,7 +43,7 @@ class InterpolateStatementParser implements SyntaxParser<InterpolateStatement> {
                     substitution = context.addLocalVariable(Keywords.INTERPOLATE);
                 }
 
-                finalProgress = new VarRef(substitution, false);
+                finalProgress = parser.newVariableRef(substitution, false, token.range());
             } catch (final QtfException e) {
                 throw new QtfParseException(e, token.range());
             }
@@ -50,6 +54,6 @@ class InterpolateStatementParser implements SyntaxParser<InterpolateStatement> {
             scope.setLerpProgress(finalProgress);
             return scope;
         });
-        return new InterpolateStatement(progress, substitution, body);
+        return parser.newInterpolateStatement(progress, substitution, body);
     }
 }

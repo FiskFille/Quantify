@@ -4,14 +4,14 @@ import com.fiskmods.quantify.jvm.VarAddress;
 import com.fiskmods.quantify.lexer.token.Operator;
 import com.fiskmods.quantify.library.QtfMath;
 
-import java.util.List;
+import java.util.Objects;
 
 public final class Operation extends Expression {
     private final Expression left;
     private final Expression right;
     private final Operator op;
 
-    public Operation(final Expression left, final Expression right, final Operator op) {
+    private Operation(final Expression left, final Expression right, final Operator op) {
         this.left = left;
         this.right = right;
         this.op = op;
@@ -64,16 +64,24 @@ public final class Operation extends Expression {
                         if (exponent == 2) return wrap(left, left, Operator.MUL);
                         if (exponent == 3) return wrap(left, wrap(left, left, Operator.MUL), Operator.MUL);
                     } else if (!(left instanceof NumLiteral)) {
-                        if (exponent == 2) return new FunctionRef(QtfMath.SQUARE, List.of(left));
-                        if (exponent == 3) return new FunctionRef(QtfMath.CUBE, List.of(left));
+                        if (exponent == 2) return FunctionRef.of(QtfMath.SQUARE, left);
+                        if (exponent == 3) return FunctionRef.of(QtfMath.CUBE, left);
                     }
                 }
             }
         }
+
+        final Expression result;
         if (left instanceof final NumLiteral l && right instanceof final NumLiteral r) {
             // Pre-compute literal arithmetic
-            return new NumLiteral(op.applyAsDouble(l.value(), r.value()));
+            result = new NumLiteral(op.applyAsDouble(l.value(), r.value()));
+        } else {
+            result = new Operation(left, right, op);
         }
-        return new Operation(left, right, op);
+
+        final var leftRange = Objects.requireNonNull(left.range, "left");
+        final var rightRange = Objects.requireNonNull(right.range, "right");
+        result.range = leftRange.union(rightRange);
+        return result;
     }
 }

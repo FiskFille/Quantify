@@ -36,7 +36,7 @@ public record StructVarVisitor(MethodVisitor mv, int index, int size) implements
     }
 
     @Override
-    public void visitLerpToZero(final Expression progress) {
+    public void visitLerpToZero(final Expression value, final Expression progress) {
         throw new UnsupportedOperationException();
     }
 }

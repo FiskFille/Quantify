@@ -117,7 +117,7 @@ public class JvmTreeVisitor implements TreeVisitor {
 
         // Interpolating towards 0 is the same as multiplying by (1-progress)
         if (!assign.rotational() && assign.value() instanceof final NumLiteral lit && lit.value() == 0) {
-            varVisitor(assign.targets()).visitLerpToZero(assign.progress());
+            varVisitor(assign.targets()).visitLerpToZero(assign.value(), assign.progress());
             return;
         }
 

@@ -66,7 +66,7 @@ public record VarVisitorList(JvmTreeVisitor visitor, List<? extends VarRef> vari
     }
 
     @Override
-    public void visitLerpToZero(final Expression progress) {
-        visitLerp(new NumLiteral(0), progress, false);
+    public void visitLerpToZero(final Expression value, final Expression progress) {
+        visitLerp(value, progress, false);
     }
 }

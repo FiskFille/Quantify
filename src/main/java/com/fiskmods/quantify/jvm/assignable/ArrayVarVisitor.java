@@ -59,7 +59,7 @@ public record ArrayVarVisitor(JvmTreeVisitor visitor, MethodVisitor mv, int id, 
     }
 
     @Override
-    public void visitLerpToZero(final Expression progress) {
+    public void visitLerpToZero(final Expression value, final Expression progress) {
         arrayAddress();
         mv.visitInsn(DUP2);
         mv.visitInsn(DALOAD);

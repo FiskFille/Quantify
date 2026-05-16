@@ -8,7 +8,7 @@ public final class LerpAssignment extends Statement {
     private final Expression progress;
     private final boolean rotational;
 
-    public LerpAssignment(final List<? extends VarRef> targets, final Expression value, final Expression progress, final boolean rotational) {
+    LerpAssignment(final List<? extends VarRef> targets, final Expression value, final Expression progress, final boolean rotational) {
         this.targets = targets;
         this.value = value;
         this.progress = progress;

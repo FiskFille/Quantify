@@ -13,6 +13,7 @@ record ReturnParser() implements SyntaxParser<ReturnStatement> {
 
     @Override
     public ReturnStatement accept(final QtfParser parser, final SyntaxContext context) throws QtfParseException {
+        parser.startTree();
         parser.clearPeekedToken();
         final Expression e = ExpressionParser.INSTANCE.accept(parser, context);
         parser.skip(TokenClass.TERMINATOR);
@@ -21,6 +22,6 @@ record ReturnParser() implements SyntaxParser<ReturnStatement> {
         if (!parser.isNext(TokenClass.CLOSE_BRACES)) {
             parser.next(TokenClass.CLOSE_BRACES);
         }
-        return new ReturnStatement(e);
+        return parser.newReturnStatement(e);
     }
 }

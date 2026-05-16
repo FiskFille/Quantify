@@ -50,7 +50,7 @@ public record LocalVarVisitor(JvmTreeVisitor visitor, MethodVisitor mv, int id) 
     }
 
     @Override
-    public void visitLerpToZero(final Expression progress) {
+    public void visitLerpToZero(final Expression value, final Expression progress) {
         visitGet();
         mv.visitInsn(DCONST_1);
         visitor.visitTree(progress);

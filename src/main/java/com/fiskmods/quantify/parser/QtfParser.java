@@ -8,12 +8,17 @@ import com.fiskmods.quantify.parser.element.SyntaxSelector;
 import com.fiskmods.quantify.parser.tree.Expression;
 import com.fiskmods.quantify.parser.tree.ExpressionStatement;
 import com.fiskmods.quantify.parser.tree.Statement;
+import com.fiskmods.quantify.parser.tree.TreeGenerator;
 import org.jspecify.annotations.Nullable;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.List;
 
-public class QtfParser implements TokenStream {
+public class QtfParser extends TreeGenerator implements TokenStream {
+    private final Deque<Token.Range> treeStack = new ArrayDeque<>();
+
     private final TokenStream tokens;
     private final SyntaxContext context;
 
@@ -40,7 +45,7 @@ public class QtfParser implements TokenStream {
 
             switch (tree) {
                 case final Statement s -> statements.add(s);
-                case final Expression e -> statements.add(new ExpressionStatement(e));
+                case final Expression e -> statements.add(ExpressionStatement.of(e));
                 case null -> { } // no-op
                 default -> throw new IllegalStateException("Unexpected value: " + tree);
             }
@@ -50,11 +55,25 @@ public class QtfParser implements TokenStream {
         if (stack != currentStack) {
             final Token last = last();
             throw new QtfParseException("Unbalanced stack: " + currentStack, "expected" + stack,
-                    last != null ? last.range() : new Token.Range(0, 0)
+                    last != null ? last.range() : Token.Range.ZERO
             );
         }
 
         return statements;
+    }
+
+    @Override
+    public void startTree() {
+        if (tokens.hasNext()) {
+            treeStack.add(tokens.peek().range());
+        }
+    }
+
+    @Override
+    protected Token.Range finishTree() {
+        final Token.Range start = treeStack.pop();
+        final Token last = tokens.last();
+        return last != null ? start.union(last.range()) : start;
     }
 
     @Override

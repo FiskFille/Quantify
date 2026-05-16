@@ -22,12 +22,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-record VariableParser(boolean isPublic) implements SyntaxParser<VarDefinitionTree> {
+public record VariableParser(boolean isPublic) implements SyntaxParser<VarDefinitionTree> {
     static final VariableParser LOCAL = new VariableParser(false);
     static final VariableParser PUBLIC = new VariableParser(true);
 
     @Override
     public VarDefinitionTree accept(final QtfParser parser, final SyntaxContext context) throws QtfParseException {
+        parser.startTree();
+
         if (isPublic)
             parser.next(TokenClass.PUBLIC);
         parser.next(TokenClass.VAR);
@@ -38,21 +40,21 @@ record VariableParser(boolean isPublic) implements SyntaxParser<VarDefinitionTre
         final List<VarRef> vars;
 
         if (identifiers.size() == 1) {
-            vars = List.of(defineVar(context, type, identifiers.getFirst()));
+            vars = List.of(defineVar(parser, context, type, identifiers.getFirst()));
         } else {
             vars = new ArrayList<>(identifiers.size());
             for (final Token identifier : identifiers) {
-                vars.add(defineVar(context, type, identifier));
+                vars.add(defineVar(parser, context, type, identifier));
             }
         }
-        return new VarDefinitionTree(vars, type, initializer, isPublic);
+        return parser.newVariable(vars, type, initializer, isPublic);
     }
 
-    private VarRef defineVar(final SyntaxContext context, final VarType<?> type, final Token identifier) throws QtfParseException {
+    private VarRef defineVar(final QtfParser parser, final SyntaxContext context, final VarType<?> type, final Token identifier) throws QtfParseException {
         final String name = identifier.getString();
         try {
             final VarAddress address = VarInfo.define(name, type, context, isPublic);
-            return new VarRef(address, false);
+            return parser.newVariableRef(address, false, identifier.range());
         } catch (final QtfException e) {
             throw new QtfParseException(e, identifier.range());
         }
@@ -82,10 +84,10 @@ record VariableParser(boolean isPublic) implements SyntaxParser<VarDefinitionTre
         return null;
     }
 
-    static VarRef compute(final String name, final Token.Range range, final Namespace namespace, final VarType<?> type, final boolean isNegated) throws QtfParseException {
+    static VarRef compute(final QtfParser parser, final String name, final Token.Range range, final Namespace namespace, final VarType<?> type, final boolean isNegated) throws QtfParseException {
         try {
             final VarAddress address = namespace.computeVariable(type, name);
-            return new VarRef(address, isNegated);
+            return parser.newVariableRef(address, isNegated, range);
         } catch (final QtfException e) {
             throw new QtfParseException(e, range);
         }
@@ -101,7 +103,7 @@ record VariableParser(boolean isPublic) implements SyntaxParser<VarDefinitionTre
         }
 
         return IdentifierParser.parseIdentifier(parser, context,
-                (name, range, namespace) -> compute(name, range, namespace, type, isNegated)
+                (name, range, namespace) -> compute(parser, name, range, namespace, type, isNegated)
         );
     }
 

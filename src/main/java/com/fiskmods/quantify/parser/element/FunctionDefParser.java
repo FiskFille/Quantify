@@ -11,7 +11,9 @@ import com.fiskmods.quantify.member.Scope;
 import com.fiskmods.quantify.parser.QtfParser;
 import com.fiskmods.quantify.parser.SyntaxContext;
 import com.fiskmods.quantify.parser.SyntaxParser;
-import com.fiskmods.quantify.parser.tree.*;
+import com.fiskmods.quantify.parser.tree.Expression;
+import com.fiskmods.quantify.parser.tree.FunctionDef;
+import com.fiskmods.quantify.parser.tree.Statement;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -23,6 +25,7 @@ class FunctionDefParser implements SyntaxParser<FunctionDef> {
     public FunctionDef accept(final QtfParser parser, final SyntaxContext context) throws QtfParseException {
         final FunctionDef.DefinedFunctionAddress address = new FunctionDef.DefinedFunctionAddress();
 
+        parser.startTree();
         parser.clearPeekedToken();
         final Token identifier = parser.next(TokenClass.IDENTIFIER);
         final String name = identifier.getString();
@@ -57,7 +60,7 @@ class FunctionDefParser implements SyntaxParser<FunctionDef> {
 
             context.push(scope);
             final Expression e = ExpressionParser.INSTANCE.accept(parser, context);
-            body = new ReturnStatement(e);
+            body = parser.newImplicitReturnStatement(e);
             returnValue = FunctionDef.ReturnValueType.IMPLICIT;
             context.pop();
         } else {
@@ -66,7 +69,7 @@ class FunctionDefParser implements SyntaxParser<FunctionDef> {
         }
 
         final boolean isVisible = !parentScope.isInnerScope();
-        final FunctionDef func = new FunctionDef(name, isVisible, address, body, returnValue);
+        final FunctionDef func = parser.newFunction(name, isVisible, address, body, returnValue);
 
         final int index = context.defineFunction(func);
         address.name = createName(name, index);

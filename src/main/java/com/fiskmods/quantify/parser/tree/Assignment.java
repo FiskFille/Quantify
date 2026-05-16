@@ -10,7 +10,7 @@ public final class Assignment extends Statement {
     private final Expression value;
     private final @Nullable Operator op;
 
-    public Assignment(final List<? extends VarRef> targets, final Expression value, final @Nullable Operator op) {
+    Assignment(final List<? extends VarRef> targets, final Expression value, final @Nullable Operator op) {
         this.targets = targets;
         this.value = value;
         this.op = op;

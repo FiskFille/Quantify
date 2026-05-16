@@ -37,19 +37,21 @@ record FunctionRefParser(FunctionAddress func, boolean hasResult) implements Syn
 
     @Override
     public FunctionRef accept(final QtfParser parser, final SyntaxContext context) throws QtfParseException {
+        parser.startTree();
         parser.next(TokenClass.OPEN_PARENTHESIS);
 
         if (parser.isNext(TokenClass.CLOSE_PARENTHESIS)) {
             func.validateParameters(0, parser.next().range());
-            return new FunctionRef(func, List.of());
+            return parser.newFunctionRef(func, List.of());
         }
 
         final List<Expression> args = parser.nextSequence(ExpressionParser.INSTANCE, TokenClass.COMMA);
         func.validateParameters(args.size(), parser.next(TokenClass.CLOSE_PARENTHESIS).range());
 
+        final FunctionRef ref = parser.newFunctionRef(func, args);
         if (!hasResult) {
             parser.expectLineBreak();
         }
-        return new FunctionRef(func, args);
+        return ref;
     }
 }

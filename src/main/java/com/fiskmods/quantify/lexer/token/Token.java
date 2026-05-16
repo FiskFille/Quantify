@@ -5,16 +5,15 @@ import com.fiskmods.quantify.parser.SyntaxContext;
 import org.jspecify.annotations.Nullable;
 
 public record Token(TokenClass type, @Nullable Object value, Range range) {
-    public Token(TokenClass type, @Nullable Object value, int startIndex, int endIndex) {
+    public Token(final TokenClass type, @Nullable final Object value, final int startIndex, final int endIndex) {
         this(type, value, new Range(startIndex, endIndex));
     }
 
     public record Range(int startIndex, int endIndex) {
-        public Range union(Range range) {
-            return new Range(
-                    Math.min(startIndex, range.startIndex),
-                    Math.max(endIndex, range.endIndex)
-            );
+        public static final Range ZERO = new Range(0, 0);
+
+        public Range union(final Range range) {
+            return new Range(Math.min(startIndex, range.startIndex), Math.max(endIndex, range.endIndex));
         }
     }
 
@@ -32,18 +31,16 @@ public record Token(TokenClass type, @Nullable Object value, Range range) {
         throw QtfParseException.internal("token '%s' is not an operator".formatted(this), range);
     }
 
-    public @Nullable Operator getAssignmentOperator(SyntaxContext context, boolean isDefinition) throws QtfParseException {
+    public @Nullable Operator getAssignmentOperator(final SyntaxContext context, final boolean isDefinition) throws QtfParseException {
         if (value == null) {
             return null;
         }
-        Operator op = getOperator();
+        final Operator op = getOperator();
         if (isDefinition) {
             throw QtfParseException.error("definitions can't use assignment operators", range);
         }
-        if ((op == Operator.LERP || op == Operator.LERP_ROT) &&
-                context.scope().getLerpProgress() == null) {
-            throw QtfParseException.error("interpolation assignments can only be used inside" +
-                    " interpolate blocks", range);
+        if ((op == Operator.LERP || op == Operator.LERP_ROT) && context.scope().getLerpProgress() == null) {
+            throw QtfParseException.error("interpolation assignments can only be used inside" + " interpolate blocks", range);
         }
         return op;
     }
