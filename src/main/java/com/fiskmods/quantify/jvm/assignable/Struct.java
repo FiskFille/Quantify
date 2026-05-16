@@ -18,9 +18,6 @@ public interface Struct extends VarAddress, Namespace {
         return VarType.STRUCT;
     }
 
-    default void expand(final String name) throws QtfException {
-    }
-
     static Struct of(final int index, final IntSupplier arraySize, final ToIntFunction<String> arrayStore) {
         return new StructImpl(index, arraySize, arrayStore);
     }
@@ -49,17 +46,6 @@ public interface Struct extends VarAddress, Namespace {
 
         public int size() {
             return arraySize.getAsInt();
-        }
-
-        @Override
-        public void expand(final String name) throws QtfException {
-            final Optional<MemberMap.Member<?>> member = members.find(name);
-            if (member.isEmpty()) {
-                members.putVariable(name, new ChildStruct(this, name));
-            } else {
-                member.get().cast(MemberType.VARIABLE)
-                        .value().typeCheck(name, VarType.STRUCT);
-            }
         }
 
         @Override

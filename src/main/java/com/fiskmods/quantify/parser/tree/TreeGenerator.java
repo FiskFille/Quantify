@@ -88,4 +88,10 @@ public abstract class TreeGenerator {
         tree.range = range;
         return tree;
     }
+
+    public MemberSelect newMemberSelect(final Expression expression, final String identifier) {
+        final var tree = new MemberSelect(expression, identifier);
+        tree.range = finishTree();
+        return tree;
+    }
 }

@@ -3,19 +3,19 @@ package com.fiskmods.quantify.parser.element;
 import com.fiskmods.quantify.exception.QtfException;
 import com.fiskmods.quantify.exception.QtfParseException;
 import com.fiskmods.quantify.jvm.VarAddress;
-import com.fiskmods.quantify.jvm.assignable.Struct;
 import com.fiskmods.quantify.jvm.assignable.VarType;
 import com.fiskmods.quantify.lexer.Keywords;
 import com.fiskmods.quantify.lexer.token.Token;
 import com.fiskmods.quantify.lexer.token.TokenClass;
 import com.fiskmods.quantify.library.QtfLibrary;
-import com.fiskmods.quantify.member.MemberMap;
 import com.fiskmods.quantify.member.MemberType;
 import com.fiskmods.quantify.member.Namespace;
 import com.fiskmods.quantify.parser.QtfParser;
 import com.fiskmods.quantify.parser.SyntaxContext;
 import com.fiskmods.quantify.parser.SyntaxParser;
 import com.fiskmods.quantify.parser.tree.Expression;
+import com.fiskmods.quantify.parser.tree.Identifier;
+import com.fiskmods.quantify.parser.tree.MemberSelect;
 
 import java.util.Optional;
 
@@ -41,44 +41,63 @@ class IdentifierParser {
         return (parser, context) -> parseIdentifier(parser, context, nextParser.asNameParser(parser, context));
     }
 
+    static Expression parseIdentifier(final QtfParser parser) throws QtfParseException {
+        Expression result = Identifier.from(parser.next(TokenClass.IDENTIFIER));
+
+        while (parser.isNext(TokenClass.DOT)) {
+            parser.startTree();
+            parser.clearPeekedToken();
+            final String name = parser.next(TokenClass.IDENTIFIER).getString();
+            result = parser.newMemberSelect(result, name);
+        }
+        return result;
+    }
+
     static <T> T parseIdentifier(final QtfParser parser, final SyntaxContext context, final NameParser<T> nextParser) throws QtfParseException {
-        final Token identifier = parser.next(TokenClass.IDENTIFIER);
-        final String name = identifier.getString();
+        final Expression expression = parseIdentifier(parser);
+        final Namespace namespace;
+        final String name;
 
-        if (!parser.isNext(TokenClass.DOT)) {
-            return nextParser.parse(name, identifier.range(), context.namespace());
+        if (expression instanceof final MemberSelect memberSelect) {
+            namespace = getNamespace(context, memberSelect.expression());
+            name = memberSelect.identifier();
+        } else if (expression instanceof final Identifier identifier) {
+            namespace = context.namespace();
+            name = identifier.name();
+        } else {
+            throw QtfParseException.internal("not an Identifier or MemberSelect: " + expression, expression.range());
         }
 
-        parser.clearPeekedToken();
-        final Token child = parser.next(TokenClass.IDENTIFIER);
+        return nextParser.parse(name, expression.range(), namespace);
+    }
 
-        if (Keywords.THIS.equals(name)) {
-            final String childName = child.getString();
-            final Token.Range range = identifier.range().union(child.range());
+    static Namespace getNamespace(final SyntaxContext context, final Expression expression) throws QtfParseException {
+        final Namespace namespace;
+        final String name;
 
-            return nextParser.parse(childName, range, context.getDefaultNamespace());
-        }
-
-        final Optional<MemberMap.Member<?>> parent = context.scope().members.find(name);
-        if (parent.isPresent()) {
-            final MemberType<?> parentType = parent.get().type();
-
-            if (parentType == MemberType.LIBRARY) {
-                final Namespace namespace = ((QtfLibrary) parent.get().value()).namespace();
-                final String childName = child.getString();
-                final Token.Range range = identifier.range().union(child.range());
-
-                return nextParser.parse(childName, range, namespace);
+        if (expression instanceof final MemberSelect memberSelect) {
+            namespace = getNamespace(context, memberSelect.expression());
+            name = memberSelect.identifier();
+        } else if (expression instanceof final Identifier identifier) {
+            if (Keywords.THIS.equals(identifier.name())) {
+                return context.getDefaultNamespace();
             }
-
-            if (parentType == MemberType.VARIABLE && ((VarAddress) parent.get().value()).is(VarType.STRUCT)) {
-                final Struct struct = (Struct) parent.get().value();
-                return parseStruct(parser, struct, child, identifier.range(), nextParser);
-            }
-
-            throw QtfParseException.error("expected '%s' to be a %s, was %s".formatted(name, MemberType.LIBRARY.name(), parentType.name()), identifier.range());
+            namespace = context.namespace();
+            name = identifier.name();
+        } else {
+            throw QtfParseException.internal("not an Identifier or MemberSelect: " + expression, expression.range());
         }
-        throw QtfParseException.error("undefined library '%s'".formatted(name), identifier.range());
+
+        final Optional<QtfLibrary> library = namespace.find(name, MemberType.LIBRARY);
+        if (library.isPresent()) {
+            return library.get().namespace();
+        }
+
+        try {
+            return namespace.computeVariable(VarType.STRUCT, name);
+        } catch (final QtfException e) {
+            throw new QtfParseException(e, expression.range());
+        }
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -102,27 +121,5 @@ class IdentifierParser {
                         throw new QtfParseException(e, range);
                     }
                 });
-    }
-
-    private static <T> T parseStruct(final QtfParser parser, final Struct struct, Token child, Token.Range range, final NameParser<T> nextParser) throws QtfParseException {
-        final StringBuilder name = new StringBuilder(child.getString());
-        final Token.Range firstRange = child.range();
-
-        while (parser.isNext(TokenClass.DOT)) {
-            parser.clearPeekedToken();
-            child = parser.next(TokenClass.IDENTIFIER);
-            final String childName = child.getString();
-
-            try {
-                struct.expand(name.toString());
-            } catch (final QtfException e) {
-                throw new QtfParseException(e, firstRange);
-            }
-
-            name.append('.').append(childName);
-        }
-
-        range = range.union(child.range());
-        return nextParser.parse(name.toString(), range, struct);
     }
 }
