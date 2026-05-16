@@ -17,6 +17,7 @@ import com.fiskmods.quantify.parser.SyntaxContext;
 import com.fiskmods.quantify.parser.SyntaxParser;
 import com.fiskmods.quantify.parser.tree.Expression;
 import com.fiskmods.quantify.parser.tree.NumLiteral;
+import com.fiskmods.quantify.parser.tree.VarRef;
 
 import java.util.Optional;
 
@@ -82,20 +83,21 @@ class IdentifierParser {
         throw QtfParseException.error("undefined library '%s'".formatted(name), identifier.range());
     }
 
+    @SuppressWarnings({"unchecked", "rawtypes"})
     private static SyntaxParser<?> lineStart(final String name, final Token.Range range, final Namespace namespace) {
-        return FunctionRefParser.tryParse(name, range, namespace, false)
+        return ((SyntaxParser) FunctionRefParser.tryParse(name, range, namespace, false))
                 .or((parser, context) -> AssignmentParser.parseAssignment(parser, context, name, range, namespace));
     }
 
-    @SuppressWarnings("unchecked")
     static SyntaxParser<Expression> anyValue(final String name, final Token.Range range, final Namespace namespace) {
-        return (SyntaxParser<Expression>) FunctionRefParser.tryParse(name, range, namespace, true)
+        return FunctionRefParser.tryParse(name, range, namespace, true)
                 .or((parser, context) -> {
                     try {
                         if (namespace.hasConstant(name)) {
                             return new NumLiteral(namespace.getConstant(name));
                         }
-                        return namespace.computeVariable(VarType.NUM, name);
+                        final VarAddress address = namespace.computeVariable(VarType.NUM, name);
+                        return new VarRef(address, false);
                     } catch (final QtfException e) {
                         throw new QtfParseException(e, range);
                     }

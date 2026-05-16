@@ -13,10 +13,10 @@ import com.fiskmods.quantify.member.Namespace;
 import com.fiskmods.quantify.parser.QtfParser;
 import com.fiskmods.quantify.parser.SyntaxContext;
 import com.fiskmods.quantify.parser.SyntaxParser;
-import com.fiskmods.quantify.parser.tree.Assignable;
 import com.fiskmods.quantify.parser.tree.Expression;
 import com.fiskmods.quantify.parser.tree.VarDefinitionTree;
-import com.fiskmods.quantify.parser.tree.VariableList;
+import com.fiskmods.quantify.parser.tree.VarRef;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,52 +34,28 @@ record VariableParser(boolean isPublic) implements SyntaxParser<VarDefinitionTre
 
         final List<Token> identifiers = TokenList.parseNonEmpty(parser, TokenClass.IDENTIFIER, TokenClass.COMMA);
         final VarType<?> type = extractType(parser).orElse(VarType.NUM);
+        final Expression initializer = extractInitializer(parser, context, type);
+        final List<VarRef> vars;
 
         if (identifiers.size() == 1) {
-            return parseSingleVar(parser, context, type, identifiers.getFirst());
+            vars = List.of(defineVar(context, type, identifiers.getFirst()));
         } else {
-            return parseMultiVar(parser, context, type, identifiers);
+            vars = new ArrayList<>(identifiers.size());
+            for (final Token identifier : identifiers) {
+                vars.add(defineVar(context, type, identifier));
+            }
         }
+        return new VarDefinitionTree(vars, type, initializer, isPublic);
     }
 
-    private VarDefinitionTree parseSingleVar(final QtfParser parser, final SyntaxContext context, final VarType<?> type, final Token identifier) throws QtfParseException {
+    private VarRef defineVar(final SyntaxContext context, final VarType<?> type, final Token identifier) throws QtfParseException {
         final String name = identifier.getString();
-        final VarAddress var;
-
         try {
-            var = VarInfo.define(name, type, context, isPublic);
+            final VarAddress address = VarInfo.define(name, type, context, isPublic);
+            return new VarRef(address, false);
         } catch (final QtfException e) {
             throw new QtfParseException(e, identifier.range());
         }
-        return assignOrInit(parser, context, var, type);
-    }
-
-    private <T extends VarAddress> VarDefinitionTree parseMultiVar(final QtfParser parser, final SyntaxContext context, final VarType<T> type, final List<Token> identifiers) throws QtfParseException {
-        final List<VarAddress> vars = new ArrayList<>(identifiers.size());
-
-        for (final Token identifier : identifiers) {
-            final String varName = identifier.getString();
-            try {
-                vars.add(VarInfo.define(varName, type, context, isPublic));
-            } catch (final QtfException e) {
-                throw new QtfParseException(e, identifier.range());
-            }
-        }
-
-        final Assignable var = new VariableList(vars);
-        return assignOrInit(parser, context, var, type);
-    }
-
-    private VarDefinitionTree assignOrInit(final QtfParser parser, final SyntaxContext context, final Assignable assignable, final VarType<?> type) throws QtfParseException {
-        final Expression initializer;
-
-        if (type.isAssignable() && parser.isNext(TokenClass.ASSIGNMENT, null)) {
-            parser.next(TokenClass.ASSIGNMENT);
-            initializer = ExpressionParser.INSTANCE.accept(parser, context);
-        } else {
-            initializer = null;
-        }
-        return new VarDefinitionTree(assignable, type, initializer, isPublic);
     }
 
     private static Optional<VarType<?>> extractType(final QtfParser parser) throws QtfParseException {
@@ -98,16 +74,24 @@ record VariableParser(boolean isPublic) implements SyntaxParser<VarDefinitionTre
         }
     }
 
-    static <T extends VarAddress> T compute(final String name, final Token.Range range, final Namespace namespace, final VarType<T> type) throws QtfParseException {
+    private static @Nullable Expression extractInitializer(final QtfParser parser, final SyntaxContext context, final VarType<?> type) throws QtfParseException {
+        if (type.isAssignable() && parser.isNext(TokenClass.ASSIGNMENT, null)) {
+            parser.next(TokenClass.ASSIGNMENT);
+            return ExpressionParser.INSTANCE.accept(parser, context);
+        }
+        return null;
+    }
+
+    static VarRef compute(final String name, final Token.Range range, final Namespace namespace, final VarType<?> type, final boolean isNegated) throws QtfParseException {
         try {
-            return namespace.computeVariable(type, name);
+            final VarAddress address = namespace.computeVariable(type, name);
+            return new VarRef(address, isNegated);
         } catch (final QtfException e) {
             throw new QtfParseException(e, range);
         }
     }
 
-    @SuppressWarnings("unchecked")
-    static <T extends VarAddress> T parseVariable(final QtfParser parser, final SyntaxContext context, final VarType<T> type) throws QtfParseException {
+    static VarRef parseVariable(final QtfParser parser, final SyntaxContext context, final VarType<?> type) throws QtfParseException {
         final boolean isNegated;
         if (parser.isNext(TokenClass.OPERATOR, Operator.SUB)) {
             parser.clearPeekedToken();
@@ -116,23 +100,19 @@ record VariableParser(boolean isPublic) implements SyntaxParser<VarDefinitionTre
             isNegated = false;
         }
 
-        final T var = IdentifierParser.parseIdentifier(parser, context,
-                (name, range, namespace) -> compute(name, range, namespace, type)
+        return IdentifierParser.parseIdentifier(parser, context,
+                (name, range, namespace) -> compute(name, range, namespace, type, isNegated)
         );
-        if (isNegated) {
-            return (T) Expression.negate(var);
-        }
-        return var;
     }
 
-    static VariableList parseList(final QtfParser parser, final SyntaxContext context, final VarAddress firstVar) throws QtfParseException {
-        final List<VarAddress> list = new ArrayList<>();
+    static List<VarRef> parseList(final QtfParser parser, final SyntaxContext context, final VarRef firstVar) throws QtfParseException {
+        final List<VarRef> list = new ArrayList<>();
         list.add(firstVar);
         do {
             parser.clearPeekedToken();
-            list.add(parseVariable(parser, context, firstVar.type()));
+            list.add(parseVariable(parser, context, firstVar.address().type()));
         } while (parser.isNext(TokenClass.COMMA));
 
-        return new VariableList(list);
+        return list;
     }
 }

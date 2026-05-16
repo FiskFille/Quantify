@@ -19,7 +19,7 @@ record FunctionRefParser(FunctionAddress func, boolean hasResult) implements Syn
         return new FunctionRefParser(func, hasResult);
     }
 
-    public static SyntaxParser<FunctionRef> tryParse(final String name, final Token.Range range, final Namespace namespace, final boolean hasResult) {
+    public static SyntaxParser<Expression> tryParse(final String name, final Token.Range range, final Namespace namespace, final boolean hasResult) {
         return (parser, context) -> {
             if (!parser.isNext(TokenClass.OPEN_PARENTHESIS)) {
                 return null;

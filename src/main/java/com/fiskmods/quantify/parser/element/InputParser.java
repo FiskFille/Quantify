@@ -2,13 +2,15 @@ package com.fiskmods.quantify.parser.element;
 
 import com.fiskmods.quantify.exception.QtfException;
 import com.fiskmods.quantify.exception.QtfParseException;
-import com.fiskmods.quantify.jvm.VarAddress;
 import com.fiskmods.quantify.lexer.token.Token;
 import com.fiskmods.quantify.lexer.token.TokenClass;
 import com.fiskmods.quantify.parser.QtfParser;
 import com.fiskmods.quantify.parser.SyntaxContext;
 import com.fiskmods.quantify.parser.SyntaxParser;
 import com.fiskmods.quantify.parser.tree.Assignment;
+import com.fiskmods.quantify.parser.tree.VarRef;
+
+import java.util.List;
 
 class InputParser implements SyntaxParser<Assignment> {
     static final InputParser INSTANCE = new InputParser();
@@ -23,17 +25,17 @@ class InputParser implements SyntaxParser<Assignment> {
 
         final Token identifier = parser.next(TokenClass.IDENTIFIER);
         final String name = identifier.getString();
-        final VarAddress var;
-        final VarAddress inputVar;
+        final VarRef var;
+        final VarRef inputVar;
 
         try {
-            var = context.addLocalVariable(name);
-            inputVar = context.addInputVariable(name, index);
+            var = new VarRef(context.addLocalVariable(name), false);
+            inputVar = new VarRef(context.addInputVariable(name, index), false);
         } catch (final QtfException e) {
             throw new QtfParseException(e, identifier.range());
         }
 
         parser.expectLineBreak();
-        return new Assignment(var, inputVar, null);
+        return new Assignment(List.of(var), inputVar, null);
     }
 }

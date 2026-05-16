@@ -6,6 +6,9 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 
+import java.util.List;
+import java.util.NoSuchElementException;
+
 import static org.objectweb.asm.Opcodes.*;
 
 public class JvmTreeVisitor implements TreeVisitor {
@@ -23,9 +26,9 @@ public class JvmTreeVisitor implements TreeVisitor {
     @Override
     public void visitAssignment(final Assignment assign) {
         if (assign.op() != null) {
-            varVisitor(assign.target()).visitModify(assign.value(), assign.op());
+            varVisitor(assign.targets()).visitModify(assign.value(), assign.op());
         } else {
-            varVisitor(assign.target()).visitSet(assign.value());
+            varVisitor(assign.targets()).visitSet(assign.value());
         }
     }
 
@@ -107,18 +110,18 @@ public class JvmTreeVisitor implements TreeVisitor {
         if (assign.progress() instanceof final NumLiteral lit) {
             if (lit.value() == 0) return;
             if (lit.value() == 1) {
-                varVisitor(assign.target()).visitSet(assign.value());
+                varVisitor(assign.targets()).visitSet(assign.value());
                 return;
             }
         }
 
         // Interpolating towards 0 is the same as multiplying by (1-progress)
         if (!assign.rotational() && assign.value() instanceof final NumLiteral lit && lit.value() == 0) {
-            varVisitor(assign.target()).visitLerpToZero(assign.progress());
+            varVisitor(assign.targets()).visitLerpToZero(assign.progress());
             return;
         }
 
-        varVisitor(assign.target()).visitLerp(assign.value(), assign.progress(), assign.rotational());
+        varVisitor(assign.targets()).visitLerp(assign.value(), assign.progress(), assign.rotational());
     }
 
     @Override
@@ -153,40 +156,40 @@ public class JvmTreeVisitor implements TreeVisitor {
     }
 
     @Override
-    public void visitVarAddress(final VarAddress var) {
-        varVisitor(var).visitGet();
+    public void visitVarDefinition(final VarDefinitionTree var) {
+        if (var.initializer() != null) {
+            varVisitor(var.targets()).visitSet(var.initializer());
+            return;
+        }
+
+        // Public var storage needs no initialization
+        if (!var.isPublic()) {
+            varVisitor(var.targets()).visitInit();
+        }
+    }
+
+    @Override
+    public void visitVarRef(final VarRef var) {
+        varVisitor(var.address()).visitGet();
         if (var.isNegated()) {
             mv.visitInsn(DNEG);
         }
     }
 
-    @Override
-    public void visitVarDefinition(final VarDefinitionTree var) {
-        if (var.initializer() != null) {
-            varVisitor(var.target()).visitSet(var.initializer());
-            return;
-        }
-
-        // Public var storage needs no initialization
-        if (var.isPublic()) {
-            return;
-        }
-
-        if (var.target() instanceof final Struct.StructImpl struct) {
-            JvmUtil.iconst(mv, struct.size());
-            mv.visitIntInsn(NEWARRAY, T_DOUBLE);
-            mv.visitVarInsn(ASTORE, struct.index());
-        } else if (!(var.target() instanceof Struct)) {
-            varVisitor(var.target()).visitInit();
-        }
+    public VarVisitor varVisitor(final VarAddress address) {
+        return switch (address) {
+            case LocalVar(final int id) -> new LocalVarVisitor(this, mv, id);
+            case ArrayVar(final int id, final int arrayIndex) -> new ArrayVarVisitor(this, mv, id, arrayIndex);
+            case final Struct.StructImpl struct -> new StructVarVisitor(mv, struct.index(), struct.size());
+            default -> throw new IllegalStateException("Unexpected value: " + address);
+        };
     }
 
-    public VarVisitor varVisitor(final Assignable assign) {
-        return switch (assign) {
-            case LocalVar(final int id, final boolean ignored) -> new LocalVarVisitor(this, mv, id);
-            case ArrayVar(final int id, final int arrayIndex, final boolean ignored) -> new ArrayVarVisitor(this, mv, id, arrayIndex);
-            case final VariableList list -> new VarVisitorList(this, list.addresses());
-            default -> throw new IllegalStateException("Unexpected value: " + assign);
+    public VarVisitor varVisitor(final List<? extends VarRef> targets) {
+        return switch (targets.size()) {
+            case 0 -> throw new NoSuchElementException();
+            case 1 -> varVisitor(targets.getFirst().address());
+            default -> new VarVisitorList(this, targets);
         };
     }
 }

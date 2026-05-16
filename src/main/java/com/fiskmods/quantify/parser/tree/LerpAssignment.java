@@ -1,20 +1,22 @@
 package com.fiskmods.quantify.parser.tree;
 
+import java.util.List;
+
 public final class LerpAssignment extends Tree implements Statement {
-    private final Assignable target;
+    private final List<? extends VarRef> targets;
     private final Expression value;
     private final Expression progress;
     private final boolean rotational;
 
-    public LerpAssignment(final Assignable target, final Expression value, final Expression progress, final boolean rotational) {
-        this.target = target;
+    public LerpAssignment(final List<? extends VarRef> targets, final Expression value, final Expression progress, final boolean rotational) {
+        this.targets = targets;
         this.value = value;
         this.progress = progress;
         this.rotational = rotational;
     }
 
-    public Assignable target() {
-        return target;
+    public List<? extends VarRef> targets() {
+        return targets;
     }
 
     public Expression value() {

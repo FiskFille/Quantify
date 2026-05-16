@@ -1,7 +1,5 @@
 package com.fiskmods.quantify.parser.tree;
 
-import com.fiskmods.quantify.jvm.VarAddress;
-
 public interface TreeVisitor {
 
     void visitAssignment(Assignment assign);
@@ -28,9 +26,9 @@ public interface TreeVisitor {
 
     void visitReturnStatement(ReturnStatement ret);
 
-    void visitVarAddress(VarAddress var);
-
     void visitVarDefinition(VarDefinitionTree var);
+
+    void visitVarRef(VarRef var);
 
     default void visitTree(final Object tree) {
         switch (tree) {
@@ -46,7 +44,7 @@ public interface TreeVisitor {
             case final NumLiteral t -> visitNumLiteral(t);
             case final Operation t -> visitOperation(t);
             case final ReturnStatement t -> visitReturnStatement(t);
-            case final VarAddress t -> visitVarAddress(t);
+            case final VarRef t -> visitVarRef(t);
             case final VarDefinitionTree t -> visitVarDefinition(t);
             default -> throw new IllegalStateException("Unexpected value: " + tree);
         }
