@@ -8,10 +8,7 @@ import com.fiskmods.quantify.jvm.assignable.ArrayVar;
 import com.fiskmods.quantify.jvm.assignable.Struct;
 import com.fiskmods.quantify.jvm.assignable.VarType;
 import com.fiskmods.quantify.library.LibraryMap;
-import com.fiskmods.quantify.member.MemberType;
-import com.fiskmods.quantify.member.Namespace;
-import com.fiskmods.quantify.member.Scope;
-import com.fiskmods.quantify.member.ScopeProvider;
+import com.fiskmods.quantify.member.*;
 import com.fiskmods.quantify.util.IndexMap;
 
 import java.util.*;
@@ -119,33 +116,28 @@ public class SyntaxContext implements ScopeProvider {
 
     private class DefaultNamespace implements Namespace {
         @Override
-        public <T extends VarAddress> T computeVariable(final VarType<T> type, final String name) throws QtfException {
-            return getVariable(name, type);
+        public Optional<MemberMap.Member<?>> find(final String name) {
+            return scope().members.find(name);
         }
 
         @Override
-        public boolean hasVariable(final String name) {
-            return hasMember(name, MemberType.VARIABLE);
+        public <T> Optional<T> find(final String name, final MemberType<T> expectedType) {
+            return expectedType.scope(SyntaxContext.this).members.find(name, expectedType);
         }
 
         @Override
-        public FunctionAddress getFunction(final String name) throws QtfException {
-            return getMember(name, MemberType.FUNCTION);
+        public boolean has(final String name) {
+            return scope().members.has(name);
         }
 
         @Override
-        public boolean hasFunction(final String name) {
-            return hasMember(name, MemberType.FUNCTION);
+        public boolean has(final String name, final MemberType<?> expectedType) {
+            return expectedType.scope(SyntaxContext.this).members.has(name, expectedType);
         }
 
         @Override
-        public double getConstant(final String name) throws QtfException {
-            return getMember(name, MemberType.CONSTANT);
-        }
-
-        @Override
-        public boolean hasConstant(final String name) {
-            return hasMember(name, MemberType.CONSTANT);
+        public <T> T get(final String name, final MemberType<T> expectedType) throws QtfException {
+            return expectedType.scope(SyntaxContext.this).members.get(name, expectedType);
         }
     }
 

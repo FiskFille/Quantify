@@ -17,6 +17,8 @@ import com.fiskmods.quantify.parser.tree.Expression;
 import com.fiskmods.quantify.parser.tree.InterpolateStatement;
 import com.fiskmods.quantify.parser.tree.NumLiteral;
 
+import java.util.Optional;
+
 class InterpolateStatementParser implements SyntaxParser<InterpolateStatement> {
     static final SyntaxParser<InterpolateStatement> PARSER = new InterpolateStatementParser();
 
@@ -36,11 +38,13 @@ class InterpolateStatementParser implements SyntaxParser<InterpolateStatement> {
             finalProgress = progress;
         } else {
             try {
+                final Optional<VarAddress> var = context.scope().members.find(Keywords.INTERPOLATE, MemberType.VARIABLE);
+
                 // Store progress value in a variable if it's not a constant
-                if (context.hasMember(Keywords.INTERPOLATE, MemberType.VARIABLE)) {
-                    substitution = context.getVariable(Keywords.INTERPOLATE, VarType.NUM);
+                if (var.isPresent()) {
+                    substitution = var.get().cast(Keywords.INTERPOLATE, VarType.NUM);
                 } else {
-                    substitution = context.addLocalVariable(Keywords.INTERPOLATE);
+                    substitution = context.scope().addLocalVariable(Keywords.INTERPOLATE);
                 }
 
                 finalProgress = parser.newVariableRef(substitution, false, token.range());

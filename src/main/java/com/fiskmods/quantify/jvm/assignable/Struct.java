@@ -1,11 +1,10 @@
 package com.fiskmods.quantify.jvm.assignable;
 
-import com.fiskmods.quantify.exception.QtfErrors;
 import com.fiskmods.quantify.exception.QtfException;
-import com.fiskmods.quantify.jvm.FunctionAddress;
 import com.fiskmods.quantify.jvm.VarAddress;
 import com.fiskmods.quantify.member.MemberMap;
 import com.fiskmods.quantify.member.MemberType;
+import com.fiskmods.quantify.member.MutableMemberMap;
 import com.fiskmods.quantify.member.Namespace;
 
 import java.util.Optional;
@@ -17,26 +16,6 @@ public interface Struct extends VarAddress, Namespace {
     @Override
     default VarType<Struct> type() {
         return VarType.STRUCT;
-    }
-
-    @Override
-    default FunctionAddress getFunction(final String name) throws QtfException {
-        throw QtfErrors.undefined(MemberType.FUNCTION, name);
-    }
-
-    @Override
-    default boolean hasFunction(final String name) {
-        return false;
-    }
-
-    @Override
-    default double getConstant(final String name) {
-        return 0;
-    }
-
-    @Override
-    default boolean hasConstant(final String name) {
-        return false;
     }
 
     default void expand(final String name) throws QtfException {
@@ -52,7 +31,7 @@ public interface Struct extends VarAddress, Namespace {
     }
 
     class StructImpl implements Struct {
-        private final MemberMap members = new MemberMap();
+        private final MutableMemberMap members = new MutableMemberMap();
         private final int index;
 
         private final IntSupplier arraySize;
@@ -76,9 +55,9 @@ public interface Struct extends VarAddress, Namespace {
         public void expand(final String name) throws QtfException {
             final Optional<MemberMap.Member<?>> member = members.find(name);
             if (member.isEmpty()) {
-                members.putVariable(name, new ChildStruct());
+                members.putVariable(name, new ChildStruct(this, name));
             } else {
-                member.get().cast(name, MemberType.VARIABLE)
+                member.get().cast(MemberType.VARIABLE)
                         .value().typeCheck(name, VarType.STRUCT);
             }
         }
@@ -86,32 +65,75 @@ public interface Struct extends VarAddress, Namespace {
         @Override
         @SuppressWarnings("unchecked")
         public <T extends VarAddress> T computeVariable(final VarType<T> type, final String name) throws QtfException {
-            if (type == null || members.has(name)) {
+            if (members.has(name)) {
                 return members.get(name, MemberType.VARIABLE).cast(name, type);
             }
 
             if (type == VarType.STRUCT) {
-                return (T) members.putVariable(name, new ChildStruct());
+                return (T) members.putVariable(name, new ChildStruct(this, name));
             } else {
                 return (T) members.putVariable(name, ArrayVar.of(index, arrayStore));
             }
         }
 
         @Override
-        public boolean hasVariable(final String name) {
-            return members.find(name).map(MemberType.VARIABLE::test)
-                    .orElse(true);
+        public Optional<MemberMap.Member<?>> find(final String name) {
+            return members.find(name);
         }
 
-        private static final class ChildStruct implements Struct {
+        @Override
+        public <T> Optional<T> find(final String name, final MemberType<T> expectedType) {
+            return members.find(name, expectedType);
+        }
+
+        @Override
+        public boolean has(final String name) {
+            return members.has(name);
+        }
+
+        @Override
+        public boolean has(final String name, final MemberType<?> expectedType) {
+            return members.has(name, expectedType);
+        }
+
+        @Override
+        public <T> T get(final String name, final MemberType<T> expectedType) throws QtfException {
+            return members.get(name, expectedType);
+        }
+
+        private record ChildStruct(StructImpl root, String name) implements Struct {
             @Override
             public <T extends VarAddress> T computeVariable(final VarType<T> type, final String name) throws QtfException {
-                throw QtfErrors.undefined(MemberType.VARIABLE, name);
+                return root.computeVariable(type, getMemberName(name));
             }
 
             @Override
-            public boolean hasVariable(final String name) {
-                return false;
+            public Optional<MemberMap.Member<?>> find(final String name) {
+                return root.find(getMemberName(name));
+            }
+
+            @Override
+            public <T> Optional<T> find(final String name, final MemberType<T> expectedType) {
+                return root.find(getMemberName(name), expectedType);
+            }
+
+            @Override
+            public boolean has(final String name) {
+                return root.has(getMemberName(name));
+            }
+
+            @Override
+            public boolean has(final String name, final MemberType<?> expectedType) {
+                return root.has(getMemberName(name), expectedType);
+            }
+
+            @Override
+            public <T> T get(final String name, final MemberType<T> expectedType) throws QtfException {
+                return root.get(getMemberName(name), expectedType);
+            }
+
+            private String getMemberName(final String name) {
+                return this.name + '.' + name;
             }
         }
     }

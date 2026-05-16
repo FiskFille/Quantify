@@ -14,7 +14,7 @@ public interface VarAddress {
     }
 
     default void typeCheck(final String name, final VarType<?> expectedType) throws QtfException {
-        if (expectedType != null && type() != expectedType) {
+        if (type() != expectedType) {
             throw new QtfException("Expected '%s' to be of type %s, was %s".formatted(name, expectedType.typeName(), type().typeName()));
         }
     }

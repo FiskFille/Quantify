@@ -1,23 +1,26 @@
 package com.fiskmods.quantify.member;
 
 import com.fiskmods.quantify.exception.QtfException;
-import com.fiskmods.quantify.jvm.FunctionAddress;
 import com.fiskmods.quantify.jvm.VarAddress;
 import com.fiskmods.quantify.jvm.assignable.VarType;
 import com.fiskmods.quantify.library.FallbackNamespace;
 
+import java.util.Optional;
+
 public interface Namespace {
-    <T extends VarAddress> T computeVariable(VarType<T> type, String name) throws QtfException;
+    Optional<MemberMap.Member<?>> find(String name);
 
-    boolean hasVariable(String name);
+    <T> Optional<T> find(String name, MemberType<T> expectedType);
 
-    FunctionAddress getFunction(String name) throws QtfException;
+    boolean has(String name);
 
-    boolean hasFunction(String name);
+    boolean has(String name, MemberType<?> expectedType);
 
-    double getConstant(String name) throws QtfException;
+    <T> T get(String name, MemberType<T> expectedType) throws QtfException;
 
-    boolean hasConstant(String name);
+    default <T extends VarAddress> T computeVariable(final VarType<T> type, final String name) throws QtfException {
+        return get(name, MemberType.VARIABLE).cast(name, type);
+    }
 
     default Namespace fallback(final Namespace fallbackNamespace) {
         if (fallbackNamespace == this) {

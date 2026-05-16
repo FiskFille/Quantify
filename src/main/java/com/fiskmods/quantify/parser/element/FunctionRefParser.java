@@ -5,6 +5,7 @@ import com.fiskmods.quantify.exception.QtfParseException;
 import com.fiskmods.quantify.jvm.FunctionAddress;
 import com.fiskmods.quantify.lexer.token.Token;
 import com.fiskmods.quantify.lexer.token.TokenClass;
+import com.fiskmods.quantify.member.MemberType;
 import com.fiskmods.quantify.member.Namespace;
 import com.fiskmods.quantify.parser.QtfParser;
 import com.fiskmods.quantify.parser.SyntaxContext;
@@ -27,7 +28,7 @@ record FunctionRefParser(FunctionAddress func, boolean hasResult) implements Syn
 
             final FunctionAddress func;
             try {
-                func = namespace.getFunction(name);
+                func = namespace.get(name, MemberType.FUNCTION);
             } catch (final QtfException e) {
                 throw new QtfParseException(e, range);
             }

@@ -10,7 +10,7 @@ import java.util.function.IntFunction;
 import java.util.function.Supplier;
 
 public class Scope {
-    public final MemberMap members = new MemberMap();
+    public final MutableMemberMap members = new MutableMemberMap();
     protected final int level;
 
     protected Namespace namespace;

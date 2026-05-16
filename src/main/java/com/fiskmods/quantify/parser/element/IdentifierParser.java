@@ -59,7 +59,7 @@ class IdentifierParser {
             return nextParser.parse(childName, range, context.getDefaultNamespace());
         }
 
-        final Optional<MemberMap.Member<?>> parent = context.findMember(name);
+        final Optional<MemberMap.Member<?>> parent = context.scope().members.find(name);
         if (parent.isPresent()) {
             final MemberType<?> parentType = parent.get().type();
 
@@ -91,9 +91,11 @@ class IdentifierParser {
         return FunctionRefParser.tryParse(name, range, namespace, true)
                 .or((parser, context) -> {
                     try {
-                        if (namespace.hasConstant(name)) {
-                            return parser.newNumLiteral(namespace.getConstant(name), range);
+                        final Optional<Double> constValue = namespace.find(name, MemberType.CONSTANT);
+                        if (constValue.isPresent()) {
+                            return parser.newNumLiteral(constValue.get(), range);
                         }
+
                         final VarAddress address = namespace.computeVariable(VarType.NUM, name);
                         return parser.newVariableRef(address, false, range);
                     } catch (final QtfException e) {

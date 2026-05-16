@@ -31,7 +31,7 @@ class InputParser implements SyntaxParser<Assignment> {
         final VarRef inputVar;
 
         try {
-            var = parser.newVariableRef(context.addLocalVariable(name), false, range);
+            var = parser.newVariableRef(context.scope().addLocalVariable(name), false, range);
             inputVar = parser.newVariableRef(context.addInputVariable(name, index), false, range);
         } catch (final QtfException e) {
             throw new QtfParseException(e, range);
