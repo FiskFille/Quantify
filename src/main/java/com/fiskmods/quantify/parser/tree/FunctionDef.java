@@ -3,7 +3,7 @@ package com.fiskmods.quantify.parser.tree;
 import com.fiskmods.quantify.jvm.FunctionAddress;
 import com.fiskmods.quantify.jvm.JvmFunctionDefinition;
 
-public final class FunctionDef extends Tree implements Statement, JvmFunctionDefinition {
+public final class FunctionDef extends Statement implements JvmFunctionDefinition {
     private final String name;
     private final boolean isVisible;
     private final DefinedFunctionAddress address;

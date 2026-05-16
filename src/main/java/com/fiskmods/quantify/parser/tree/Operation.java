@@ -6,7 +6,7 @@ import com.fiskmods.quantify.library.QtfMath;
 
 import java.util.List;
 
-public final class Operation extends Tree implements Expression {
+public final class Operation extends Expression {
     private final Expression left;
     private final Expression right;
     private final Operator op;

@@ -2,7 +2,7 @@ package com.fiskmods.quantify.parser.tree;
 
 import java.util.List;
 
-public final class LerpAssignment extends Tree implements Statement {
+public final class LerpAssignment extends Statement {
     private final List<? extends VarRef> targets;
     private final Expression value;
     private final Expression progress;

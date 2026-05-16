@@ -3,7 +3,7 @@ package com.fiskmods.quantify.parser.tree;
 import com.fiskmods.quantify.jvm.VarAddress;
 import org.jspecify.annotations.Nullable;
 
-public final class InterpolateStatement extends Tree implements Statement {
+public final class InterpolateStatement extends Statement {
     private final Expression progress;
     private final @Nullable VarAddress substitution;
     private final Statement body;

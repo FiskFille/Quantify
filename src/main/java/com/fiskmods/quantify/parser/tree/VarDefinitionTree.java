@@ -5,7 +5,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 
-public final class VarDefinitionTree extends Tree implements Statement {
+public final class VarDefinitionTree extends Statement {
     private final List<? extends VarRef> targets;
     private final VarType<?> type;
     private final @Nullable Expression initializer;

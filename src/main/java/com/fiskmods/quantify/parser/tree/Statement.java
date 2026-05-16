@@ -1,4 +1,4 @@
 package com.fiskmods.quantify.parser.tree;
 
-public interface Statement {
+public abstract non-sealed class Statement extends Tree {
 }

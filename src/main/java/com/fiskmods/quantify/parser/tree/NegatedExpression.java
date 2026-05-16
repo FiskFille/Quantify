@@ -1,6 +1,6 @@
 package com.fiskmods.quantify.parser.tree;
 
-public final class NegatedExpression extends Tree implements Expression {
+public final class NegatedExpression extends Expression {
     private final Expression expression;
 
     public NegatedExpression(final Expression expression) {

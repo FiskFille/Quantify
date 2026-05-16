@@ -4,7 +4,7 @@ import com.fiskmods.quantify.jvm.FunctionAddress;
 
 import java.util.List;
 
-public final class FunctionRef extends Tree implements Expression {
+public final class FunctionRef extends Expression {
     private final FunctionAddress address;
     private final List<? extends Expression> args;
 

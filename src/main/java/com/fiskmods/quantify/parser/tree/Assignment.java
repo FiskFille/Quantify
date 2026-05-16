@@ -5,7 +5,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 
-public final class Assignment extends Tree implements Statement {
+public final class Assignment extends Statement {
     private final List<? extends VarRef> targets;
     private final Expression value;
     private final @Nullable Operator op;

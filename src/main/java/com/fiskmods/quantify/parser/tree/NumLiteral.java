@@ -1,6 +1,6 @@
 package com.fiskmods.quantify.parser.tree;
 
-public final class NumLiteral extends Tree implements Expression {
+public final class NumLiteral extends Expression {
     private final double value;
 
     public NumLiteral(final double value) {
