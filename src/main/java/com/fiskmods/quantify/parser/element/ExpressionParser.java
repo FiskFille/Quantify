@@ -61,7 +61,7 @@ class ExpressionParser implements SyntaxParser<Expression> {
             }
         }
         return switch (peeked.type()) {
-            case IDENTIFIER -> IdentifierParser.ANY_VALUE.accept(parser, context);
+            case IDENTIFIER -> IdentifierParser.parseExpressionIdentifier(parser, context);
             case OPEN_PARENTHESIS -> {
                 parser.clearPeekedToken();
                 final Expression e = INSTANCE.accept(parser, context);

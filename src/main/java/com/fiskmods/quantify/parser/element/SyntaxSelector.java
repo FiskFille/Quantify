@@ -19,7 +19,7 @@ public class SyntaxSelector {
             case FUNC -> FunctionDefParser.PARSER;
             case RETURN -> ReturnParser.INSTANCE;
 
-            default -> IdentifierParser.LINE_START;
+            default -> IdentifierParser::parseStatementIdentifier;
         };
     }
 
