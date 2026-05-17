@@ -1,6 +1,7 @@
 package com.fiskmods.quantify.jvm;
 
 import com.fiskmods.quantify.jvm.assignable.*;
+import com.fiskmods.quantify.lexer.token.Operator;
 import com.fiskmods.quantify.parser.tree.*;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Label;
@@ -144,6 +145,11 @@ public class JvmTreeVisitor implements TreeVisitor {
 
     @Override
     public void visitOperation(final Operation op) {
+        if (op.op() == Operator.POW && op.right() instanceof final NumLiteral lit
+                && JvmUtil.optimizePow(mv, this, op.left(), lit.value())) {
+            return;
+        }
+
         visitTree(op.left());
         visitTree(op.right());
         op.op().apply(mv);
