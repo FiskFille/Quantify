@@ -44,30 +44,36 @@ public interface TreeVisitor {
 
     void visitVarRef(VarRef var);
 
-    default void visitTree(final Object tree) {
-        switch (tree) {
+    default void visitExpression(final Expression expression) {
+        switch (expression) {
+            case final FunctionRef t -> visitFunctionRef(t);
+            case final Identifier t -> visitIdentifier(t);
+            case final MemberSelect t -> visitMemberSelect(t);
+            case final NegatedExpression t -> visitNegatedValue(t);
+            case final NumLiteral t -> visitNumLiteral(t);
+            case final Operation t -> visitOperation(t);
+            case final VarRef t -> visitVarRef(t);
+            default -> throw new IllegalStateException("Unexpected value: " + expression);
+        }
+    }
+
+    default void visitStatement(final Statement statement) {
+        switch (statement) {
             case final Assignment t -> visitAssignment(t);
             case final BlockStatement t -> visitBlock(t);
             case final ConstDefinitionTree t -> visitConstDef(t);
             case final ExpressionStatement t -> visitExpressionStatement(t);
             case final FunctionDef t -> visitFunctionDef(t);
-            case final FunctionRef t -> visitFunctionRef(t);
-            case final Identifier t -> visitIdentifier(t);
             case final IfStatement t -> visitIfStatement(t);
             case final ImportStatement t -> visitImport(t);
             case final InputStatement t -> visitInput(t);
             case final InterpolateStatement t -> visitInterpolateStatement(t);
             case final LerpAssignment t -> visitLerpAssignment(t);
-            case final MemberSelect t -> visitMemberSelect(t);
             case final NamespaceStatement t -> visitNamespace(t);
-            case final NegatedExpression t -> visitNegatedValue(t);
-            case final NumLiteral t -> visitNumLiteral(t);
-            case final Operation t -> visitOperation(t);
             case final ParameterTree t -> visitParameter(t);
             case final ReturnStatement t -> visitReturnStatement(t);
-            case final VarRef t -> visitVarRef(t);
             case final VarDefinitionTree t -> visitVarDefinition(t);
-            default -> throw new IllegalStateException("Unexpected value: " + tree);
+            default -> throw new IllegalStateException("Unexpected value: " + statement);
         }
     }
 }

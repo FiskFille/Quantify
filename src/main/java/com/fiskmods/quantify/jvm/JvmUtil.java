@@ -24,25 +24,25 @@ public class JvmUtil {
     public static boolean optimizePow(final MethodVisitor mv, final JvmTreeVisitor visitor, final Expression left, final double exponent) {
         if (VarAddress.isVar(left)) {
             if (exponent == 2) {
-                visitor.visitTree(left);
-                visitor.visitTree(left);
+                visitor.visitExpression(left);
+                visitor.visitExpression(left);
                 Operator.MUL.apply(mv);
                 return true;
             } if (exponent == 3) {
-                visitor.visitTree(left);
-                visitor.visitTree(left);
-                visitor.visitTree(left);
+                visitor.visitExpression(left);
+                visitor.visitExpression(left);
+                visitor.visitExpression(left);
                 Operator.MUL.apply(mv);
                 Operator.MUL.apply(mv);
                 return true;
             }
         } else if (!(left instanceof NumLiteral)) {
             if (exponent == 2) {
-                visitor.visitTree(left);
+                visitor.visitExpression(left);
                 QtfMath.SQUARE.visit(mv, INVOKESTATIC, false);
                 return true;
             } if (exponent == 3) {
-                visitor.visitTree(left);
+                visitor.visitExpression(left);
                 QtfMath.CUBE.visit(mv, INVOKESTATIC, false);
                 return true;
             }

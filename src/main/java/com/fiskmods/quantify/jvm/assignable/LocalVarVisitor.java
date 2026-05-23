@@ -17,14 +17,14 @@ public record LocalVarVisitor(JvmTreeVisitor visitor, MethodVisitor mv, int id) 
     @Override
     public void visitModify(final Expression value, final Operator operator) {
         visitGet();
-        visitor.visitTree(value);
+        visitor.visitExpression(value);
         operator.apply(mv);
         mv.visitVarInsn(DSTORE, id);
     }
 
     @Override
     public void visitSet(final Expression value) {
-        visitor.visitTree(value);
+        visitor.visitExpression(value);
         mv.visitVarInsn(DSTORE, id);
     }
 
@@ -37,8 +37,8 @@ public record LocalVarVisitor(JvmTreeVisitor visitor, MethodVisitor mv, int id) 
     @Override
     public void visitLerp(final Expression value, final Expression progress, final boolean rotational) {
         visitGet();
-        visitor.visitTree(progress);
-        visitor.visitTree(value);
+        visitor.visitExpression(progress);
+        visitor.visitExpression(value);
         visitGet();
         mv.visitInsn(DSUB);
         if (rotational) {
@@ -53,7 +53,7 @@ public record LocalVarVisitor(JvmTreeVisitor visitor, MethodVisitor mv, int id) 
     public void visitLerpToZero(final Expression value, final Expression progress) {
         visitGet();
         mv.visitInsn(DCONST_1);
-        visitor.visitTree(progress);
+        visitor.visitExpression(progress);
         mv.visitInsn(DSUB);
         mv.visitInsn(DMUL);
         mv.visitVarInsn(DSTORE, id);

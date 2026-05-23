@@ -63,7 +63,7 @@ public class JvmCompiler {
 
         mv = cw.visitMethod(ACC_PROTECTED, "run", "([D[D)V", null, null);
         final TreeVisitor visitor = new JvmTreeVisitor(className, cw, mv);
-        statements.forEach(visitor::visitTree);
+        statements.forEach(visitor::visitStatement);
 
         mv.visitInsn(RETURN);
         mv.visitMaxs(0, 0);

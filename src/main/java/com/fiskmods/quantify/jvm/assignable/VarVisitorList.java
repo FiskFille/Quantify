@@ -12,7 +12,7 @@ public record VarVisitorList(JvmTreeVisitor visitor, List<? extends VarRef> vari
     @Override
     public void visitGet() {
         for (final VarRef var : variables) {
-            visitor.visitTree(var);
+            visitor.visitExpression(var);
         }
     }
 

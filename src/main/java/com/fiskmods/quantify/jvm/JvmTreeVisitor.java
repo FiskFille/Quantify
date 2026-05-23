@@ -35,7 +35,7 @@ public class JvmTreeVisitor implements TreeVisitor {
 
     @Override
     public void visitBlock(final BlockStatement block) {
-        block.statements().forEach(this::visitTree);
+        block.statements().forEach(this::visitStatement);
     }
 
     @Override
@@ -44,7 +44,7 @@ public class JvmTreeVisitor implements TreeVisitor {
 
     @Override
     public void visitExpressionStatement(final ExpressionStatement expStmt) {
-        visitTree(expStmt.expression());
+        visitExpression(expStmt.expression());
 
         // Pop unused value from stack
         mv.visitInsn(POP2);
@@ -56,7 +56,7 @@ public class JvmTreeVisitor implements TreeVisitor {
 
         final MethodVisitor mv = cv.visitMethod(ACC_STATIC | ACC_PUBLIC, func.address().name, func.address().descriptor, null, null);
         final TreeVisitor visitor = new JvmTreeVisitor(className, cv, mv);
-        visitor.visitTree(func.body());
+        visitor.visitStatement(func.body());
 
         if (func.returnValue() == FunctionDef.ReturnValueType.MISSING) {
             mv.visitInsn(DCONST_0);
@@ -68,7 +68,7 @@ public class JvmTreeVisitor implements TreeVisitor {
 
     @Override
     public void visitFunctionRef(final FunctionRef func) {
-        func.args().forEach(this::visitTree);
+        func.args().forEach(this::visitExpression);
         func.address().visit(mv, INVOKESTATIC, false);
     }
 
@@ -80,25 +80,25 @@ public class JvmTreeVisitor implements TreeVisitor {
     public void visitIfStatement(final IfStatement ifStmt) {
         if (ifStmt.condition() instanceof final NumLiteral lit) {
             if (lit.value() > 0) {
-                visitTree(ifStmt.body());
+                visitStatement(ifStmt.body());
             }
             return;
         }
 
         final Label end = new Label();
-        visitTree(ifStmt.condition());
+        visitExpression(ifStmt.condition());
         mv.visitInsn(D2I);
 
         if (ifStmt.elseBody() == null) {
             mv.visitJumpInsn(IFLE, end);
-            visitTree(ifStmt.body());
+            visitStatement(ifStmt.body());
         } else {
             final Label els = new Label();
             mv.visitJumpInsn(IFLE, els);
-            visitTree(ifStmt.body());
+            visitStatement(ifStmt.body());
             mv.visitJumpInsn(GOTO, end);
             mv.visitLabel(els);
-            visitTree(ifStmt.elseBody());
+            visitStatement(ifStmt.elseBody());
         }
         mv.visitLabel(end);
     }
@@ -119,7 +119,7 @@ public class JvmTreeVisitor implements TreeVisitor {
         if (lerp.substitution() != null) {
             varVisitor(lerp.substitution()).visitSet(lerp.progress());
         }
-        visitTree(lerp.body());
+        visitStatement(lerp.body());
     }
 
     @Override
@@ -148,13 +148,13 @@ public class JvmTreeVisitor implements TreeVisitor {
     @Override
     public void visitNamespace(final NamespaceStatement namespace) {
         if (namespace.body() != null) {
-            visitTree(namespace.body());
+            visitStatement(namespace.body());
         }
     }
 
     @Override
     public void visitNegatedValue(final NegatedExpression neg) {
-        visitTree(neg.expression());
+        visitExpression(neg.expression());
         mv.visitInsn(DNEG);
     }
 
@@ -177,8 +177,8 @@ public class JvmTreeVisitor implements TreeVisitor {
             return;
         }
 
-        visitTree(op.left());
-        visitTree(op.right());
+        visitExpression(op.left());
+        visitExpression(op.right());
         op.op().apply(mv);
     }
 
@@ -188,7 +188,7 @@ public class JvmTreeVisitor implements TreeVisitor {
 
     @Override
     public void visitReturnStatement(final ReturnStatement ret) {
-        visitTree(ret.expression());
+        visitExpression(ret.expression());
         mv.visitInsn(DRETURN);
     }
 

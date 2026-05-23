@@ -21,7 +21,7 @@ public record ArrayVarVisitor(JvmTreeVisitor visitor, MethodVisitor mv, int id, 
         arrayAddress();
         mv.visitInsn(DUP2);
         mv.visitInsn(DALOAD);
-        visitor.visitTree(value);
+        visitor.visitExpression(value);
         operator.apply(mv);
         mv.visitInsn(DASTORE);
     }
@@ -29,7 +29,7 @@ public record ArrayVarVisitor(JvmTreeVisitor visitor, MethodVisitor mv, int id, 
     @Override
     public void visitSet(final Expression value) {
         arrayAddress();
-        visitor.visitTree(value);
+        visitor.visitExpression(value);
         mv.visitInsn(DASTORE);
     }
 
@@ -45,8 +45,8 @@ public record ArrayVarVisitor(JvmTreeVisitor visitor, MethodVisitor mv, int id, 
         arrayAddress();
         mv.visitInsn(DUP2);
         mv.visitInsn(DALOAD);
-        visitor.visitTree(progress);
-        visitor.visitTree(value);
+        visitor.visitExpression(progress);
+        visitor.visitExpression(value);
         arrayAddress();
         mv.visitInsn(DALOAD);
         mv.visitInsn(DSUB);
@@ -64,7 +64,7 @@ public record ArrayVarVisitor(JvmTreeVisitor visitor, MethodVisitor mv, int id, 
         mv.visitInsn(DUP2);
         mv.visitInsn(DALOAD);
         mv.visitInsn(DCONST_1);
-        visitor.visitTree(progress);
+        visitor.visitExpression(progress);
         mv.visitInsn(DSUB);
         mv.visitInsn(DMUL);
         mv.visitInsn(DASTORE);
