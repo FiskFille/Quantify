@@ -5,8 +5,6 @@ import com.fiskmods.quantify.lexer.token.Token;
 import com.fiskmods.quantify.lexer.token.TokenClass;
 import com.fiskmods.quantify.lexer.token.TokenStream;
 import com.fiskmods.quantify.parser.element.SyntaxSelector;
-import com.fiskmods.quantify.parser.tree.Expression;
-import com.fiskmods.quantify.parser.tree.ExpressionStatement;
 import com.fiskmods.quantify.parser.tree.Statement;
 import com.fiskmods.quantify.parser.tree.TreeGenerator;
 import org.jspecify.annotations.Nullable;
@@ -40,15 +38,9 @@ public class QtfParser extends TreeGenerator implements TokenStream {
                 continue;
             }
 
-            final SyntaxParser<?> syntax = SyntaxSelector.selectSyntax(context, peek());
-            final Object tree = syntax.accept(this, context);
-
-            switch (tree) {
-                case final Statement s -> statements.add(s);
-                case final Expression e -> statements.add(ExpressionStatement.of(e));
-                case null -> { } // no-op
-                default -> throw new IllegalStateException("Unexpected value: " + tree);
-            }
+            final SyntaxParser<? extends Statement> syntax = SyntaxSelector.selectSyntax(context, peek());
+            final Statement statement = syntax.accept(this, context);
+            statements.add(statement);
         }
 
         final int currentStack = context.stackDepth();

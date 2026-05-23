@@ -9,27 +9,36 @@ import com.fiskmods.quantify.member.MemberType;
 import com.fiskmods.quantify.parser.QtfParser;
 import com.fiskmods.quantify.parser.SyntaxContext;
 import com.fiskmods.quantify.parser.SyntaxParser;
+import com.fiskmods.quantify.parser.tree.Identifier;
+import com.fiskmods.quantify.parser.tree.ImportStatement;
 
-class ImportParser implements SyntaxParser<Object> {
+class ImportParser implements SyntaxParser<ImportStatement> {
     static final ImportParser INSTANCE = new ImportParser();
 
     @Override
-    public Object accept(final QtfParser parser, final SyntaxContext context) throws QtfParseException {
+    public ImportStatement accept(final QtfParser parser, final SyntaxContext context) throws QtfParseException {
+        parser.startTree();
         parser.clearPeekedToken();
 
         final Token token = parser.next(TokenClass.STR_LITERAL);
         final String key = token.getString();
         parser.next(TokenClass.COLON);
 
-        final String name = parser.next(TokenClass.IDENTIFIER).getString();
+        final Identifier name = Identifier.from(parser.next(TokenClass.IDENTIFIER));
+        final QtfLibrary library = addLibrary(context, name.name(), key, token.range());
+
+        final ImportStatement statement = parser.newImportStatement(name, key, library);
+        parser.expectLineBreak();
+        return statement;
+    }
+
+    private QtfLibrary addLibrary(final SyntaxContext context, final String name, final String key, final Token.Range range) throws QtfParseException {
         try {
             final QtfLibrary library = context.libraries().getLibrary(key);
             context.addMember(name, MemberType.LIBRARY, library);
+            return library;
         } catch (final QtfException e) {
-            throw new QtfParseException(e, token.range());
+            throw new QtfParseException(e, range);
         }
-
-        parser.expectLineBreak();
-        return null;
     }
 }

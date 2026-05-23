@@ -39,6 +39,10 @@ public class JvmTreeVisitor implements TreeVisitor {
     }
 
     @Override
+    public void visitConstDef(final ConstDefinitionTree cst) {
+    }
+
+    @Override
     public void visitExpressionStatement(final ExpressionStatement expStmt) {
         visitTree(expStmt.expression());
 
@@ -96,6 +100,14 @@ public class JvmTreeVisitor implements TreeVisitor {
     }
 
     @Override
+    public void visitImport(final ImportStatement statement) {
+    }
+
+    @Override
+    public void visitInput(final InputStatement input) {
+    }
+
+    @Override
     public void visitInterpolateStatement(final InterpolateStatement lerp) {
         if (lerp.progress() instanceof final NumLiteral lit && lit.value() == 0) {
             return;
@@ -123,6 +135,13 @@ public class JvmTreeVisitor implements TreeVisitor {
         }
 
         varVisitor(assign.targets()).visitLerp(assign.value(), assign.progress(), assign.rotational());
+    }
+
+    @Override
+    public void visitNamespace(final NamespaceStatement namespace) {
+        if (namespace.body() != null) {
+            visitTree(namespace.body());
+        }
     }
 
     @Override

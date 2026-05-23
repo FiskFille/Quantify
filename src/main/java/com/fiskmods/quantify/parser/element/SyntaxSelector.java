@@ -4,9 +4,10 @@ import com.fiskmods.quantify.exception.QtfParseException;
 import com.fiskmods.quantify.lexer.token.Token;
 import com.fiskmods.quantify.parser.SyntaxContext;
 import com.fiskmods.quantify.parser.SyntaxParser;
+import com.fiskmods.quantify.parser.tree.Statement;
 
 public class SyntaxSelector {
-    public static SyntaxParser<?> selectSyntax(SyntaxContext context, Token next) throws QtfParseException {
+    public static SyntaxParser<? extends Statement> selectSyntax(final SyntaxContext context, final Token next) throws QtfParseException {
         return switch (next.type()) {
             case IMPORT -> checkScope(ImportParser.INSTANCE, context, next);
             case INPUT -> checkScope(InputParser.INSTANCE, context, next);
@@ -23,11 +24,9 @@ public class SyntaxSelector {
         };
     }
 
-    private static SyntaxParser<?> checkScope(SyntaxParser<?> syntaxParser, SyntaxContext context, Token next)
-            throws QtfParseException {
+    private static <T> SyntaxParser<T> checkScope(final SyntaxParser<T> syntaxParser, final SyntaxContext context, final Token next) throws QtfParseException {
         if (context.scope().isInnerScope()) {
-            throw new QtfParseException("Illegal token '" + next + "'",
-                    "unavailable in inner scopes", next.range());
+            throw new QtfParseException("Illegal token '" + next + "'", "unavailable in inner scopes", next.range());
         }
         return syntaxParser;
     }

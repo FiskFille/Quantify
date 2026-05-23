@@ -5,6 +5,8 @@ import com.fiskmods.quantify.jvm.VarAddress;
 import com.fiskmods.quantify.jvm.assignable.VarType;
 import com.fiskmods.quantify.lexer.token.Operator;
 import com.fiskmods.quantify.lexer.token.Token;
+import com.fiskmods.quantify.library.QtfLibrary;
+import com.fiskmods.quantify.member.Namespace;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
@@ -27,6 +29,12 @@ public abstract class TreeGenerator {
         return tree;
     }
 
+    public ConstDefinitionTree newConst(final Identifier name, final VarType<?> type, final Expression value) {
+        final var tree = new ConstDefinitionTree(name, type, value);
+        tree.range = finishTree();
+        return tree;
+    }
+
     public FunctionDef newFunction(final Identifier name, final FunctionDef.DefinedFunctionAddress address, final Statement body, final FunctionDef.ReturnValueType returnValue) {
         final var tree = new FunctionDef(name, address, body, returnValue);
         tree.range = finishTree();
@@ -43,6 +51,18 @@ public abstract class TreeGenerator {
         return tree;
     }
 
+    public ImportStatement newImportStatement(final Identifier name, final String key, final QtfLibrary library) {
+        final var tree = new ImportStatement(name, key, library);
+        tree.range = finishTree();
+        return tree;
+    }
+
+    public InputStatement newInput(final int index, final Identifier name, final VarAddress inputAddress, final VarAddress targetAddress) {
+        final var tree = new InputStatement(index, name, inputAddress, targetAddress);
+        tree.range = finishTree();
+        return tree;
+    }
+
     public InterpolateStatement newInterpolateStatement(final Expression progress, final @Nullable VarAddress substitution, final Statement body) {
         final var tree = new InterpolateStatement(progress, substitution, body);
         tree.range = finishTree();
@@ -51,6 +71,12 @@ public abstract class TreeGenerator {
 
     public LerpAssignment newLerpAssignment(final List<? extends VarRef> targets, final Expression value, final Expression progress, final boolean rotational) {
         final var tree = new LerpAssignment(targets, value, progress, rotational);
+        tree.range = finishTree();
+        return tree;
+    }
+
+    public NamespaceStatement newNamespaceStatement(final Expression expression, final Namespace namespace, final @Nullable Statement body) {
+        final var tree = new NamespaceStatement(expression, namespace, body);
         tree.range = finishTree();
         return tree;
     }

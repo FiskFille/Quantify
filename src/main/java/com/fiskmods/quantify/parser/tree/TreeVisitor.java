@@ -6,6 +6,8 @@ public interface TreeVisitor {
 
     void visitBlock(BlockStatement block);
 
+    void visitConstDef(ConstDefinitionTree cst);
+
     void visitExpressionStatement(ExpressionStatement expStmt);
 
     void visitFunctionDef(FunctionDef func);
@@ -14,9 +16,15 @@ public interface TreeVisitor {
 
     void visitIfStatement(IfStatement ifStmt);
 
+    void visitImport(ImportStatement statement);
+
+    void visitInput(InputStatement input);
+
     void visitInterpolateStatement(InterpolateStatement lerp);
 
     void visitLerpAssignment(LerpAssignment assign);
+
+    void visitNamespace(NamespaceStatement namespace);
 
     void visitNegatedValue(NegatedExpression neg);
 
@@ -34,12 +42,16 @@ public interface TreeVisitor {
         switch (tree) {
             case final Assignment t -> visitAssignment(t);
             case final BlockStatement t -> visitBlock(t);
+            case final ConstDefinitionTree t -> visitConstDef(t);
             case final ExpressionStatement t -> visitExpressionStatement(t);
             case final FunctionDef t -> visitFunctionDef(t);
             case final FunctionRef t -> visitFunctionRef(t);
             case final IfStatement t -> visitIfStatement(t);
+            case final ImportStatement t -> visitImport(t);
+            case final InputStatement t -> visitInput(t);
             case final InterpolateStatement t -> visitInterpolateStatement(t);
             case final LerpAssignment t -> visitLerpAssignment(t);
+            case final NamespaceStatement t -> visitNamespace(t);
             case final NegatedExpression t -> visitNegatedValue(t);
             case final NumLiteral t -> visitNumLiteral(t);
             case final Operation t -> visitOperation(t);

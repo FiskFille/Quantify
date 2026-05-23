@@ -2,21 +2,19 @@ package com.fiskmods.quantify.parser.element;
 
 import com.fiskmods.quantify.exception.QtfException;
 import com.fiskmods.quantify.exception.QtfParseException;
+import com.fiskmods.quantify.jvm.VarAddress;
 import com.fiskmods.quantify.lexer.token.TokenClass;
 import com.fiskmods.quantify.parser.QtfParser;
 import com.fiskmods.quantify.parser.SyntaxContext;
 import com.fiskmods.quantify.parser.SyntaxParser;
-import com.fiskmods.quantify.parser.tree.Assignment;
 import com.fiskmods.quantify.parser.tree.Identifier;
-import com.fiskmods.quantify.parser.tree.VarRef;
+import com.fiskmods.quantify.parser.tree.InputStatement;
 
-import java.util.List;
-
-class InputParser implements SyntaxParser<Assignment> {
+class InputParser implements SyntaxParser<InputStatement> {
     static final InputParser INSTANCE = new InputParser();
 
     @Override
-    public Assignment accept(final QtfParser parser, final SyntaxContext context) throws QtfParseException {
+    public InputStatement accept(final QtfParser parser, final SyntaxContext context) throws QtfParseException {
         parser.startTree();
         parser.clearPeekedToken();
         parser.next(TokenClass.OPEN_BRACKETS);
@@ -25,18 +23,18 @@ class InputParser implements SyntaxParser<Assignment> {
         parser.next(TokenClass.COLON);
 
         final Identifier identifier = Identifier.from(parser.next(TokenClass.IDENTIFIER));
-        final VarRef var;
-        final VarRef inputVar;
+        final VarAddress inputAddress;
+        final VarAddress targetAddress;
 
         try {
-            var = parser.newVariableRef(identifier, context.scope().addLocalVariable(identifier.name()), false);
-            inputVar = parser.newVariableRef(identifier, context.addInputVariable(identifier.name(), index), false);
+            inputAddress = context.addInputVariable(identifier.name(), index);
+            targetAddress = context.scope().addLocalVariable(identifier.name());
         } catch (final QtfException e) {
             throw new QtfParseException(e, identifier.range());
         }
 
-        final Assignment assignment = parser.newAssignment(List.of(var), inputVar, null);
+        final InputStatement statement = parser.newInput(index, identifier, inputAddress, targetAddress);
         parser.expectLineBreak();
-        return assignment;
+        return statement;
     }
 }
