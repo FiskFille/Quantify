@@ -21,6 +21,7 @@ public enum TokenClass {
 
     // Control keywords
     IF,
+    THEN,
     ELSE,
     INTERPOLATE,
     NAMESPACE,

@@ -158,6 +158,7 @@ public class QtfLexer {
 
                 // Control keywords
                 case Keywords.IF -> tokens.insert(IF);
+                case Keywords.THEN -> tokens.insert(THEN);
                 case Keywords.ELSE -> tokens.insert(ELSE);
                 case Keywords.INTERPOLATE -> tokens.insert(INTERPOLATE);
                 case Keywords.NAMESPACE -> tokens.insert(NAMESPACE);

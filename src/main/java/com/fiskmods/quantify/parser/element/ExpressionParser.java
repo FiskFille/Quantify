@@ -80,6 +80,7 @@ class ExpressionParser implements SyntaxParser<Expression> {
             case IDENTIFIER -> IdentifierParser.parseExpressionIdentifier(parser, context);
             case OPEN_PARENTHESIS -> parseParensExpression(parser, context);
             case OPEN_BRACES -> parseBraceExpression(parser, context);
+            case IF -> IfElseParser.INSTANCE.accept(parser, context);
             default -> NumLiteralParser.PARSER.accept(parser, context);
         };
     }

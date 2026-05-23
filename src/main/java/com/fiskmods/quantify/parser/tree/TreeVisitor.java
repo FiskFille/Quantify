@@ -16,6 +16,8 @@ public interface TreeVisitor {
 
     void visitIdentifier(Identifier identifier);
 
+    void visitIfElse(IfElseExpression ifElse);
+
     void visitIfStatement(IfStatement ifStmt);
 
     void visitImport(ImportStatement statement);
@@ -47,6 +49,7 @@ public interface TreeVisitor {
     default void visitExpression(final Expression expression) {
         switch (expression) {
             case final FunctionRef t -> visitFunctionRef(t);
+            case final IfElseExpression t -> visitIfElse(t);
             case final Identifier t -> visitIdentifier(t);
             case final MemberSelect t -> visitMemberSelect(t);
             case final NegatedExpression t -> visitNegatedValue(t);

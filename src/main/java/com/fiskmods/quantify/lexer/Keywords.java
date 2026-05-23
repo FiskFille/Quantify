@@ -12,6 +12,7 @@ public interface Keywords {
 
     // Control
     String IF = "if";
+    String THEN = "then";
     String ELSE = "else";
     String INTERPOLATE = "interpolate";
     String NAMESPACE = "namespace";

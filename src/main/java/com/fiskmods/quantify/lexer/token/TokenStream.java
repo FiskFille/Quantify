@@ -100,7 +100,7 @@ public interface TokenStream extends Iterator<Token> {
             @Override
             public boolean isValidNextToken(final TokenClass tokenClass) {
                 return switch (tokenClass) {
-                    case CLOSE_PARENTHESIS, CLOSE_BRACES, COMMA -> false;
+                    case CLOSE_PARENTHESIS, OPEN_BRACES, CLOSE_BRACES, COMMA, THEN, ELSE -> false;
                     default -> true;
                 };
             }

@@ -51,6 +51,12 @@ public abstract class TreeGenerator {
         return tree;
     }
 
+    public IfElseExpression newIfElse(final Expression condition, final Expression thenExpression, final Expression elseExpression) {
+        final var tree = new IfElseExpression(condition, thenExpression, elseExpression);
+        tree.range = finishTree();
+        return tree;
+    }
+
     public ImportStatement newImportStatement(final Identifier name, final String key, final QtfLibrary library) {
         final var tree = new ImportStatement(name, key, library);
         tree.range = finishTree();

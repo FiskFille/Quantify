@@ -77,6 +77,26 @@ public class JvmTreeVisitor implements TreeVisitor {
     }
 
     @Override
+    public void visitIfElse(final IfElseExpression ifElse) {
+        if (ifElse.condition() instanceof final NumLiteral lit) {
+            visitExpression(lit.value() > 0 ? ifElse.thenExpression() : ifElse.elseExpression());
+            return;
+        }
+
+        final Label end = new Label();
+        visitExpression(ifElse.condition());
+        mv.visitInsn(D2I);
+
+        final Label els = new Label();
+        mv.visitJumpInsn(IFLE, els);
+        visitExpression(ifElse.thenExpression());
+        mv.visitJumpInsn(GOTO, end);
+        mv.visitLabel(els);
+        visitExpression(ifElse.elseExpression());
+        mv.visitLabel(end);
+    }
+
+    @Override
     public void visitIfStatement(final IfStatement ifStmt) {
         if (ifStmt.condition() instanceof final NumLiteral lit) {
             if (lit.value() > 0) {
