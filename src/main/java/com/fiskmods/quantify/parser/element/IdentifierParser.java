@@ -82,7 +82,9 @@ class IdentifierParser {
                 return ExpressionStatement.of(func.get());
             }
 
-            return AssignmentParser.parseAssignment(parser, context, expression, name, namespace);
+            final Statement statement = AssignmentParser.parseAssignment(parser, context, expression, name, namespace);
+            parser.expectLineBreak();
+            return statement;
         });
     }
 

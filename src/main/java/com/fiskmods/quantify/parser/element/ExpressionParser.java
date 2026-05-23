@@ -25,7 +25,7 @@ class ExpressionParser implements SyntaxParser<Expression> {
 
         stack.add(ExpressionParser.acceptValue(parser, context));
 
-        while (parser.hasNext(QtfParser.Boundary.CLOSURE)) {
+        while (parser.hasNext(QtfParser.Boundary.EXPRESSION)) {
             final Operator op = parser.next(TokenClass.OPERATOR).getOperator();
             final Expression right = ExpressionParser.acceptValue(parser, context);
 
@@ -42,6 +42,22 @@ class ExpressionParser implements SyntaxParser<Expression> {
             reduce(stack);
         }
         return (Expression) stack.getFirst();
+    }
+
+    static Expression parseParensExpression(final QtfParser parser, final SyntaxContext context) throws QtfParseException {
+        parser.next(TokenClass.OPEN_PARENTHESIS);
+        final Expression e = INSTANCE.accept(parser, context);
+        parser.next(TokenClass.CLOSE_PARENTHESIS);
+        return e;
+    }
+
+    static Expression parseBraceExpression(final QtfParser parser, final SyntaxContext context) throws QtfParseException {
+        parser.next(TokenClass.OPEN_BRACES);
+        parser.skip(TokenClass.TERMINATOR);
+        final Expression e = INSTANCE.accept(parser, context);
+        parser.skip(TokenClass.TERMINATOR);
+        parser.next(TokenClass.CLOSE_BRACES);
+        return e;
     }
 
     private static Expression acceptValue(final QtfParser parser, final SyntaxContext context) throws QtfParseException {
@@ -62,12 +78,8 @@ class ExpressionParser implements SyntaxParser<Expression> {
         }
         return switch (peeked.type()) {
             case IDENTIFIER -> IdentifierParser.parseExpressionIdentifier(parser, context);
-            case OPEN_PARENTHESIS -> {
-                parser.clearPeekedToken();
-                final Expression e = INSTANCE.accept(parser, context);
-                parser.next(TokenClass.CLOSE_PARENTHESIS);
-                yield e;
-            }
+            case OPEN_PARENTHESIS -> parseParensExpression(parser, context);
+            case OPEN_BRACES -> parseBraceExpression(parser, context);
             default -> NumLiteralParser.PARSER.accept(parser, context);
         };
     }

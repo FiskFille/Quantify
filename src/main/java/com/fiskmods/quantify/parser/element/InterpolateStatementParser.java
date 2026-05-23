@@ -26,9 +26,7 @@ class InterpolateStatementParser implements SyntaxParser<InterpolateStatement> {
         VarAddress substitution = null;
 
         final Token token = parser.next(TokenClass.INTERPOLATE);
-        parser.next(TokenClass.OPEN_PARENTHESIS);
         final Expression progress = ExpressionParser.INSTANCE.accept(parser, context);
-        parser.next(TokenClass.CLOSE_PARENTHESIS);
         parser.skip(TokenClass.TERMINATOR);
 
         if (progress instanceof NumLiteral || progress instanceof VarAddress) {

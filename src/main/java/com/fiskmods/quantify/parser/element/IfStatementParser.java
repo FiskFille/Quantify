@@ -17,9 +17,7 @@ class IfStatementParser implements SyntaxParser<IfStatement> {
     public IfStatement accept(final QtfParser parser, final SyntaxContext context) throws QtfParseException {
         parser.startTree();
         parser.next(TokenClass.IF);
-        parser.next(TokenClass.OPEN_PARENTHESIS);
         final Expression condition = ExpressionParser.INSTANCE.accept(parser, context);
-        parser.next(TokenClass.CLOSE_PARENTHESIS);
         parser.skip(TokenClass.TERMINATOR);
 
         final BlockStatement body = BlockParser.parseBlock(parser, context);

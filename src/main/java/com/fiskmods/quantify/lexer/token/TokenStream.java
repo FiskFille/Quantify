@@ -90,13 +90,22 @@ public interface TokenStream extends Iterator<Token> {
     boolean skip(TokenClass tokenClass);
 
     enum Boundary {
-        LINE, CLOSURE;
+        LINE {
+            @Override
+            public boolean isValidNextToken(final TokenClass tokenClass) {
+                return true;
+            }
+        },
+        EXPRESSION {
+            @Override
+            public boolean isValidNextToken(final TokenClass tokenClass) {
+                return switch (tokenClass) {
+                    case CLOSE_PARENTHESIS, CLOSE_BRACES, COMMA -> false;
+                    default -> true;
+                };
+            }
+        };
 
-        public boolean isValidNextToken(final TokenClass tokenClass) {
-            return this != CLOSURE
-                    || tokenClass != TokenClass.CLOSE_PARENTHESIS
-                    && tokenClass != TokenClass.CLOSE_BRACES
-                    && tokenClass != TokenClass.COMMA;
-        }
+        public abstract boolean isValidNextToken(TokenClass tokenClass);
     }
 }

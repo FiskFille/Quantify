@@ -46,10 +46,7 @@ public final class IteratorTokenStream implements TokenStream {
     @Override
     public boolean hasNext(final Boundary boundary) {
         final Token peeked = peek();
-        if (peeked.type() == TokenClass.TERMINATOR) {
-            clearPeekedToken();
-            return false;
-        } else if (peeked.type() == TokenClass.EOF) {
+        if (peeked.type() == TokenClass.TERMINATOR || peeked.type() == TokenClass.EOF) {
             return false;
         }
         return boundary.isValidNextToken(peeked.type());
