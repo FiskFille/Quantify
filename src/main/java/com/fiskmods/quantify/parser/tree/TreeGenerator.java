@@ -35,8 +35,8 @@ public abstract class TreeGenerator {
         return tree;
     }
 
-    public FunctionDef newFunction(final Identifier name, final FunctionDef.DefinedFunctionAddress address, final Statement body, final FunctionDef.ReturnValueType returnValue) {
-        final var tree = new FunctionDef(name, address, body, returnValue);
+    public FunctionDef newFunction(final Identifier name, final List<ParameterTree> parameters, final Statement body, final FunctionDef.ReturnValueType returnValue, final FunctionDef.DefinedFunctionAddress address) {
+        final var tree = new FunctionDef(name, parameters, body, returnValue, address);
         tree.range = finishTree();
         return tree;
     }
@@ -88,6 +88,12 @@ public abstract class TreeGenerator {
     public NumLiteral newNumLiteral(final double value, final Token.Range range) {
         final var tree = new NumLiteral(value);
         tree.range = range;
+        return tree;
+    }
+
+    public ParameterTree newParameter(final Identifier name, final VarType<?> type, final VarAddress address) {
+        final var tree = new ParameterTree(name, type, address);
+        tree.range = finishTree();
         return tree;
     }
 

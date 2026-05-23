@@ -10,7 +10,7 @@ import com.fiskmods.quantify.parser.tree.BlockStatement;
 import java.util.function.UnaryOperator;
 
 class BlockParser {
-    private static BlockStatement parseBlock(final QtfParser parser) throws QtfParseException {
+    static BlockStatement parseBlock(final QtfParser parser) throws QtfParseException {
         parser.startTree();
         parser.next(TokenClass.OPEN_BRACES);
         final var statements = parser.parse(true);

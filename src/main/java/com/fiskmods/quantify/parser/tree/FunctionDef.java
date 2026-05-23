@@ -2,25 +2,30 @@ package com.fiskmods.quantify.parser.tree;
 
 import com.fiskmods.quantify.jvm.FunctionAddress;
 
+import java.util.List;
+
 public final class FunctionDef extends Statement {
     private final Identifier name;
-    private final DefinedFunctionAddress address;
+    private final List<ParameterTree> parameters;
     private final Statement body;
     private final ReturnValueType returnValue;
 
-    FunctionDef(final Identifier name, final DefinedFunctionAddress address, final Statement body, final ReturnValueType returnValue) {
+    private final DefinedFunctionAddress address;
+
+    FunctionDef(final Identifier name, final List<ParameterTree> parameters, final Statement body, final ReturnValueType returnValue, final DefinedFunctionAddress address) {
         this.name = name;
-        this.address = address;
+        this.parameters = parameters;
         this.body = body;
         this.returnValue = returnValue;
+        this.address = address;
     }
 
     public Identifier name() {
         return name;
     }
 
-    public DefinedFunctionAddress address() {
-        return address;
+    public List<ParameterTree> parameters() {
+        return parameters;
     }
 
     public Statement body() {
@@ -29,6 +34,10 @@ public final class FunctionDef extends Statement {
 
     public ReturnValueType returnValue() {
         return returnValue;
+    }
+
+    public DefinedFunctionAddress address() {
+        return address;
     }
 
     public enum ReturnValueType {

@@ -92,8 +92,8 @@ public class SyntaxContext implements ScopeProvider {
         }
     }
 
-    public int defineFunction(final JvmFunctionDefinition definition) {
-        functionDefinitions.add(definition);
+    public int defineFunction(final String name, final boolean isVisible, final FunctionAddress address) {
+        functionDefinitions.add(new JvmFunctionDefinition(name, isVisible, address));
         return functionDefinitions.size() - 1;
     }
 

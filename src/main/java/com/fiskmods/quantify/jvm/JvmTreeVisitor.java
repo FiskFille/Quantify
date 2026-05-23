@@ -183,6 +183,10 @@ public class JvmTreeVisitor implements TreeVisitor {
     }
 
     @Override
+    public void visitParameter(final ParameterTree p) {
+    }
+
+    @Override
     public void visitReturnStatement(final ReturnStatement ret) {
         visitTree(ret.expression());
         mv.visitInsn(DRETURN);

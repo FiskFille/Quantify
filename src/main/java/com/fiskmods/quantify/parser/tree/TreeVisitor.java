@@ -36,6 +36,8 @@ public interface TreeVisitor {
 
     void visitOperation(Operation op);
 
+    void visitParameter(ParameterTree p);
+
     void visitReturnStatement(ReturnStatement ret);
 
     void visitVarDefinition(VarDefinitionTree var);
@@ -61,6 +63,7 @@ public interface TreeVisitor {
             case final NegatedExpression t -> visitNegatedValue(t);
             case final NumLiteral t -> visitNumLiteral(t);
             case final Operation t -> visitOperation(t);
+            case final ParameterTree t -> visitParameter(t);
             case final ReturnStatement t -> visitReturnStatement(t);
             case final VarRef t -> visitVarRef(t);
             case final VarDefinitionTree t -> visitVarDefinition(t);

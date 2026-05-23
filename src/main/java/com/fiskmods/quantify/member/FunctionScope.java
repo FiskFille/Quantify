@@ -3,30 +3,23 @@ package com.fiskmods.quantify.member;
 import com.fiskmods.quantify.exception.QtfException;
 
 public class FunctionScope extends Scope {
-    private final String[] parameters;
+    private boolean hasReturnValue;
 
-    protected boolean hasReturnValue;
-
-    private FunctionScope(final Namespace namespace, final String[] parameters, final int level) {
+    private FunctionScope(final Namespace namespace, final int level) {
         super(namespace, level);
-        this.parameters = parameters;
     }
 
-    public static FunctionScope create(final Scope inScope, final String[] parameters) throws QtfException {
-        final FunctionScope scope = new FunctionScope(inScope.namespace, parameters, 0);
+    public static FunctionScope create(final Scope inScope) throws QtfException {
+        final FunctionScope scope = new FunctionScope(inScope.namespace, inScope.level + 1);
         scope.lerpProgress = inScope.lerpProgress;
         scope.localIndexOffset = 0;
         scope.members.inheritAllExcept(inScope.members, MemberType.VARIABLE);
-
-        for (final String param : parameters) {
-            scope.addLocalVariable(param);
-        }
         return scope;
     }
 
     @Override
     public FunctionScope copy(final Namespace namespace) {
-        final FunctionScope scope = new FunctionScope(namespace, parameters, level + 1);
+        final FunctionScope scope = new FunctionScope(namespace, level + 1);
         scope.lerpProgress = lerpProgress;
         scope.localIndexOffset = localIndexOffset;
         scope.members.inherit(members);
@@ -39,10 +32,5 @@ public class FunctionScope extends Scope {
 
     public boolean hasReturnValue() {
         return hasReturnValue;
-    }
-
-    @Override
-    public boolean isInnerScope() {
-        return true;
     }
 }
