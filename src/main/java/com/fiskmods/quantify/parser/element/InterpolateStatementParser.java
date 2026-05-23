@@ -12,10 +12,7 @@ import com.fiskmods.quantify.member.Scope;
 import com.fiskmods.quantify.parser.QtfParser;
 import com.fiskmods.quantify.parser.SyntaxContext;
 import com.fiskmods.quantify.parser.SyntaxParser;
-import com.fiskmods.quantify.parser.tree.BlockStatement;
-import com.fiskmods.quantify.parser.tree.Expression;
-import com.fiskmods.quantify.parser.tree.InterpolateStatement;
-import com.fiskmods.quantify.parser.tree.NumLiteral;
+import com.fiskmods.quantify.parser.tree.*;
 
 import java.util.Optional;
 
@@ -47,7 +44,8 @@ class InterpolateStatementParser implements SyntaxParser<InterpolateStatement> {
                     substitution = context.scope().addLocalVariable(Keywords.INTERPOLATE);
                 }
 
-                finalProgress = parser.newVariableRef(substitution, false, token.range());
+                final Identifier identifier = Identifier.of(Keywords.INTERPOLATE, token.range());
+                finalProgress = parser.newVariableRef(identifier, substitution, false);
             } catch (final QtfException e) {
                 throw new QtfParseException(e, token.range());
             }

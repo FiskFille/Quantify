@@ -2,12 +2,12 @@ package com.fiskmods.quantify.parser.element;
 
 import com.fiskmods.quantify.exception.QtfException;
 import com.fiskmods.quantify.exception.QtfParseException;
-import com.fiskmods.quantify.lexer.token.Token;
 import com.fiskmods.quantify.lexer.token.TokenClass;
 import com.fiskmods.quantify.parser.QtfParser;
 import com.fiskmods.quantify.parser.SyntaxContext;
 import com.fiskmods.quantify.parser.SyntaxParser;
 import com.fiskmods.quantify.parser.tree.Assignment;
+import com.fiskmods.quantify.parser.tree.Identifier;
 import com.fiskmods.quantify.parser.tree.VarRef;
 
 import java.util.List;
@@ -24,17 +24,15 @@ class InputParser implements SyntaxParser<Assignment> {
         parser.next(TokenClass.CLOSE_BRACKETS);
         parser.next(TokenClass.COLON);
 
-        final Token identifier = parser.next(TokenClass.IDENTIFIER);
-        final Token.Range range = identifier.range();
-        final String name = identifier.getString();
+        final Identifier identifier = Identifier.from(parser.next(TokenClass.IDENTIFIER));
         final VarRef var;
         final VarRef inputVar;
 
         try {
-            var = parser.newVariableRef(context.scope().addLocalVariable(name), false, range);
-            inputVar = parser.newVariableRef(context.addInputVariable(name, index), false, range);
+            var = parser.newVariableRef(identifier, context.scope().addLocalVariable(identifier.name()), false);
+            inputVar = parser.newVariableRef(identifier, context.addInputVariable(identifier.name(), index), false);
         } catch (final QtfException e) {
-            throw new QtfParseException(e, range);
+            throw new QtfParseException(e, identifier.range());
         }
 
         final Assignment assignment = parser.newAssignment(List.of(var), inputVar, null);

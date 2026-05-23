@@ -1,34 +1,24 @@
 package com.fiskmods.quantify.parser.tree;
 
 import com.fiskmods.quantify.jvm.FunctionAddress;
-import com.fiskmods.quantify.jvm.JvmFunctionDefinition;
 
-public final class FunctionDef extends Statement implements JvmFunctionDefinition {
-    private final String name;
-    private final boolean isVisible;
+public final class FunctionDef extends Statement {
+    private final Identifier name;
     private final DefinedFunctionAddress address;
     private final Statement body;
     private final ReturnValueType returnValue;
 
-    FunctionDef(final String name, final boolean isVisible, final DefinedFunctionAddress address, final Statement body, final ReturnValueType returnValue) {
+    FunctionDef(final Identifier name, final DefinedFunctionAddress address, final Statement body, final ReturnValueType returnValue) {
         this.name = name;
-        this.isVisible = isVisible;
         this.address = address;
         this.body = body;
         this.returnValue = returnValue;
     }
 
-    @Override
-    public String name() {
+    public Identifier name() {
         return name;
     }
 
-    @Override
-    public boolean isVisible() {
-        return isVisible;
-    }
-
-    @Override
     public DefinedFunctionAddress address() {
         return address;
     }

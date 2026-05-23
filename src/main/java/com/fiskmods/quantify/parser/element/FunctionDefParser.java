@@ -3,6 +3,7 @@ package com.fiskmods.quantify.parser.element;
 import com.fiskmods.quantify.exception.QtfException;
 import com.fiskmods.quantify.exception.QtfParseException;
 import com.fiskmods.quantify.jvm.FunctionAddress;
+import com.fiskmods.quantify.jvm.JvmFunctionDefinition;
 import com.fiskmods.quantify.lexer.token.Token;
 import com.fiskmods.quantify.lexer.token.TokenClass;
 import com.fiskmods.quantify.member.FunctionScope;
@@ -13,6 +14,7 @@ import com.fiskmods.quantify.parser.SyntaxContext;
 import com.fiskmods.quantify.parser.SyntaxParser;
 import com.fiskmods.quantify.parser.tree.Expression;
 import com.fiskmods.quantify.parser.tree.FunctionDef;
+import com.fiskmods.quantify.parser.tree.Identifier;
 import com.fiskmods.quantify.parser.tree.Statement;
 
 import java.util.HashSet;
@@ -27,11 +29,10 @@ class FunctionDefParser implements SyntaxParser<FunctionDef> {
 
         parser.startTree();
         parser.clearPeekedToken();
-        final Token identifier = parser.next(TokenClass.IDENTIFIER);
-        final String name = identifier.getString();
+        final Identifier identifier = Identifier.from(parser.next(TokenClass.IDENTIFIER));
 
         try {
-            context.addMember(name, MemberType.FUNCTION, address);
+            context.addMember(identifier.name(), MemberType.FUNCTION, address);
         } catch (final QtfException e) {
             throw new QtfParseException(e, identifier.range());
         }
@@ -68,11 +69,11 @@ class FunctionDefParser implements SyntaxParser<FunctionDef> {
             returnValue = scope.hasReturnValue() ? FunctionDef.ReturnValueType.EXPLICIT : FunctionDef.ReturnValueType.MISSING;
         }
 
-        final boolean isVisible = !parentScope.isInnerScope();
-        final FunctionDef func = parser.newFunction(name, isVisible, address, body, returnValue);
+        final FunctionDef func = parser.newFunction(identifier, address, body, returnValue);
 
-        final int index = context.defineFunction(func);
-        address.name = createName(name, index);
+        final boolean isVisible = !parentScope.isInnerScope();
+        final int index = context.defineFunction(new JvmFunctionDefinition(identifier.name(), isVisible, address));
+        address.name = createName(identifier.name(), index);
 
         return func;
     }

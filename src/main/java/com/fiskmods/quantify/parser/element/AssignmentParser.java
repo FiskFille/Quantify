@@ -28,8 +28,8 @@ class AssignmentParser {
         }
     }
 
-    static Statement parseAssignment(final QtfParser parser, final SyntaxContext context, final String name, final Token.Range range, final Namespace namespace) throws QtfParseException {
-        final VarRef firstVar = VariableParser.compute(parser, name, range, namespace, VarType.NUM, false);
+    static Statement parseAssignment(final QtfParser parser, final SyntaxContext context, final Expression expression, final String name, final Namespace namespace) throws QtfParseException {
+        final VarRef firstVar = VariableParser.compute(parser, expression, name, namespace, VarType.NUM, false);
 
         if (parser.isNext(TokenClass.COMMA)) {
             final List<? extends VarRef> list = VariableParser.parseList(parser, context, firstVar);

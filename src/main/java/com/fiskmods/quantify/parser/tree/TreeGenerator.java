@@ -27,14 +27,14 @@ public abstract class TreeGenerator {
         return tree;
     }
 
-    public FunctionDef newFunction(final String name, final boolean isVisible, final FunctionDef.DefinedFunctionAddress address, final Statement body, final FunctionDef.ReturnValueType returnValue) {
-        final var tree = new FunctionDef(name, isVisible, address, body, returnValue);
+    public FunctionDef newFunction(final Identifier name, final FunctionDef.DefinedFunctionAddress address, final Statement body, final FunctionDef.ReturnValueType returnValue) {
+        final var tree = new FunctionDef(name, address, body, returnValue);
         tree.range = finishTree();
         return tree;
     }
 
-    public FunctionRef newFunctionRef(final FunctionAddress address, final List<? extends Expression> args) {
-        return FunctionRef.of(address, args, finishTree());
+    public FunctionRef newFunctionRef(final Expression selector, final FunctionAddress address, final List<? extends Expression> args) {
+        return FunctionRef.of(selector, address, args, finishTree());
     }
 
     public IfStatement newIfStatement(final Expression condition, final Statement body, final @Nullable Statement elseBody) {
@@ -83,9 +83,9 @@ public abstract class TreeGenerator {
         return tree;
     }
 
-    public VarRef newVariableRef(final VarAddress address, final boolean isNegated, final Token.Range range) {
-        final var tree = new VarRef(address, isNegated);
-        tree.range = range;
+    public VarRef newVariableRef(final Expression expression, final VarAddress address, final boolean isNegated) {
+        final var tree = new VarRef(expression, address, isNegated);
+        tree.range = expression.range;
         return tree;
     }
 

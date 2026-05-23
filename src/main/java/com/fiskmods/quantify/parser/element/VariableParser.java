@@ -14,6 +14,7 @@ import com.fiskmods.quantify.parser.QtfParser;
 import com.fiskmods.quantify.parser.SyntaxContext;
 import com.fiskmods.quantify.parser.SyntaxParser;
 import com.fiskmods.quantify.parser.tree.Expression;
+import com.fiskmods.quantify.parser.tree.Identifier;
 import com.fiskmods.quantify.parser.tree.VarDefinitionTree;
 import com.fiskmods.quantify.parser.tree.VarRef;
 import org.jspecify.annotations.Nullable;
@@ -40,21 +41,20 @@ public record VariableParser(boolean isPublic) implements SyntaxParser<VarDefini
         final List<VarRef> vars;
 
         if (identifiers.size() == 1) {
-            vars = List.of(defineVar(parser, context, type, identifiers.getFirst()));
+            vars = List.of(defineVar(parser, context, type, Identifier.from(identifiers.getFirst())));
         } else {
             vars = new ArrayList<>(identifiers.size());
             for (final Token identifier : identifiers) {
-                vars.add(defineVar(parser, context, type, identifier));
+                vars.add(defineVar(parser, context, type, Identifier.from(identifier)));
             }
         }
         return parser.newVariable(vars, type, initializer, isPublic);
     }
 
-    private VarRef defineVar(final QtfParser parser, final SyntaxContext context, final VarType<?> type, final Token identifier) throws QtfParseException {
-        final String name = identifier.getString();
+    private VarRef defineVar(final QtfParser parser, final SyntaxContext context, final VarType<?> type, final Identifier identifier) throws QtfParseException {
         try {
-            final VarAddress address = VarInfo.define(name, type, context, isPublic);
-            return parser.newVariableRef(address, false, identifier.range());
+            final VarAddress address = VarInfo.define(identifier.name(), type, context, isPublic);
+            return parser.newVariableRef(identifier, address, false);
         } catch (final QtfException e) {
             throw new QtfParseException(e, identifier.range());
         }
@@ -84,12 +84,12 @@ public record VariableParser(boolean isPublic) implements SyntaxParser<VarDefini
         return null;
     }
 
-    static VarRef compute(final QtfParser parser, final String name, final Token.Range range, final Namespace namespace, final VarType<?> type, final boolean isNegated) throws QtfParseException {
+    static VarRef compute(final QtfParser parser, final Expression expression, final String name, final Namespace namespace, final VarType<?> type, final boolean isNegated) throws QtfParseException {
         try {
             final VarAddress address = namespace.computeVariable(type, name);
-            return parser.newVariableRef(address, isNegated, range);
+            return parser.newVariableRef(expression, address, isNegated);
         } catch (final QtfException e) {
-            throw new QtfParseException(e, range);
+            throw new QtfParseException(e, expression.range());
         }
     }
 

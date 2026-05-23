@@ -5,7 +5,6 @@ import com.fiskmods.quantify.exception.QtfParseException;
 import com.fiskmods.quantify.jvm.VarAddress;
 import com.fiskmods.quantify.jvm.assignable.VarType;
 import com.fiskmods.quantify.lexer.Keywords;
-import com.fiskmods.quantify.lexer.token.Token;
 import com.fiskmods.quantify.lexer.token.TokenClass;
 import com.fiskmods.quantify.library.QtfLibrary;
 import com.fiskmods.quantify.member.MemberType;
@@ -19,7 +18,7 @@ import java.util.Optional;
 class IdentifierParser {
     @FunctionalInterface
     interface NameParser<T> {
-        T parse(String name, Token.Range range, Namespace namespace) throws QtfParseException;
+        T parse(Expression expression, String name, Namespace namespace) throws QtfParseException;
     }
 
     static Expression parseIdentifier(final QtfParser parser) throws QtfParseException {
@@ -36,20 +35,14 @@ class IdentifierParser {
 
     static <T> T parseIdentifier(final QtfParser parser, final SyntaxContext context, final NameParser<T> nextParser) throws QtfParseException {
         final Expression expression = parseIdentifier(parser);
-        final Namespace namespace;
-        final String name;
 
         if (expression instanceof final MemberSelect memberSelect) {
-            namespace = getNamespace(context, memberSelect.expression());
-            name = memberSelect.identifier();
+            final Namespace namespace = getNamespace(context, memberSelect.expression());
+            return nextParser.parse(memberSelect, memberSelect.identifier(), namespace);
         } else if (expression instanceof final Identifier identifier) {
-            namespace = context.namespace();
-            name = identifier.name();
-        } else {
-            throw QtfParseException.internal("not an Identifier or MemberSelect: " + expression, expression.range());
+            return nextParser.parse(identifier, identifier.name(), context.namespace());
         }
-
-        return nextParser.parse(name, expression.range(), namespace);
+        throw QtfParseException.internal("not an Identifier or MemberSelect: " + expression, expression.range());
     }
 
     static Namespace getNamespace(final SyntaxContext context, final Expression expression) throws QtfParseException {
@@ -82,20 +75,20 @@ class IdentifierParser {
     }
 
     static Statement parseStatementIdentifier(final QtfParser parser, final SyntaxContext context) throws QtfParseException {
-        return parseIdentifier(parser, context, (name, range, namespace) -> {
-            final Optional<FunctionRef> func = FunctionRefParser.parseFunction(parser, name, range, namespace);
+        return parseIdentifier(parser, context, (expression, name, namespace) -> {
+            final Optional<FunctionRef> func = FunctionRefParser.parseFunction(parser, expression, name, namespace);
             if (func.isPresent()) {
                 parser.expectLineBreak();
                 return ExpressionStatement.of(func.get());
             }
 
-            return AssignmentParser.parseAssignment(parser, context, name, range, namespace);
+            return AssignmentParser.parseAssignment(parser, context, expression, name, namespace);
         });
     }
 
     static Expression parseExpressionIdentifier(final QtfParser parser, final SyntaxContext context) throws QtfParseException {
-        return parseIdentifier(parser, context, (name, range, namespace) -> {
-            final Optional<FunctionRef> func = FunctionRefParser.parseFunction(parser, name, range, namespace);
+        return parseIdentifier(parser, context, (expression, name, namespace) -> {
+            final Optional<FunctionRef> func = FunctionRefParser.parseFunction(parser, expression, name, namespace);
             if (func.isPresent()) {
                 return func.get();
             }
@@ -103,13 +96,13 @@ class IdentifierParser {
             try {
                 final Optional<Double> constValue = namespace.find(name, MemberType.CONSTANT);
                 if (constValue.isPresent()) {
-                    return parser.newNumLiteral(constValue.get(), range);
+                    return parser.newNumLiteral(constValue.get(), expression.range());
                 }
 
                 final VarAddress address = namespace.computeVariable(VarType.NUM, name);
-                return parser.newVariableRef(address, false, range);
+                return parser.newVariableRef(expression, address, false);
             } catch (final QtfException e) {
-                throw new QtfParseException(e, range);
+                throw new QtfParseException(e, expression.range());
             }
         });
     }
