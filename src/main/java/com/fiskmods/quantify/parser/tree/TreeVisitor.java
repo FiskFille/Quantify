@@ -14,6 +14,8 @@ public interface TreeVisitor {
 
     void visitFunctionRef(FunctionRef func);
 
+    void visitIdentifier(Identifier identifier);
+
     void visitIfStatement(IfStatement ifStmt);
 
     void visitImport(ImportStatement statement);
@@ -23,6 +25,8 @@ public interface TreeVisitor {
     void visitInterpolateStatement(InterpolateStatement lerp);
 
     void visitLerpAssignment(LerpAssignment assign);
+
+    void visitMemberSelect(MemberSelect sel);
 
     void visitNamespace(NamespaceStatement namespace);
 
@@ -46,11 +50,13 @@ public interface TreeVisitor {
             case final ExpressionStatement t -> visitExpressionStatement(t);
             case final FunctionDef t -> visitFunctionDef(t);
             case final FunctionRef t -> visitFunctionRef(t);
+            case final Identifier t -> visitIdentifier(t);
             case final IfStatement t -> visitIfStatement(t);
             case final ImportStatement t -> visitImport(t);
             case final InputStatement t -> visitInput(t);
             case final InterpolateStatement t -> visitInterpolateStatement(t);
             case final LerpAssignment t -> visitLerpAssignment(t);
+            case final MemberSelect t -> visitMemberSelect(t);
             case final NamespaceStatement t -> visitNamespace(t);
             case final NegatedExpression t -> visitNegatedValue(t);
             case final NumLiteral t -> visitNumLiteral(t);

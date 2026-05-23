@@ -73,6 +73,10 @@ public class JvmTreeVisitor implements TreeVisitor {
     }
 
     @Override
+    public void visitIdentifier(final Identifier identifier) {
+    }
+
+    @Override
     public void visitIfStatement(final IfStatement ifStmt) {
         if (ifStmt.condition() instanceof final NumLiteral lit) {
             if (lit.value() > 0) {
@@ -135,6 +139,10 @@ public class JvmTreeVisitor implements TreeVisitor {
         }
 
         varVisitor(assign.targets()).visitLerp(assign.value(), assign.progress(), assign.rotational());
+    }
+
+    @Override
+    public void visitMemberSelect(final MemberSelect sel) {
     }
 
     @Override
