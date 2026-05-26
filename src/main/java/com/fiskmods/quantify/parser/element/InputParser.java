@@ -9,6 +9,7 @@ import com.fiskmods.quantify.parser.SyntaxContext;
 import com.fiskmods.quantify.parser.SyntaxParser;
 import com.fiskmods.quantify.parser.tree.Identifier;
 import com.fiskmods.quantify.parser.tree.InputStatement;
+import com.fiskmods.quantify.parser.tree.VarRef;
 
 class InputParser implements SyntaxParser<InputStatement> {
     static final InputParser INSTANCE = new InputParser();
@@ -33,7 +34,8 @@ class InputParser implements SyntaxParser<InputStatement> {
             throw new QtfParseException(e, identifier.range());
         }
 
-        final InputStatement statement = parser.newInput(index, identifier, inputAddress, targetAddress);
+        final VarRef inputVar = parser.newVariableRef(identifier, inputAddress, false);
+        final InputStatement statement = parser.newInput(index, identifier, inputVar, targetAddress);
         parser.expectLineBreak();
         return statement;
     }

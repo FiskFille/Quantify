@@ -63,8 +63,8 @@ public abstract class TreeGenerator {
         return tree;
     }
 
-    public InputStatement newInput(final int index, final Identifier name, final VarAddress inputAddress, final VarAddress targetAddress) {
-        final var tree = new InputStatement(index, name, inputAddress, targetAddress);
+    public InputStatement newInput(final int index, final Identifier name, final VarRef inputVar, final VarAddress targetAddress) {
+        final var tree = new InputStatement(index, name, inputVar, targetAddress);
         tree.range = finishTree();
         return tree;
     }

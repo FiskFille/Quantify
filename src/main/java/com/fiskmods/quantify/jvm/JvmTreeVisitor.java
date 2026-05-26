@@ -129,6 +129,7 @@ public class JvmTreeVisitor implements TreeVisitor {
 
     @Override
     public void visitInput(final InputStatement input) {
+        varVisitor(input.targetAddress()).visitSet(input.inputVar());
     }
 
     @Override
