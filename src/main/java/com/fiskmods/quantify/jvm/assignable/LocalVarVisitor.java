@@ -23,8 +23,16 @@ public record LocalVarVisitor(JvmTreeVisitor visitor, MethodVisitor mv, int id) 
     }
 
     @Override
-    public void visitSet(final Expression value) {
-        visitor.visitExpression(value);
+    public void visitSet(final Expression value, final boolean keepResult) {
+        visitSet(() -> visitor.visitExpression(value), keepResult);
+    }
+
+    @Override
+    public void visitSet(final Runnable value, final boolean keepResult) {
+        value.run();
+        if (keepResult) {
+            mv.visitInsn(DUP2);
+        }
         mv.visitVarInsn(DSTORE, id);
     }
 

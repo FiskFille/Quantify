@@ -14,7 +14,12 @@ public record StructVarVisitor(MethodVisitor mv, int index, int size) implements
     }
 
     @Override
-    public void visitSet(final Expression value) {
+    public void visitSet(final Expression value, final boolean keepResult) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void visitSet(final Runnable value, final boolean keepResult) {
         throw new UnsupportedOperationException();
     }
 

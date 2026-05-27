@@ -6,7 +6,9 @@ import com.fiskmods.quantify.parser.tree.Expression;
 public interface VarVisitor {
     void visitGet();
 
-    void visitSet(Expression value);
+    void visitSet(Expression value, boolean keepResult);
+
+    void visitSet(Runnable value, boolean keepResult);
 
     void visitInit();
 
@@ -14,5 +16,5 @@ public interface VarVisitor {
 
     void visitLerp(Expression value, Expression progress, boolean rotational);
 
-    void visitLerpToZero(final Expression value, Expression progress);
+    void visitLerpToZero(Expression value, Expression progress);
 }

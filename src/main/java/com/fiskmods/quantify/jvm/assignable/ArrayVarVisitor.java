@@ -27,9 +27,17 @@ public record ArrayVarVisitor(JvmTreeVisitor visitor, MethodVisitor mv, int id, 
     }
 
     @Override
-    public void visitSet(final Expression value) {
+    public void visitSet(final Expression value, final boolean keepResult) {
+        visitSet(() -> visitor.visitExpression(value), keepResult);
+    }
+
+    @Override
+    public void visitSet(final Runnable value, final boolean keepResult) {
         arrayAddress();
-        visitor.visitExpression(value);
+        value.run();
+        if (keepResult) {
+            mv.visitInsn(DUP2_X2);
+        }
         mv.visitInsn(DASTORE);
     }
 

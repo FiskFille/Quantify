@@ -29,7 +29,7 @@ public class JvmTreeVisitor implements TreeVisitor {
         if (assign.op() != null) {
             varVisitor(assign.targets()).visitModify(assign.value(), assign.op());
         } else {
-            varVisitor(assign.targets()).visitSet(assign.value());
+            varVisitor(assign.targets()).visitSet(assign.value(), false);
         }
     }
 
@@ -129,7 +129,7 @@ public class JvmTreeVisitor implements TreeVisitor {
 
     @Override
     public void visitInput(final InputStatement input) {
-        varVisitor(input.targetAddress()).visitSet(input.inputVar());
+        varVisitor(input.targetAddress()).visitSet(input.inputVar(), false);
     }
 
     @Override
@@ -138,7 +138,7 @@ public class JvmTreeVisitor implements TreeVisitor {
             return;
         }
         if (lerp.substitution() != null) {
-            varVisitor(lerp.substitution()).visitSet(lerp.progress());
+            varVisitor(lerp.substitution()).visitSet(lerp.progress(), false);
         }
         visitStatement(lerp.body());
     }
@@ -148,7 +148,7 @@ public class JvmTreeVisitor implements TreeVisitor {
         if (assign.progress() instanceof final NumLiteral lit) {
             if (lit.value() == 0) return;
             if (lit.value() == 1) {
-                varVisitor(assign.targets()).visitSet(assign.value());
+                varVisitor(assign.targets()).visitSet(assign.value(), false);
                 return;
             }
         }
@@ -216,7 +216,7 @@ public class JvmTreeVisitor implements TreeVisitor {
     @Override
     public void visitVarDefinition(final VarDefinitionTree var) {
         if (var.initializer() != null) {
-            varVisitor(var.targets()).visitSet(var.initializer());
+            varVisitor(var.targets()).visitSet(var.initializer(), false);
             return;
         }
 
@@ -247,7 +247,7 @@ public class JvmTreeVisitor implements TreeVisitor {
         return switch (targets.size()) {
             case 0 -> throw new NoSuchElementException();
             case 1 -> varVisitor(targets.getFirst().address());
-            default -> new VarVisitorList(this, targets);
+            default -> new VarVisitorList(this, mv, targets);
         };
     }
 }
