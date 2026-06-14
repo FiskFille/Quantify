@@ -13,8 +13,7 @@ class NumLiteralParser implements SyntaxParser<NumLiteral> {
     public NumLiteral accept(final QtfParser parser) throws QtfParseException {
         parser.startTree();
         double value = parser.next(TokenClass.NUM_LITERAL).getNumber().doubleValue();
-        if (parser.isNext(TokenClass.DEGREES)) {
-            parser.clearPeekedToken();
+        if (parser.consume(TokenClass.DEGREES)) {
             value *= Math.PI / 180;
         }
         return parser.newNumLiteral(value);

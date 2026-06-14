@@ -14,8 +14,7 @@ class FunctionRefParser {
         parser.startTree();
         parser.next(TokenClass.OPEN_PARENTHESIS);
 
-        if (parser.isNext(TokenClass.CLOSE_PARENTHESIS)) {
-            parser.clearPeekedToken();
+        if (parser.consume(TokenClass.CLOSE_PARENTHESIS)) {
             return parser.newFunctionRef(selector, List.of());
         }
 

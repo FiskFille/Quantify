@@ -8,8 +8,7 @@ import org.jspecify.annotations.Nullable;
 
 class TypeParser {
     static @Nullable Identifier parseType(final QtfParser parser) throws QtfParseException {
-        if (parser.isNext(TokenClass.COLON)) {
-            parser.clearPeekedToken();
+        if (parser.consume(TokenClass.COLON)) {
             return Identifier.from(parser.next(TokenClass.IDENTIFIER));
         }
         return null;

@@ -30,14 +30,11 @@ public class QtfParser extends TreeGenerator implements TokenStream {
             if (isEnclosed && peek().type() == TokenClass.CLOSE_BRACES) {
                 break;
             }
-            if (peek().type() == TokenClass.TERMINATOR) {
-                clearPeekedToken();
-                continue;
+            if (!tokens.consume(TokenClass.TERMINATOR)) {
+                final SyntaxParser<? extends Statement> syntax = SyntaxSelector.selectSyntax(peek());
+                final Statement statement = syntax.accept(this);
+                statements.add(statement);
             }
-
-            final SyntaxParser<? extends Statement> syntax = SyntaxSelector.selectSyntax(peek());
-            final Statement statement = syntax.accept(this);
-            statements.add(statement);
         }
         return statements;
     }
@@ -113,18 +110,17 @@ public class QtfParser extends TreeGenerator implements TokenStream {
         }
     }
 
+    public <T> void nextSequence(final SyntaxParser<T> syntaxParser, final TokenClass delimiter, final List<T> list)
+            throws QtfParseException {
+        do {
+            list.add(syntaxParser.accept(this));
+        } while (consume(delimiter));
+    }
+
     public <T> List<T> nextSequence(final SyntaxParser<T> syntaxParser, final TokenClass delimiter)
             throws QtfParseException {
         final List<T> list = new ArrayList<>();
-        while (true) {
-            list.add(syntaxParser.accept(this));
-
-            if (isNext(delimiter)) {
-                clearPeekedToken();
-                continue;
-            }
-            break;
-        }
+        nextSequence(syntaxParser, delimiter, list);
         return list;
     }
 }

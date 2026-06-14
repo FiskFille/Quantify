@@ -33,47 +33,23 @@ public record VariableParser(boolean isPublic) implements SyntaxParser<VarDefini
         final Expression initializer = extractInitializer(parser);
 
         final List<String> names = new ArrayList<>(identifiers.size());
-
-        if (identifiers.size() == 1) {
-            names.add(identifiers.getFirst().getString());
-        } else {
-            for (final Token token : identifiers) {
-                names.add(token.getString());
-            }
+        for (final Token token : identifiers) {
+            names.add(token.getString());
         }
 
         return parser.newVariable(names, type, initializer, isPublic);
     }
 
     private static @Nullable Expression extractInitializer(final QtfParser parser) throws QtfParseException {
-        if (parser.isNext(TokenClass.ASSIGNMENT)) {
-            parser.next(TokenClass.ASSIGNMENT);
+        if (parser.consume(TokenClass.ASSIGNMENT)) {
             return ExpressionParser.INSTANCE.accept(parser);
         }
         return null;
     }
 
     static VarRef parseVariable(final QtfParser parser) throws QtfParseException {
-        final boolean isNegated;
-        if (parser.isNext(TokenClass.OPERATOR, Operator.SUB)) {
-            parser.clearPeekedToken();
-            isNegated = true;
-        } else {
-            isNegated = false;
-        }
-
+        final boolean isNegated = parser.consume(TokenClass.OPERATOR, Operator.SUB);
         final Expression expression = IdentifierParser.parseIdentifier(parser);
         return parser.newVariableRef(expression, isNegated);
-    }
-
-    static List<VarRef> parseList(final QtfParser parser, final VarRef firstVar) throws QtfParseException {
-        final List<VarRef> list = new ArrayList<>();
-        list.add(firstVar);
-        do {
-            parser.clearPeekedToken();
-            list.add(parseVariable(parser));
-        } while (parser.isNext(TokenClass.COMMA));
-
-        return list;
     }
 }

@@ -72,13 +72,44 @@ public interface TokenStream extends Iterator<Token> {
 
     /**
      * Checks if the next token in the stream is of the specified token class,
-     * with the specified value attached. <code>value</code> may be <code>null</code>.
+     * with the specified value attached.
      *
      * @param expectedClass the token class to check for
-     * @param expectedValue the token value to check for, or <code>null</code>
+     * @param expectedValue the token value to check for
      * @return <code>true</code> if there are more tokens, and the next matches requirements
      */
     boolean isNext(TokenClass expectedClass, Object expectedValue);
+
+    /**
+     * Checks if the next token in the stream is of the specified token class, consuming
+     * it and advancing to the next if it is.
+     *
+     * @param expectedClass the token class to check for
+     * @return <code>true</code> if there are more tokens, and the next matches requirements
+     */
+    default boolean consume(final TokenClass expectedClass) {
+        if (isNext(expectedClass)) {
+            clearPeekedToken();
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Checks if the next token in the stream is of the specified token class, with
+     * the specified value attached, consuming it and advancing to the next if it is.
+     *
+     * @param expectedClass the token class to check for
+     * @param expectedValue the token value to check for
+     * @return <code>true</code> if there are more tokens, and the next matches requirements
+     */
+    default boolean consume(final TokenClass expectedClass, final Object expectedValue) {
+        if (isNext(expectedClass, expectedValue)) {
+            clearPeekedToken();
+            return true;
+        }
+        return false;
+    }
 
     /**
      * Skips past as many tokens in a row as needed, so long as they match

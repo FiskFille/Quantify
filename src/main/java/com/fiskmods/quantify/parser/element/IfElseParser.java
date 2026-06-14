@@ -17,13 +17,9 @@ class IfElseParser implements SyntaxParser<IfElseExpression> {
         final Expression condition = ExpressionParser.INSTANCE.accept(parser);
         parser.skip(TokenClass.TERMINATOR);
 
-        final SyntaxParser<Expression> syntax;
-        if (parser.isNext(TokenClass.THEN)) {
-            parser.clearPeekedToken();
-            syntax = ExpressionParser.INSTANCE;
-        } else {
-            syntax = ExpressionParser::parseBraceExpression;
-        }
+        final SyntaxParser<Expression> syntax = parser.consume(TokenClass.THEN)
+                ? ExpressionParser.INSTANCE
+                : ExpressionParser::parseBraceExpression;
 
         final Expression thenExpression = syntax.accept(parser);
         parser.skip(TokenClass.TERMINATOR);

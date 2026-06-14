@@ -23,8 +23,7 @@ class IfStatementParser implements SyntaxParser<IfStatement> {
         Statement elseBody = null;
         parser.skip(TokenClass.TERMINATOR);
 
-        if (parser.isNext(TokenClass.ELSE)) {
-            parser.clearPeekedToken();
+        if (parser.consume(TokenClass.ELSE)) {
             if (parser.isNext(TokenClass.IF)) {
                 elseBody = accept(parser);
             } else {

@@ -30,8 +30,7 @@ public record VarInfo<T extends VarAddress>(String name, VarType<T> type) {
         VarType<?> type = VarType.NUM;
 
         // Explicit type definition
-        if (parser.isNext(TokenClass.COLON)) {
-            parser.clearPeekedToken();
+        if (parser.consume(TokenClass.COLON)) {
             final Token identifier = parser.next(TokenClass.IDENTIFIER);
             final String typeName = identifier.getString();
             try {

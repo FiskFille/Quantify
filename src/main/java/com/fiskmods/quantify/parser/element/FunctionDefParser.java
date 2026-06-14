@@ -25,8 +25,7 @@ class FunctionDefParser implements SyntaxParser<FunctionDef> {
         final Statement body;
         final FunctionDef.ReturnValueType returnValue;
 
-        if (parser.isNext(TokenClass.ASSIGNMENT)) {
-            parser.next(TokenClass.ASSIGNMENT);
+        if (parser.consume(TokenClass.ASSIGNMENT)) {
             final Expression e = ExpressionParser.INSTANCE.accept(parser);
             body = parser.newImplicitReturnStatement(e);
             returnValue = FunctionDef.ReturnValueType.IMPLICIT;
@@ -42,8 +41,7 @@ class FunctionDefParser implements SyntaxParser<FunctionDef> {
         parser.next(TokenClass.OPEN_PARENTHESIS);
 
         // Function has no parameters
-        if (parser.isNext(TokenClass.CLOSE_PARENTHESIS)) {
-            parser.clearPeekedToken();
+        if (parser.consume(TokenClass.CLOSE_PARENTHESIS)) {
             return List.of();
         }
 

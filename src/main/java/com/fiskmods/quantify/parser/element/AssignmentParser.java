@@ -8,6 +8,7 @@ import com.fiskmods.quantify.parser.tree.Expression;
 import com.fiskmods.quantify.parser.tree.Statement;
 import com.fiskmods.quantify.parser.tree.VarRef;
 
+import java.util.ArrayList;
 import java.util.List;
 
 class AssignmentParser {
@@ -15,8 +16,10 @@ class AssignmentParser {
         final VarRef firstVar = parser.newVariableRef(expression, false);
         final List<VarRef> targets;
 
-        if (parser.isNext(TokenClass.COMMA)) {
-            targets = VariableParser.parseList(parser, firstVar);
+        if (parser.consume(TokenClass.COMMA)) {
+            targets = new ArrayList<>();
+            targets.add(firstVar);
+            parser.nextSequence(VariableParser::parseVariable, TokenClass.COMMA, targets);
         } else {
             targets = List.of(firstVar);
         }
