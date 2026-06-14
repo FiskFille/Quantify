@@ -1,12 +1,12 @@
 package com.fiskmods.quantify.parser.tree;
 
-import com.fiskmods.quantify.jvm.assignable.VarType;
+import org.jspecify.annotations.Nullable;
 
 public final class ParameterTree extends Statement {
     private final String name;
-    private final VarType<?> type;
+    private final @Nullable Identifier type;
 
-    ParameterTree(final String name, final VarType<?> type) {
+    ParameterTree(final String name, final @Nullable Identifier type) {
         this.name = name;
         this.type = type;
     }
@@ -15,7 +15,7 @@ public final class ParameterTree extends Statement {
         return name;
     }
 
-    public VarType<?> type() {
+    public @Nullable Identifier type() {
         return type;
     }
 }

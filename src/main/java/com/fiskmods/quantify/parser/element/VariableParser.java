@@ -1,8 +1,6 @@
 package com.fiskmods.quantify.parser.element;
 
-import com.fiskmods.quantify.exception.QtfException;
 import com.fiskmods.quantify.exception.QtfParseException;
-import com.fiskmods.quantify.jvm.assignable.VarType;
 import com.fiskmods.quantify.lexer.token.Operator;
 import com.fiskmods.quantify.lexer.token.Token;
 import com.fiskmods.quantify.lexer.token.TokenClass;
@@ -10,13 +8,13 @@ import com.fiskmods.quantify.lexer.token.TokenList;
 import com.fiskmods.quantify.parser.QtfParser;
 import com.fiskmods.quantify.parser.SyntaxParser;
 import com.fiskmods.quantify.parser.tree.Expression;
+import com.fiskmods.quantify.parser.tree.Identifier;
 import com.fiskmods.quantify.parser.tree.VarDefinitionTree;
 import com.fiskmods.quantify.parser.tree.VarRef;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 public record VariableParser(boolean isPublic) implements SyntaxParser<VarDefinitionTree> {
     static final VariableParser LOCAL = new VariableParser(false);
@@ -31,8 +29,8 @@ public record VariableParser(boolean isPublic) implements SyntaxParser<VarDefini
         parser.next(TokenClass.VAR);
 
         final List<Token> identifiers = TokenList.parseNonEmpty(parser, TokenClass.IDENTIFIER, TokenClass.COMMA);
-        final VarType<?> type = extractType(parser).orElse(VarType.NUM);
-        final Expression initializer = extractInitializer(parser, type);
+        final Identifier type = TypeParser.parseType(parser);
+        final Expression initializer = extractInitializer(parser);
 
         final List<String> names = new ArrayList<>(identifiers.size());
 
@@ -47,24 +45,8 @@ public record VariableParser(boolean isPublic) implements SyntaxParser<VarDefini
         return parser.newVariable(names, type, initializer, isPublic);
     }
 
-    private static Optional<VarType<?>> extractType(final QtfParser parser) throws QtfParseException {
-        if (!parser.isNext(TokenClass.COLON)) {
-            return Optional.empty();
-        }
-
-        parser.clearPeekedToken();
-        final Token identifier = parser.next(TokenClass.IDENTIFIER);
-        final String name = identifier.getString();
-
-        try {
-            return Optional.of(VarType.getType(name));
-        } catch (final QtfException e) {
-            throw new QtfParseException(e, identifier.range());
-        }
-    }
-
-    private static @Nullable Expression extractInitializer(final QtfParser parser, final VarType<?> type) throws QtfParseException {
-        if (type.isAssignable() && parser.isNext(TokenClass.ASSIGNMENT, null)) {
+    private static @Nullable Expression extractInitializer(final QtfParser parser) throws QtfParseException {
+        if (parser.isNext(TokenClass.ASSIGNMENT, null)) {
             parser.next(TokenClass.ASSIGNMENT);
             return ExpressionParser.INSTANCE.accept(parser);
         }

@@ -11,6 +11,7 @@ import com.fiskmods.quantify.member.Namespace;
 import com.fiskmods.quantify.member.Scope;
 import com.fiskmods.quantify.parser.SyntaxContext;
 import com.fiskmods.quantify.parser.tree.*;
+import org.jspecify.annotations.Nullable;
 import org.objectweb.asm.Type;
 
 import java.util.Optional;
@@ -55,10 +56,12 @@ public class SemanticTreeVisitor implements TreeVisitor {
 
     @Override
     public void visitConstDef(final ConstDefinitionTree cst) {
+        final VarType<?> type = getType(cst.type());
         final double d;
+
         if (cst.value() instanceof final NumLiteral value) {
             visitNumLiteral(value);
-            stack.pop(cst.type());
+            stack.pop(type);
             d = value.value();
         } else {
             stack.handle(new QtfException("constants can't be assigned to variables or functions"), cst.range());
@@ -271,7 +274,13 @@ public class SemanticTreeVisitor implements TreeVisitor {
     @Override
     public void visitParameter(final ParameterTree p) {
         try {
-            p.type().defineLocal(p.name(), context.scope());
+            final VarType<?> type = getType(p.type());
+            if (type != null) {
+                if (p.type() != null && type != VarType.NUM) {
+                    stack.handle(new QtfException("parameters only allow num type"), p.type().range());
+                }
+                type.defineLocal(p.name(), context.scope());
+            }
         } catch (final QtfException e) {
             stack.handle(e, p.range());
         }
@@ -283,23 +292,41 @@ public class SemanticTreeVisitor implements TreeVisitor {
         stack.pop();
     }
 
+    private @Nullable VarType<?> getType(final @Nullable Identifier identifier) {
+        if (identifier == null) {
+            return VarType.NUM;
+        }
+        try {
+            return VarType.getType(identifier.name());
+        } catch (final QtfException e) {
+            stack.handle(e, identifier.range());
+            return null;
+        }
+    }
+
     @Override
     public void visitVarDefinition(final VarDefinitionTree var) {
         if (var.isPublic() && context.scope().isInnerScope()) {
             stack.handle(new QtfException("public vars cannot be defined in inner scopes"), var.range());
         }
 
+        final VarType<?> type = getType(var.type());
+
         // Evaluate initializer before definition, avoids self-referential initializers
         if (var.initializer() != null) {
             visitExpression(var.initializer());
-            stack.pop(var.type());
+            stack.pop(type);
+        }
+
+        if (type == null) {
+            return;
         }
 
         for (int i = 0; i < var.names().size(); i++) {
             final String name = var.names().get(i);
             try {
-                var.targets[i] = var.isPublic() ? context.addPublicVar(name, var.type())
-                        : var.type().defineLocal(name, context.scope());
+                var.targets[i] = var.isPublic() ? context.addPublicVar(name, type)
+                        : type.defineLocal(name, context.scope());
             } catch (final QtfException e) {
                 stack.handle(e, var.range());
             }

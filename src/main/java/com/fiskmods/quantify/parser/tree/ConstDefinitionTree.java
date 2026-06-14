@@ -1,13 +1,13 @@
 package com.fiskmods.quantify.parser.tree;
 
-import com.fiskmods.quantify.jvm.assignable.VarType;
+import org.jspecify.annotations.Nullable;
 
 public final class ConstDefinitionTree extends Statement {
     private final String name;
-    private final VarType<?> type;
+    private final @Nullable Identifier type;
     private final Expression value;
 
-    ConstDefinitionTree(final String name, final VarType<?> type, final Expression value) {
+    ConstDefinitionTree(final String name, final @Nullable Identifier type, final Expression value) {
         this.name = name;
         this.type = type;
         this.value = value;
@@ -17,7 +17,7 @@ public final class ConstDefinitionTree extends Statement {
         return name;
     }
 
-    public VarType<?> type() {
+    public @Nullable Identifier type() {
         return type;
     }
 

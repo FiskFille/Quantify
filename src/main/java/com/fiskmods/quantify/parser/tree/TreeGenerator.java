@@ -1,6 +1,5 @@
 package com.fiskmods.quantify.parser.tree;
 
-import com.fiskmods.quantify.jvm.assignable.VarType;
 import com.fiskmods.quantify.lexer.token.Operator;
 import com.fiskmods.quantify.lexer.token.Token;
 import org.jspecify.annotations.Nullable;
@@ -25,7 +24,7 @@ public abstract class TreeGenerator {
         return tree;
     }
 
-    public ConstDefinitionTree newConst(final String name, final VarType<?> type, final Expression value) {
+    public ConstDefinitionTree newConst(final String name, final @Nullable Identifier type, final Expression value) {
         final var tree = new ConstDefinitionTree(name, type, value);
         tree.range = finishTree();
         return tree;
@@ -93,7 +92,7 @@ public abstract class TreeGenerator {
         return tree;
     }
 
-    public ParameterTree newParameter(final String name, final VarType<?> type) {
+    public ParameterTree newParameter(final String name, final @Nullable Identifier type) {
         final var tree = new ParameterTree(name, type);
         tree.range = finishTree();
         return tree;
@@ -111,7 +110,7 @@ public abstract class TreeGenerator {
         return tree;
     }
 
-    public VarDefinitionTree newVariable(final List<String> names, final VarType<?> type, final @Nullable Expression initializer, final boolean isPublic) {
+    public VarDefinitionTree newVariable(final List<String> names, final @Nullable Identifier type, final @Nullable Expression initializer, final boolean isPublic) {
         final var tree = new VarDefinitionTree(names, type, initializer, isPublic);
         tree.range = finishTree();
         return tree;

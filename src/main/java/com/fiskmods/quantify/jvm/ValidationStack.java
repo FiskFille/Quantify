@@ -47,8 +47,8 @@ public class ValidationStack {
         return head;
     }
 
-    public void pop(final VarType<?> expectedType) {
-        pop(expectedType.internal());
+    public void pop(final @Nullable VarType<?> expectedType) {
+        pop(expectedType != null ? expectedType.internal() : null);
     }
 
     public void handle(final QtfException e, final Token.Range range) {
