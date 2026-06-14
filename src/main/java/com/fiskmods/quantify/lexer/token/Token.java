@@ -5,8 +5,6 @@ import org.jspecify.annotations.Nullable;
 
 public record Token(TokenClass type, @Nullable Object value, Range range) {
     public record Range(int startIndex, int endIndex) {
-        public static final Range ZERO = new Range(0, 0);
-
         public Range union(final Range range) {
             return new Range(Math.min(startIndex, range.startIndex), Math.max(endIndex, range.endIndex));
         }
@@ -24,17 +22,6 @@ public record Token(TokenClass type, @Nullable Object value, Range range) {
             return (Operator) value;
         }
         throw QtfParseException.internal("token '%s' is not an operator".formatted(this), range);
-    }
-
-    public @Nullable Operator getAssignmentOperator(final boolean isDefinition) throws QtfParseException {
-        if (value == null) {
-            return null;
-        }
-        final Operator op = getOperator();
-        if (isDefinition) {
-            throw QtfParseException.error("definitions can't use assignment operators", range);
-        }
-        return op;
     }
 
     public Number getNumber() throws QtfParseException {

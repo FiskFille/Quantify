@@ -6,6 +6,8 @@ public interface TreeVisitor {
 
     void visitBlock(BlockStatement block);
 
+    void visitCompoundAssignment(CompoundAssignment assign);
+
     void visitConstDef(ConstDefinitionTree cst);
 
     void visitExpressionStatement(ExpressionStatement expStmt);
@@ -64,6 +66,7 @@ public interface TreeVisitor {
         switch (statement) {
             case final Assignment t -> visitAssignment(t);
             case final BlockStatement t -> visitBlock(t);
+            case final CompoundAssignment t -> visitCompoundAssignment(t);
             case final ConstDefinitionTree t -> visitConstDef(t);
             case final ExpressionStatement t -> visitExpressionStatement(t);
             case final FunctionDef t -> visitFunctionDef(t);

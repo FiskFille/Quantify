@@ -26,11 +26,7 @@ class FunctionDefParser implements SyntaxParser<FunctionDef> {
         final FunctionDef.ReturnValueType returnValue;
 
         if (parser.isNext(TokenClass.ASSIGNMENT)) {
-            final Token assignment = parser.next(TokenClass.ASSIGNMENT);
-            if (assignment.value() != null) {
-                throw QtfParseException.error("function definitions can't use assignment operators", assignment.range());
-            }
-
+            parser.next(TokenClass.ASSIGNMENT);
             final Expression e = ExpressionParser.INSTANCE.accept(parser);
             body = parser.newImplicitReturnStatement(e);
             returnValue = FunctionDef.ReturnValueType.IMPLICIT;

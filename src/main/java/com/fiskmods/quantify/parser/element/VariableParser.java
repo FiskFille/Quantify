@@ -46,7 +46,7 @@ public record VariableParser(boolean isPublic) implements SyntaxParser<VarDefini
     }
 
     private static @Nullable Expression extractInitializer(final QtfParser parser) throws QtfParseException {
-        if (parser.isNext(TokenClass.ASSIGNMENT, null)) {
+        if (parser.isNext(TokenClass.ASSIGNMENT)) {
             parser.next(TokenClass.ASSIGNMENT);
             return ExpressionParser.INSTANCE.accept(parser);
         }

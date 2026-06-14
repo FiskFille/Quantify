@@ -20,10 +20,7 @@ class ConstDefParser implements SyntaxParser<ConstDefinitionTree> {
         final String name = parser.next(TokenClass.IDENTIFIER).getString();
         final Identifier type = TypeParser.parseType(parser);
 
-        final Token assignment = parser.next(TokenClass.ASSIGNMENT);
-        if (assignment.value() instanceof Operator) {
-            throw QtfParseException.error("definitions can't use assignment operators", assignment.range());
-        }
+        parser.next(TokenClass.ASSIGNMENT);
 
         final Expression value = ExpressionParser.INSTANCE.accept(parser);
         return parser.newConst(name, type, value);

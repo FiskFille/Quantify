@@ -22,15 +22,13 @@ public enum Operator implements DoubleBinaryOperator, JvmFunction {
 
     AND(4, _MUL, MUL),
     OR(5, _ADD, ADD),
-
-    LERP(-1, null, null),
-    LERP_ROT(-1, null, null);
+    ;
 
     private final JvmFunction jvmFunction;
     private final DoubleBinaryOperator binaryOperator;
     private final int priority;
 
-    Operator(int priority, JvmFunction jvmFunction, DoubleBinaryOperator binaryOperator) {
+    Operator(final int priority, final JvmFunction jvmFunction, final DoubleBinaryOperator binaryOperator) {
         this.jvmFunction = jvmFunction;
         this.binaryOperator = binaryOperator;
         this.priority = priority;
@@ -41,18 +39,12 @@ public enum Operator implements DoubleBinaryOperator, JvmFunction {
     }
 
     @Override
-    public double applyAsDouble(double left, double right) {
-        if (binaryOperator == null) {
-            throw new UnsupportedOperationException();
-        }
+    public double applyAsDouble(final double left, final double right) {
         return binaryOperator.applyAsDouble(left, right);
     }
 
     @Override
-    public void apply(MethodVisitor mv) {
-        if (jvmFunction == null) {
-            throw new UnsupportedOperationException();
-        }
+    public void apply(final MethodVisitor mv) {
         jvmFunction.apply(mv);
     }
 }

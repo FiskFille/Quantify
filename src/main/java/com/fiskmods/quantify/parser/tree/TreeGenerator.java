@@ -12,14 +12,20 @@ public abstract class TreeGenerator {
 
     protected abstract Token.Range finishTree();
 
-    public Assignment newAssignment(final List<VarRef> targets, final Expression value, final @Nullable Operator op) {
-        final var tree = new Assignment(targets, value, op);
+    public Assignment newAssignment(final List<VarRef> targets, final Expression value) {
+        final var tree = new Assignment(targets, value);
         tree.range = finishTree();
         return tree;
     }
 
     public BlockStatement newBlockStatement(final List<? extends Statement> statements) {
         final var tree = new BlockStatement(statements);
+        tree.range = finishTree();
+        return tree;
+    }
+
+    public CompoundAssignment newCompoundAssignment(final List<VarRef> targets, final Expression value, final Operator op) {
+        final var tree = new CompoundAssignment(targets, value, op);
         tree.range = finishTree();
         return tree;
     }

@@ -55,6 +55,17 @@ public class SemanticTreeVisitor implements TreeVisitor {
     }
 
     @Override
+    public void visitCompoundAssignment(final CompoundAssignment assign) {
+        for (final VarRef target : assign.targets()) {
+            visitVarRef(target);
+            stack.pop(Type.DOUBLE_TYPE);
+        }
+
+        visitExpression(assign.value());
+        stack.pop(Type.DOUBLE_TYPE);
+    }
+
+    @Override
     public void visitConstDef(final ConstDefinitionTree cst) {
         final VarType<?> type = getType(cst.type());
         final double d;

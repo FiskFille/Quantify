@@ -65,16 +65,16 @@ public class QtfLexer {
                     switch (scanner.peekChar()) {
                         case '=' -> {
                             scanner.expand(1);
-                            tokens.insert(ASSIGNMENT, SUB);
+                            tokens.insert(COMPOUND_ASSIGN, SUB);
                         }
                         case '>' -> {
                             scanner.expand(1);
-                            tokens.insert(ASSIGNMENT, LERP);
+                            tokens.insert(LERP);
                         }
                         case '\'' -> {
                             scanner.expand(1);
                             if (scanner.tryConsume('>')) {
-                                tokens.insert(ASSIGNMENT, LERP_ROT);
+                                tokens.insert(LERP_ROT);
                             } else {
                                 scanner.skip(-2);
                                 scanner.advance();
@@ -182,7 +182,7 @@ public class QtfLexer {
 
     private void readOperator(final TokenGenerator tokens, final Operator operator) {
         if (scanner.tryConsume('=')) {
-            tokens.insert(ASSIGNMENT, operator);
+            tokens.insert(COMPOUND_ASSIGN, operator);
         } else {
             tokens.insert(OPERATOR, operator);
         }

@@ -28,16 +28,17 @@ public class JvmTreeVisitor implements TreeVisitor {
 
     @Override
     public void visitAssignment(final Assignment assign) {
-        if (assign.op() != null) {
-            varVisitor(assign.targets()).visitModify(assign.value(), assign.op());
-        } else {
-            varVisitor(assign.targets()).visitSet(assign.value(), false);
-        }
+        varVisitor(assign.targets()).visitSet(assign.value(), false);
     }
 
     @Override
     public void visitBlock(final BlockStatement block) {
         block.statements().forEach(this::visitStatement);
+    }
+
+    @Override
+    public void visitCompoundAssignment(final CompoundAssignment assign) {
+        varVisitor(assign.targets()).visitModify(assign.value(), assign.op());
     }
 
     @Override

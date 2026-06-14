@@ -8,6 +8,9 @@ public enum TokenClass {
     IDENTIFIER,
     OPERATOR,
     ASSIGNMENT,
+    COMPOUND_ASSIGN,
+    LERP,
+    LERP_ROT,
     NUM_LITERAL,
     STR_LITERAL,
 

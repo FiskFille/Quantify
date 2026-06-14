@@ -1,14 +1,18 @@
 package com.fiskmods.quantify.parser.tree;
 
+import com.fiskmods.quantify.lexer.token.Operator;
+
 import java.util.List;
 
-public final class Assignment extends Statement {
+public final class CompoundAssignment extends Statement {
     private final List<VarRef> targets;
     private final Expression value;
+    private final Operator op;
 
-    Assignment(final List<VarRef> targets, final Expression value) {
+    CompoundAssignment(final List<VarRef> targets, final Expression value, final Operator op) {
         this.targets = targets;
         this.value = value;
+        this.op = op;
     }
 
     public List<VarRef> targets() {
@@ -17,5 +21,9 @@ public final class Assignment extends Statement {
 
     public Expression value() {
         return value;
+    }
+
+    public Operator op() {
+        return op;
     }
 }
