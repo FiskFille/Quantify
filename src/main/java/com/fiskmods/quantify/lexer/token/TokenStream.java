@@ -120,6 +120,12 @@ public interface TokenStream extends Iterator<Token> {
      */
     boolean skip(TokenClass tokenClass);
 
+    default void expectLineBreak() throws QtfParseException {
+        if (hasNext()) {
+            next(TokenClass.TERMINATOR);
+        }
+    }
+
     enum Boundary {
         LINE {
             @Override
