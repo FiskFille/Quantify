@@ -2,7 +2,9 @@ package com.fiskmods.quantify.jvm;
 
 import com.fiskmods.quantify.jvm.assignable.*;
 import com.fiskmods.quantify.lexer.token.Operator;
+import com.fiskmods.quantify.lexer.token.Token;
 import com.fiskmods.quantify.parser.tree.*;
+import org.jspecify.annotations.Nullable;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
@@ -52,9 +54,11 @@ public class JvmTreeVisitor implements TreeVisitor {
 
     @Override
     public void visitFunctionDef(final FunctionDef func) {
-        func.address().owner = className;
+        if (func.address == null) {
+            throw uninitialized(func.range());
+        }
 
-        final MethodVisitor mv = cv.visitMethod(ACC_STATIC | ACC_PUBLIC, func.address().name, func.address().descriptor, null, null);
+        final MethodVisitor mv = cv.visitMethod(ACC_STATIC | ACC_PUBLIC, func.address.name(), func.address.descriptor(), null, null);
         final TreeVisitor visitor = new JvmTreeVisitor(className, cv, mv);
         visitor.visitStatement(func.body());
 
@@ -69,11 +73,26 @@ public class JvmTreeVisitor implements TreeVisitor {
     @Override
     public void visitFunctionRef(final FunctionRef func) {
         func.args().forEach(this::visitExpression);
-        func.address().visit(mv, INVOKESTATIC, false);
+
+        if (func.address != null) {
+            func.address.visit(mv, INVOKESTATIC, false, className);
+        } else {
+            throw uninitialized(func.range());
+        }
+    }
+
+    private void visitMember(final Expression expression, final @Nullable Object member) {
+        switch (member) {
+            case final Number n -> visitNumLiteral(n.doubleValue());
+            case final VarAddress v -> varVisitor(v).visitGet();
+            case null -> throw uninitialized(expression.range());
+            default -> throw unexpected(expression);
+        }
     }
 
     @Override
     public void visitIdentifier(final Identifier identifier) {
+        visitMember(identifier, identifier.member);
     }
 
     @Override
@@ -129,7 +148,11 @@ public class JvmTreeVisitor implements TreeVisitor {
 
     @Override
     public void visitInput(final InputStatement input) {
-        varVisitor(input.targetAddress()).visitSet(input.inputVar(), false);
+        if (input.inputAddress == null || input.targetAddress == null) {
+            throw uninitialized(input.range());
+        }
+        final VarVisitor inputVisitor = varVisitor(input.inputAddress);
+        varVisitor(input.targetAddress).visitSet(inputVisitor::visitGet, false);
     }
 
     @Override
@@ -137,33 +160,24 @@ public class JvmTreeVisitor implements TreeVisitor {
         if (lerp.progress() instanceof final NumLiteral lit && lit.value() == 0) {
             return;
         }
-        if (lerp.substitution() != null) {
-            varVisitor(lerp.substitution()).visitSet(lerp.progress(), false);
+        if (lerp.progressAddress == null) {
+            throw uninitialized(lerp.range());
         }
+        varVisitor(lerp.progressAddress).visitSet(lerp.progress(), false);
         visitStatement(lerp.body());
     }
 
     @Override
     public void visitLerpAssignment(final LerpAssignment assign) {
-        if (assign.progress() instanceof final NumLiteral lit) {
-            if (lit.value() == 0) return;
-            if (lit.value() == 1) {
-                varVisitor(assign.targets()).visitSet(assign.value(), false);
-                return;
-            }
+        if (assign.progress == null) {
+            throw uninitialized(assign.range());
         }
-
-        // Interpolating towards 0 is the same as multiplying by (1-progress)
-        if (!assign.rotational() && assign.value() instanceof final NumLiteral lit && lit.value() == 0) {
-            varVisitor(assign.targets()).visitLerpToZero(assign.value(), assign.progress());
-            return;
-        }
-
-        varVisitor(assign.targets()).visitLerp(assign.value(), assign.progress(), assign.rotational());
+        varVisitor(assign.targets()).visitLerp(assign.value(), assign.progress, assign.rotational());
     }
 
     @Override
     public void visitMemberSelect(final MemberSelect sel) {
+        visitMember(sel, sel.member);
     }
 
     @Override
@@ -181,7 +195,10 @@ public class JvmTreeVisitor implements TreeVisitor {
 
     @Override
     public void visitNumLiteral(final NumLiteral lit) {
-        final double value = lit.value();
+        visitNumLiteral(lit.value());
+    }
+
+    private void visitNumLiteral(final double value) {
         if (value == 0) {
             mv.visitInsn(DCONST_0);
         } else if (value == 1) {
@@ -216,38 +233,70 @@ public class JvmTreeVisitor implements TreeVisitor {
     @Override
     public void visitVarDefinition(final VarDefinitionTree var) {
         if (var.initializer() != null) {
-            varVisitor(var.targets()).visitSet(var.initializer(), false);
+            VarVisitorList.of(this, mv, var.targets).visitSet(var.initializer(), false);
             return;
         }
 
         // Public var storage needs no initialization
         if (!var.isPublic()) {
-            varVisitor(var.targets()).visitInit();
+            VarVisitorList.of(this, mv, var.targets).visitInit();
         }
     }
 
     @Override
     public void visitVarRef(final VarRef var) {
-        varVisitor(var.address()).visitGet();
+        visitExpression(var.expression());
         if (var.isNegated()) {
             mv.visitInsn(DNEG);
         }
     }
 
+    private IllegalStateException uninitialized(final Token.Range range) {
+        return new IllegalStateException("uninitialized: " + range);
+    }
+
+    private IllegalArgumentException unexpected(final Object obj) {
+        return new IllegalArgumentException("unexpected value: " + obj);
+    }
+
     public VarVisitor varVisitor(final VarAddress address) {
+        return varVisitorUnsafe(address);
+    }
+
+    private VarVisitor varVisitorUnsafe(final Object address) {
         return switch (address) {
             case LocalVar(final int id) -> new LocalVarVisitor(this, mv, id);
             case ArrayVar(final int id, final int arrayIndex) -> new ArrayVarVisitor(this, mv, id, arrayIndex);
             case final Struct.StructImpl struct -> new StructVarVisitor(mv, struct.index(), struct.size());
-            default -> throw new IllegalStateException("Unexpected value: " + address);
+            default -> throw unexpected(address);
         };
     }
 
-    public VarVisitor varVisitor(final List<? extends VarRef> targets) {
+    public VarVisitor varVisitor(final Expression expression) {
+        if (!(expression instanceof final AbstractMemberExpression e)) {
+            throw unexpected(expression);
+        }
+        if (e.member == null) {
+            throw uninitialized(expression.range());
+        }
+        return varVisitorUnsafe(e.member);
+    }
+
+    public VarVisitor varVisitor(final List<VarRef> targets) {
         return switch (targets.size()) {
             case 0 -> throw new NoSuchElementException();
-            case 1 -> varVisitor(targets.getFirst().address());
-            default -> new VarVisitorList(this, mv, targets);
+            case 1 -> varVisitor(targets.getFirst().expression());
+            default -> {
+                final VarVisitor[] varVisitors = new VarVisitor[targets.size()];
+                final boolean[] isNegated = new boolean[varVisitors.length];
+
+                for (int i = 0; i < varVisitors.length; i++) {
+                    final VarRef var = targets.get(i);
+                    varVisitors[i] = varVisitor(var.expression());
+                    isNegated[i] = var.isNegated();
+                }
+                yield new VarVisitorList(this, mv, varVisitors, isNegated);
+            }
         };
     }
 }

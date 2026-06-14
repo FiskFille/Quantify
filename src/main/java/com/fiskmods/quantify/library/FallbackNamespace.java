@@ -1,6 +1,8 @@
 package com.fiskmods.quantify.library;
 
 import com.fiskmods.quantify.exception.QtfException;
+import com.fiskmods.quantify.jvm.VarAddress;
+import com.fiskmods.quantify.jvm.assignable.VarType;
 import com.fiskmods.quantify.member.MemberMap;
 import com.fiskmods.quantify.member.MemberType;
 import com.fiskmods.quantify.member.Namespace;
@@ -30,7 +32,19 @@ public record FallbackNamespace(Namespace namespace, Namespace fallback) impleme
 
     @Override
     public <T> T get(final String name, final MemberType<T> expectedType) throws QtfException {
-        return namespace.has(name, expectedType)
-                ? namespace.get(name, expectedType) : fallback.get(name, expectedType);
+        try {
+            return namespace.get(name, expectedType);
+        } catch (final QtfException ignored) {
+            return fallback.get(name, expectedType);
+        }
+    }
+
+    @Override
+    public <T extends VarAddress> T computeVariable(final VarType<T> type, final String name) throws QtfException {
+        try {
+            return namespace.computeVariable(type, name);
+        } catch (final QtfException ignored) {
+            return fallback.computeVariable(type, name);
+        }
     }
 }

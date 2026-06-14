@@ -25,7 +25,7 @@ class ExpressionParser implements SyntaxParser<Expression> {
 
         stack.add(ExpressionParser.acceptValue(parser, context));
 
-        while (parser.hasNext(QtfParser.Boundary.EXPRESSION)) {
+        while (parser.isNext(TokenClass.OPERATOR)) {
             final Operator op = parser.next(TokenClass.OPERATOR).getOperator();
             final Expression right = ExpressionParser.acceptValue(parser, context);
 
@@ -77,7 +77,7 @@ class ExpressionParser implements SyntaxParser<Expression> {
             }
         }
         return switch (peeked.type()) {
-            case IDENTIFIER -> IdentifierParser.parseExpressionIdentifier(parser, context);
+            case IDENTIFIER -> IdentifierParser.parseExpressionIdentifier(parser);
             case OPEN_PARENTHESIS -> parseParensExpression(parser, context);
             case OPEN_BRACES -> parseBraceExpression(parser, context);
             case IF -> IfElseParser.INSTANCE.accept(parser, context);

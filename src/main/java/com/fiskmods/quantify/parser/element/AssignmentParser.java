@@ -1,11 +1,9 @@
 package com.fiskmods.quantify.parser.element;
 
 import com.fiskmods.quantify.exception.QtfParseException;
-import com.fiskmods.quantify.jvm.assignable.VarType;
 import com.fiskmods.quantify.lexer.token.Operator;
 import com.fiskmods.quantify.lexer.token.Token;
 import com.fiskmods.quantify.lexer.token.TokenClass;
-import com.fiskmods.quantify.member.Namespace;
 import com.fiskmods.quantify.parser.QtfParser;
 import com.fiskmods.quantify.parser.SyntaxContext;
 import com.fiskmods.quantify.parser.tree.Expression;
@@ -15,24 +13,24 @@ import com.fiskmods.quantify.parser.tree.VarRef;
 import java.util.List;
 
 class AssignmentParser {
-    private static Statement parseAssignment(final QtfParser parser, final SyntaxContext context, final List<? extends VarRef> targets) throws QtfParseException {
+    private static Statement parseAssignment(final QtfParser parser, final SyntaxContext context, final List<VarRef> targets) throws QtfParseException {
         parser.startTree();
         final Token assignment = parser.next(TokenClass.ASSIGNMENT);
-        final Operator op = assignment.getAssignmentOperator(context, false);
+        final Operator op = assignment.getAssignmentOperator(false);
 
         final Expression value = ExpressionParser.INSTANCE.accept(parser, context);
         if (op == Operator.LERP || op == Operator.LERP_ROT) {
-            return parser.newLerpAssignment(targets, value, context.scope().getLerpProgress(), op == Operator.LERP_ROT);
+            return parser.newLerpAssignment(targets, value, op == Operator.LERP_ROT);
         } else {
             return parser.newAssignment(targets, value, op);
         }
     }
 
-    static Statement parseAssignment(final QtfParser parser, final SyntaxContext context, final Expression expression, final String name, final Namespace namespace) throws QtfParseException {
-        final VarRef firstVar = VariableParser.compute(parser, expression, name, namespace, VarType.NUM, false);
+    static Statement parseAssignment(final QtfParser parser, final SyntaxContext context, final Expression expression) throws QtfParseException {
+        final VarRef firstVar = parser.newVariableRef(expression, false);
 
         if (parser.isNext(TokenClass.COMMA)) {
-            final List<? extends VarRef> list = VariableParser.parseList(parser, context, firstVar);
+            final List<VarRef> list = VariableParser.parseList(parser, firstVar);
             return parseAssignment(parser, context, list);
         } else {
             return parseAssignment(parser, context, List.of(firstVar));

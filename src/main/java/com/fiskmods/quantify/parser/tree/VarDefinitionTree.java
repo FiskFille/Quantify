@@ -1,25 +1,29 @@
 package com.fiskmods.quantify.parser.tree;
 
+import com.fiskmods.quantify.jvm.VarAddress;
 import com.fiskmods.quantify.jvm.assignable.VarType;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 
 public final class VarDefinitionTree extends Statement {
-    private final List<? extends VarRef> targets;
+    private final List<String> names;
     private final VarType<?> type;
     private final @Nullable Expression initializer;
     private final boolean isPublic;
 
-    VarDefinitionTree(final List<? extends VarRef> targets, final VarType<?> type, final @Nullable Expression initializer, final boolean isPublic) {
-        this.targets = targets;
+    public final VarAddress[] targets;
+
+    VarDefinitionTree(final List<String> names, final VarType<?> type, final @Nullable Expression initializer, final boolean isPublic) {
+        this.names = names;
         this.type = type;
         this.initializer = initializer;
         this.isPublic = isPublic;
+        this.targets = new VarAddress[names.size()];
     }
 
-    public List<? extends VarRef> targets() {
-        return targets;
+    public List<String> names() {
+        return names;
     }
 
     public VarType<?> type() {

@@ -1,5 +1,6 @@
 package com.fiskmods.quantify.jvm.assignable;
 
+import com.fiskmods.quantify.jvm.VarAddress;
 import com.fiskmods.quantify.lexer.token.Operator;
 import com.fiskmods.quantify.parser.tree.Expression;
 
@@ -14,7 +15,7 @@ public interface VarVisitor {
 
     void visitModify(Expression value, Operator op);
 
-    void visitLerp(Expression value, Expression progress, boolean rotational);
+    void visitLerp(Expression value, VarAddress progress, boolean rotational);
 
-    void visitLerpToZero(Expression value, Expression progress);
+    void visitLerpToZero(Expression value, VarAddress progress);
 }

@@ -1,30 +1,29 @@
 package com.fiskmods.quantify.parser.tree;
 
+import com.fiskmods.quantify.jvm.VarAddress;
+import org.jspecify.annotations.Nullable;
+
 import java.util.List;
 
 public final class LerpAssignment extends Statement {
-    private final List<? extends VarRef> targets;
+    private final List<VarRef> targets;
     private final Expression value;
-    private final Expression progress;
     private final boolean rotational;
 
-    LerpAssignment(final List<? extends VarRef> targets, final Expression value, final Expression progress, final boolean rotational) {
+    public @Nullable VarAddress progress;
+
+    LerpAssignment(final List<VarRef> targets, final Expression value, final boolean rotational) {
         this.targets = targets;
         this.value = value;
-        this.progress = progress;
         this.rotational = rotational;
     }
 
-    public List<? extends VarRef> targets() {
+    public List<VarRef> targets() {
         return targets;
     }
 
     public Expression value() {
         return value;
-    }
-
-    public Expression progress() {
-        return progress;
     }
 
     public boolean rotational() {

@@ -2,19 +2,15 @@ package com.fiskmods.quantify.parser.element;
 
 import com.fiskmods.quantify.exception.QtfException;
 import com.fiskmods.quantify.exception.QtfParseException;
-import com.fiskmods.quantify.jvm.VarAddress;
-import com.fiskmods.quantify.jvm.assignable.VarInfo;
 import com.fiskmods.quantify.jvm.assignable.VarType;
 import com.fiskmods.quantify.lexer.token.Operator;
 import com.fiskmods.quantify.lexer.token.Token;
 import com.fiskmods.quantify.lexer.token.TokenClass;
 import com.fiskmods.quantify.lexer.token.TokenList;
-import com.fiskmods.quantify.member.Namespace;
 import com.fiskmods.quantify.parser.QtfParser;
 import com.fiskmods.quantify.parser.SyntaxContext;
 import com.fiskmods.quantify.parser.SyntaxParser;
 import com.fiskmods.quantify.parser.tree.Expression;
-import com.fiskmods.quantify.parser.tree.Identifier;
 import com.fiskmods.quantify.parser.tree.VarDefinitionTree;
 import com.fiskmods.quantify.parser.tree.VarRef;
 import org.jspecify.annotations.Nullable;
@@ -38,26 +34,18 @@ public record VariableParser(boolean isPublic) implements SyntaxParser<VarDefini
         final List<Token> identifiers = TokenList.parseNonEmpty(parser, TokenClass.IDENTIFIER, TokenClass.COMMA);
         final VarType<?> type = extractType(parser).orElse(VarType.NUM);
         final Expression initializer = extractInitializer(parser, context, type);
-        final List<VarRef> vars;
+
+        final List<String> names = new ArrayList<>(identifiers.size());
 
         if (identifiers.size() == 1) {
-            vars = List.of(defineVar(parser, context, type, Identifier.from(identifiers.getFirst())));
+            names.add(identifiers.getFirst().getString());
         } else {
-            vars = new ArrayList<>(identifiers.size());
-            for (final Token identifier : identifiers) {
-                vars.add(defineVar(parser, context, type, Identifier.from(identifier)));
+            for (final Token token : identifiers) {
+                names.add(token.getString());
             }
         }
-        return parser.newVariable(vars, type, initializer, isPublic);
-    }
 
-    private VarRef defineVar(final QtfParser parser, final SyntaxContext context, final VarType<?> type, final Identifier identifier) throws QtfParseException {
-        try {
-            final VarAddress address = VarInfo.define(identifier.name(), type, context, isPublic);
-            return parser.newVariableRef(identifier, address, false);
-        } catch (final QtfException e) {
-            throw new QtfParseException(e, identifier.range());
-        }
+        return parser.newVariable(names, type, initializer, isPublic);
     }
 
     private static Optional<VarType<?>> extractType(final QtfParser parser) throws QtfParseException {
@@ -84,16 +72,7 @@ public record VariableParser(boolean isPublic) implements SyntaxParser<VarDefini
         return null;
     }
 
-    static VarRef compute(final QtfParser parser, final Expression expression, final String name, final Namespace namespace, final VarType<?> type, final boolean isNegated) throws QtfParseException {
-        try {
-            final VarAddress address = namespace.computeVariable(type, name);
-            return parser.newVariableRef(expression, address, isNegated);
-        } catch (final QtfException e) {
-            throw new QtfParseException(e, expression.range());
-        }
-    }
-
-    static VarRef parseVariable(final QtfParser parser, final SyntaxContext context, final VarType<?> type) throws QtfParseException {
+    static VarRef parseVariable(final QtfParser parser) throws QtfParseException {
         final boolean isNegated;
         if (parser.isNext(TokenClass.OPERATOR, Operator.SUB)) {
             parser.clearPeekedToken();
@@ -102,17 +81,16 @@ public record VariableParser(boolean isPublic) implements SyntaxParser<VarDefini
             isNegated = false;
         }
 
-        return IdentifierParser.parseIdentifier(parser, context,
-                (name, range, namespace) -> compute(parser, name, range, namespace, type, isNegated)
-        );
+        final Expression expression = IdentifierParser.parseIdentifier(parser);
+        return parser.newVariableRef(expression, isNegated);
     }
 
-    static List<VarRef> parseList(final QtfParser parser, final SyntaxContext context, final VarRef firstVar) throws QtfParseException {
+    static List<VarRef> parseList(final QtfParser parser, final VarRef firstVar) throws QtfParseException {
         final List<VarRef> list = new ArrayList<>();
         list.add(firstVar);
         do {
             parser.clearPeekedToken();
-            list.add(parseVariable(parser, context, firstVar.address().type()));
+            list.add(parseVariable(parser));
         } while (parser.isNext(TokenClass.COMMA));
 
         return list;

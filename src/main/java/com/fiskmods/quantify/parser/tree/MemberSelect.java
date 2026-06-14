@@ -1,6 +1,6 @@
 package com.fiskmods.quantify.parser.tree;
 
-public final class MemberSelect extends Expression {
+public final class MemberSelect extends AbstractMemberExpression {
     private final Expression expression;
     private final String identifier;
 

@@ -2,6 +2,7 @@ package com.fiskmods.quantify.jvm.assignable;
 
 import com.fiskmods.quantify.jvm.JvmTreeVisitor;
 import com.fiskmods.quantify.jvm.JvmUtil;
+import com.fiskmods.quantify.jvm.VarAddress;
 import com.fiskmods.quantify.lexer.token.Operator;
 import com.fiskmods.quantify.library.QtfMath;
 import com.fiskmods.quantify.parser.tree.Expression;
@@ -49,11 +50,11 @@ public record ArrayVarVisitor(JvmTreeVisitor visitor, MethodVisitor mv, int id, 
     }
 
     @Override
-    public void visitLerp(final Expression value, final Expression progress, final boolean rotational) {
+    public void visitLerp(final Expression value, final VarAddress progress, final boolean rotational) {
         arrayAddress();
         mv.visitInsn(DUP2);
         mv.visitInsn(DALOAD);
-        visitor.visitExpression(progress);
+        visitor.varVisitor(progress).visitGet();
         visitor.visitExpression(value);
         arrayAddress();
         mv.visitInsn(DALOAD);
@@ -67,12 +68,12 @@ public record ArrayVarVisitor(JvmTreeVisitor visitor, MethodVisitor mv, int id, 
     }
 
     @Override
-    public void visitLerpToZero(final Expression value, final Expression progress) {
+    public void visitLerpToZero(final Expression value, final VarAddress progress) {
         arrayAddress();
         mv.visitInsn(DUP2);
         mv.visitInsn(DALOAD);
         mv.visitInsn(DCONST_1);
-        visitor.visitExpression(progress);
+        visitor.varVisitor(progress).visitGet();
         mv.visitInsn(DSUB);
         mv.visitInsn(DMUL);
         mv.visitInsn(DASTORE);

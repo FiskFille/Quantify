@@ -1,62 +1,72 @@
 package com.fiskmods.quantify.jvm.assignable;
 
 import com.fiskmods.quantify.jvm.JvmTreeVisitor;
+import com.fiskmods.quantify.jvm.VarAddress;
 import com.fiskmods.quantify.lexer.token.Operator;
 import com.fiskmods.quantify.parser.tree.Expression;
 import com.fiskmods.quantify.parser.tree.NumLiteral;
-import com.fiskmods.quantify.parser.tree.VarRef;
 import org.objectweb.asm.MethodVisitor;
-
-import java.util.List;
 
 import static org.objectweb.asm.Opcodes.DNEG;
 
-public record VarVisitorList(JvmTreeVisitor visitor, MethodVisitor mv, List<? extends VarRef> variables) implements VarVisitor {
+public record VarVisitorList(JvmTreeVisitor visitor, MethodVisitor mv, VarVisitor[] variables, boolean[] isNegated) implements VarVisitor {
+
+    public static VarVisitorList of(final JvmTreeVisitor visitor, final MethodVisitor mv, final VarAddress[] addresses) {
+        final VarVisitor[] variables = new VarVisitor[addresses.length];
+        for (int i = 0; i < variables.length; i++) {
+            variables[i] = visitor.varVisitor(addresses[i]);
+        }
+        return new VarVisitorList(visitor, mv, variables, new boolean[variables.length]);
+    }
+
     @Override
     public void visitGet() {
-        for (final VarRef var : variables) {
-            visitor.visitExpression(var);
+        for (int i = 0; i < variables.length; i++) {
+            variables[i].visitGet();
+            if (isNegated[i]) {
+                mv.visitInsn(DNEG);
+            }
         }
     }
 
     @Override
     public void visitSet(final Expression value, final boolean keepResult) {
         // Complex expressions only get calculated once for multi-var assignments
-        if (variables.size() > 1 && !(value instanceof NumLiteral)) {
-            visitComplexSet(value, keepResult, variables().size() - 1);
-            if (keepResult && variables.getLast().isNegated()) {
+        if (variables.length > 1 && !(value instanceof NumLiteral)) {
+            final int lastIndex = variables.length - 1;
+            visitComplexSet(value, keepResult, lastIndex);
+
+            if (keepResult && isNegated[lastIndex]) {
                 mv.visitInsn(DNEG);
             }
             return;
         }
 
-        for (final VarRef target : variables) {
-            final Expression v = target.isNegated() ? Expression.negate(value) : value;
-            visitor.varVisitor(target.address()).visitSet(v, false);
+        for (int i = 0; i < variables.length; i++) {
+            final Expression v = isNegated[i] ? Expression.negate(value) : value;
+            variables[i].visitSet(v, false);
         }
         if (keepResult) {
             visitor.visitExpression(value);
         }
     }
 
-    private VarRef visitComplexSet(final Expression value, final boolean keepResult, final int index) {
-        final VarRef target = variables.get(index);
+    private void visitComplexSet(final Expression value, final boolean keepResult, final int index) {
         if (index > 0) {
-            visitor.varVisitor(target.address()).visitSet(() -> {
-                        final VarRef preceding = visitComplexSet(value, true, index - 1);
-                        if (target.isNegated() != preceding.isNegated()) {
+            variables[index].visitSet(() -> {
+                        visitComplexSet(value, true, index - 1);
+                        if (isNegated[index] != isNegated[index - 1]) {
                             mv.visitInsn(DNEG);
                         }
                     },
                     keepResult
             );
         } else {
-            visitor.varVisitor(target.address()).visitSet(
-                    () -> visitor.visitExpression(target.isNegated() ? Expression.negate(value) : value),
+            variables[0].visitSet(
+                    () -> visitor.visitExpression(isNegated[0] ? Expression.negate(value) : value),
                     keepResult
             );
         }
-        return target;
     }
 
     @Override
@@ -66,29 +76,29 @@ public record VarVisitorList(JvmTreeVisitor visitor, MethodVisitor mv, List<? ex
 
     @Override
     public void visitInit() {
-        for (final VarRef target : variables) {
-            visitor.varVisitor(target.address()).visitInit();
+        for (final VarVisitor target : variables) {
+            target.visitInit();
         }
     }
 
     @Override
     public void visitModify(final Expression value, final Operator op) {
-        for (final VarRef target : variables) {
-            final Expression v = target.isNegated() ? Expression.negate(value) : value;
-            visitor.varVisitor(target.address()).visitModify(v, op);
+        for (int i = 0; i < variables.length; i++) {
+            final Expression v = isNegated[i] ? Expression.negate(value) : value;
+            variables[i].visitModify(v, op);
         }
     }
 
     @Override
-    public void visitLerp(final Expression value, final Expression progress, final boolean rotational) {
-        for (final VarRef target : variables) {
-            final Expression v = target.isNegated() ? Expression.negate(value) : value;
-            visitor.varVisitor(target.address()).visitLerp(v, progress, rotational);
+    public void visitLerp(final Expression value, final VarAddress progress, final boolean rotational) {
+        for (int i = 0; i < variables.length; i++) {
+            final Expression v = isNegated[i] ? Expression.negate(value) : value;
+            variables[i].visitLerp(v, progress, rotational);
         }
     }
 
     @Override
-    public void visitLerpToZero(final Expression value, final Expression progress) {
+    public void visitLerpToZero(final Expression value, final VarAddress progress) {
         visitLerp(value, progress, false);
     }
 }

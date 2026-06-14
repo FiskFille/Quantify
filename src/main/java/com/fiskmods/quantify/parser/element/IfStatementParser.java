@@ -20,7 +20,7 @@ class IfStatementParser implements SyntaxParser<IfStatement> {
         final Expression condition = ExpressionParser.INSTANCE.accept(parser, context);
         parser.skip(TokenClass.TERMINATOR);
 
-        final BlockStatement body = BlockParser.parseBlock(parser, context);
+        final BlockStatement body = BlockParser.parseBlock(parser);
         Statement elseBody = null;
         parser.skip(TokenClass.TERMINATOR);
 
@@ -29,7 +29,7 @@ class IfStatementParser implements SyntaxParser<IfStatement> {
             if (parser.isNext(TokenClass.IF)) {
                 elseBody = accept(parser, context);
             } else {
-                elseBody = BlockParser.parseBlock(parser, context);
+                elseBody = BlockParser.parseBlock(parser);
             }
         }
         return parser.newIfStatement(condition, body, elseBody);

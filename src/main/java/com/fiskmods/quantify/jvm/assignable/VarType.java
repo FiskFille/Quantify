@@ -3,11 +3,12 @@ package com.fiskmods.quantify.jvm.assignable;
 import com.fiskmods.quantify.exception.QtfException;
 import com.fiskmods.quantify.jvm.VarAddress;
 import com.fiskmods.quantify.member.Scope;
+import org.objectweb.asm.Type;
 
-public record VarType<T extends VarAddress>(String typeName, int size, boolean isAssignable) {
+public record VarType<T extends VarAddress>(Type internal, String typeName, boolean isAssignable) {
 
-    public static final VarType<VarAddress> NUM = new VarType<>("num", 2, true);
-    public static final VarType<Struct> STRUCT = new VarType<>("struct", 1, false);
+    public static final VarType<VarAddress> NUM = new VarType<>(Type.DOUBLE_TYPE, "num", true);
+    public static final VarType<Struct> STRUCT = new VarType<>(Type.getType(double[].class), "struct", false);
 
     public static final VarType<?>[] TYPES = {NUM, STRUCT};
 

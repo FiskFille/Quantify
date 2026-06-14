@@ -27,7 +27,6 @@ public class QtfParser extends TreeGenerator implements TokenStream {
 
     public List<Statement> parse(final boolean isEnclosed) throws QtfParseException {
         final List<Statement> statements = new ArrayList<>(64);
-        final int stack = context.stackDepth();
 
         while (hasNext()) {
             if (isEnclosed && peek().type() == TokenClass.CLOSE_BRACES) {
@@ -38,19 +37,10 @@ public class QtfParser extends TreeGenerator implements TokenStream {
                 continue;
             }
 
-            final SyntaxParser<? extends Statement> syntax = SyntaxSelector.selectSyntax(context, peek());
+            final SyntaxParser<? extends Statement> syntax = SyntaxSelector.selectSyntax(peek());
             final Statement statement = syntax.accept(this, context);
             statements.add(statement);
         }
-
-        final int currentStack = context.stackDepth();
-        if (stack != currentStack) {
-            final Token last = last();
-            throw new QtfParseException("Unbalanced stack: " + currentStack, "expected" + stack,
-                    last != null ? last.range() : Token.Range.ZERO
-            );
-        }
-
         return statements;
     }
 

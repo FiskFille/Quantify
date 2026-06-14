@@ -36,9 +36,17 @@ public class JvmCompiler {
         this.nextName = nextName;
     }
 
+    public static String binaryToInternal(final String name) {
+        return name.replace('.', '/');
+    }
+
+    public static String internalToBinary(final String name) {
+        return name.replace('/', '.');
+    }
+
     public Class<?> compile(final List<? extends Statement> statements) {
         final String className = nextName.get();
-        final String binaryName = className.replace('/', '.');
+        final String binaryName = internalToBinary(className);
 
         final byte[] bytes = writeClass(className, statements);
         final Class<?> c = classLoader.defineClass(binaryName, bytes);

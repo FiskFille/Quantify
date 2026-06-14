@@ -21,8 +21,9 @@ public class SyntaxContext implements ScopeProvider {
 
     private final Namespace defaultNamespace = new DefaultNamespace();
 
-    private final Scope globalScope = new Scope(defaultNamespace, 0);
-    private final LinkedList<Scope> currentScope = new LinkedList<>();
+    private final Scope globalScope = new Scope(0);
+    private final Deque<Scope> scopeStack = new ArrayDeque<>();
+    private final Deque<Namespace> namespaceStack = new ArrayDeque<>();
 
     private final Map<String, Integer> inputs = new HashMap<>();
     private final List<JvmFunctionDefinition> functionDefinitions = new ArrayList<>();
@@ -33,15 +34,16 @@ public class SyntaxContext implements ScopeProvider {
 
     public SyntaxContext(final LibraryMap libraries) {
         this.libraries = libraries;
-        currentScope.add(globalScope);
+        scopeStack.push(globalScope);
+        namespaceStack.push(defaultNamespace);
     }
 
     public LibraryMap libraries() {
         return libraries;
     }
 
-    public Namespace namespace() {
-        return scope().getNamespace();
+    public Deque<Namespace> namespace() {
+        return namespaceStack;
     }
 
     public Namespace getDefaultNamespace() {
@@ -50,7 +52,7 @@ public class SyntaxContext implements ScopeProvider {
 
     @Override
     public Scope scope() {
-        return currentScope.getLast();
+        return scopeStack.element();
     }
 
     @Override
@@ -60,19 +62,17 @@ public class SyntaxContext implements ScopeProvider {
 
     @Override
     public void push(final Scope scope) {
-        currentScope.add(scope);
+        scopeStack.push(scope);
     }
 
     @Override
     public void pop() {
-        if (currentScope.size() > 1) {
-            currentScope.removeLast();
-        }
+        scopeStack.pop();
     }
 
     @Override
     public int stackDepth() {
-        return currentScope.size();
+        return scopeStack.size();
     }
 
     public ArrayVar addInputVariable(final String name, final int index) throws QtfException {
@@ -92,17 +92,21 @@ public class SyntaxContext implements ScopeProvider {
         }
     }
 
-    public int defineFunction(final String name, final boolean isVisible, final FunctionAddress address) {
+    public FunctionAddress defineFunction(final String name, final int parameters) {
+        final String methodName = "$" + functionDefinitions.size() + "_" + name;
+        final FunctionAddress address = FunctionAddress.create(null, methodName, parameters);
+
+        final boolean isVisible = !scope().isInnerScope();
         functionDefinitions.add(new JvmFunctionDefinition(name, isVisible, address));
-        return functionDefinitions.size() - 1;
+        return address;
     }
 
-    public Map<String, FunctionAddress> getFunctions() {
+    public Map<String, FunctionAddress> getFunctions(final String className) {
         return functionDefinitions.stream()
                 .filter(JvmFunctionDefinition::isVisible)
                 .collect(Collectors.toMap(
                         JvmFunctionDefinition::name,
-                        JvmFunctionDefinition::address
+                        t -> t.address().withOwner(className)
                 ));
     }
 

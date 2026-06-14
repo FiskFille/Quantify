@@ -1,14 +1,9 @@
 package com.fiskmods.quantify.lexer.token;
 
 import com.fiskmods.quantify.exception.QtfParseException;
-import com.fiskmods.quantify.parser.SyntaxContext;
 import org.jspecify.annotations.Nullable;
 
 public record Token(TokenClass type, @Nullable Object value, Range range) {
-    public Token(final TokenClass type, @Nullable final Object value, final int startIndex, final int endIndex) {
-        this(type, value, new Range(startIndex, endIndex));
-    }
-
     public record Range(int startIndex, int endIndex) {
         public static final Range ZERO = new Range(0, 0);
 
@@ -31,16 +26,13 @@ public record Token(TokenClass type, @Nullable Object value, Range range) {
         throw QtfParseException.internal("token '%s' is not an operator".formatted(this), range);
     }
 
-    public @Nullable Operator getAssignmentOperator(final SyntaxContext context, final boolean isDefinition) throws QtfParseException {
+    public @Nullable Operator getAssignmentOperator(final boolean isDefinition) throws QtfParseException {
         if (value == null) {
             return null;
         }
         final Operator op = getOperator();
         if (isDefinition) {
             throw QtfParseException.error("definitions can't use assignment operators", range);
-        }
-        if ((op == Operator.LERP || op == Operator.LERP_ROT) && context.scope().getLerpProgress() == null) {
-            throw QtfParseException.error("interpolation assignments can only be used inside" + " interpolate blocks", range);
         }
         return op;
     }

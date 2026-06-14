@@ -3,6 +3,7 @@ package com.fiskmods.quantify;
 import com.fiskmods.quantify.exception.QtfCompilerException;
 import com.fiskmods.quantify.exception.QtfParseException;
 import com.fiskmods.quantify.jvm.JvmCompiler;
+import com.fiskmods.quantify.jvm.SemanticTreeVisitor;
 import com.fiskmods.quantify.lexer.QtfLexer;
 import com.fiskmods.quantify.lexer.TextScanner;
 import com.fiskmods.quantify.lexer.token.IteratorTokenStream;
@@ -52,13 +53,16 @@ public class QtfCompiler {
             final var statements = parse(tokens, context, logger);
 
             final Class<?> c = classCompiler.compile(statements);
+            final String className = JvmCompiler.binaryToInternal(c.getName());
             return new QtfCompilationUnit(c,
                     context.getInputs(),
                     context.getOutputs(),
-                    context.getFunctions()
+                    context.getFunctions(className)
             );
         } catch (final QtfCompilerException e) {
             throw QtfCompilerException.attachSource(e, sourceFile);
+        } catch (final RuntimeException e) {
+            throw new QtfCompilerException(e, sourceFile);
         }
     }
 
@@ -86,12 +90,19 @@ public class QtfCompiler {
     }
 
     private List<? extends Statement> parse(final TokenStream tokens, final SyntaxContext context, final Logger logger) throws QtfCompilerException {
+        final List<? extends Statement> statements;
         try {
             final QtfParser parser = new QtfParser(tokens, context);
-            return parser.parse(false);
+            statements = parser.parse(false);
         } catch (final QtfParseException e) {
             logger.logError(e.getMessage(), e.getRange().startIndex());
             throw new QtfCompilerException("Syntax error");
         }
+
+        final SemanticTreeVisitor semanticVisitor = new SemanticTreeVisitor(context, logger);
+        if (semanticVisitor.visit(statements)) {
+            return statements;
+        }
+        throw new QtfCompilerException("Semantic error");
     }
 }

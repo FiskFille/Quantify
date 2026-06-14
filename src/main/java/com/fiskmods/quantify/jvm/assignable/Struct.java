@@ -52,7 +52,7 @@ public interface Struct extends VarAddress, Namespace {
         @SuppressWarnings("unchecked")
         public <T extends VarAddress> T computeVariable(final VarType<T> type, final String name) throws QtfException {
             if (members.has(name)) {
-                return members.get(name, MemberType.VARIABLE).cast(name, type);
+                return Struct.super.computeVariable(type, name);
             }
 
             if (type == VarType.STRUCT) {

@@ -1,6 +1,7 @@
 package com.fiskmods.quantify.jvm.assignable;
 
 import com.fiskmods.quantify.jvm.JvmUtil;
+import com.fiskmods.quantify.jvm.VarAddress;
 import com.fiskmods.quantify.lexer.token.Operator;
 import com.fiskmods.quantify.parser.tree.Expression;
 import org.objectweb.asm.MethodVisitor;
@@ -36,12 +37,12 @@ public record StructVarVisitor(MethodVisitor mv, int index, int size) implements
     }
 
     @Override
-    public void visitLerp(final Expression value, final Expression progress, final boolean rotational) {
+    public void visitLerp(final Expression value, final VarAddress progress, final boolean rotational) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void visitLerpToZero(final Expression value, final Expression progress) {
+    public void visitLerpToZero(final Expression value, final VarAddress progress) {
         throw new UnsupportedOperationException();
     }
 }

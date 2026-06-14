@@ -2,14 +2,12 @@ package com.fiskmods.quantify.parser.element;
 
 import com.fiskmods.quantify.exception.QtfException;
 import com.fiskmods.quantify.exception.QtfParseException;
-import com.fiskmods.quantify.jvm.VarAddress;
 import com.fiskmods.quantify.jvm.assignable.VarType;
 import com.fiskmods.quantify.lexer.token.Token;
 import com.fiskmods.quantify.lexer.token.TokenClass;
 import com.fiskmods.quantify.parser.QtfParser;
 import com.fiskmods.quantify.parser.SyntaxContext;
 import com.fiskmods.quantify.parser.SyntaxParser;
-import com.fiskmods.quantify.parser.tree.Identifier;
 import com.fiskmods.quantify.parser.tree.ParameterTree;
 
 class ParameterParser implements SyntaxParser<ParameterTree> {
@@ -18,15 +16,10 @@ class ParameterParser implements SyntaxParser<ParameterTree> {
     @Override
     public ParameterTree accept(final QtfParser parser, final SyntaxContext context) throws QtfParseException {
         parser.startTree();
-        final Identifier name = Identifier.from(parser.next(TokenClass.IDENTIFIER));
+        final String name = parser.next(TokenClass.IDENTIFIER).getString();
         final VarType<?> type = extractType(parser);
 
-        try {
-            final VarAddress address = type.defineLocal(name.name(), context.scope());
-            return parser.newParameter(name, type, address);
-        } catch (final QtfException e) {
-            throw new QtfParseException(e, name.range());
-        }
+        return parser.newParameter(name, type);
     }
 
     private VarType<?> extractType(final QtfParser parser) throws QtfParseException {
