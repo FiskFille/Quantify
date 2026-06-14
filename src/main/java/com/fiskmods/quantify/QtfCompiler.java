@@ -92,7 +92,7 @@ public class QtfCompiler {
     private List<? extends Statement> parse(final TokenStream tokens, final SyntaxContext context, final Logger logger) throws QtfCompilerException {
         final List<? extends Statement> statements;
         try {
-            final QtfParser parser = new QtfParser(tokens, context);
+            final QtfParser parser = new QtfParser(tokens);
             statements = parser.parse(false);
         } catch (final QtfParseException e) {
             logger.logError(e.getMessage(), e.getRange().startIndex());

@@ -8,7 +8,6 @@ import com.fiskmods.quantify.lexer.token.Token;
 import com.fiskmods.quantify.lexer.token.TokenClass;
 import com.fiskmods.quantify.lexer.token.TokenList;
 import com.fiskmods.quantify.parser.QtfParser;
-import com.fiskmods.quantify.parser.SyntaxContext;
 import com.fiskmods.quantify.parser.SyntaxParser;
 import com.fiskmods.quantify.parser.tree.Expression;
 import com.fiskmods.quantify.parser.tree.VarDefinitionTree;
@@ -24,7 +23,7 @@ public record VariableParser(boolean isPublic) implements SyntaxParser<VarDefini
     static final VariableParser PUBLIC = new VariableParser(true);
 
     @Override
-    public VarDefinitionTree accept(final QtfParser parser, final SyntaxContext context) throws QtfParseException {
+    public VarDefinitionTree accept(final QtfParser parser) throws QtfParseException {
         parser.startTree();
 
         if (isPublic)
@@ -33,7 +32,7 @@ public record VariableParser(boolean isPublic) implements SyntaxParser<VarDefini
 
         final List<Token> identifiers = TokenList.parseNonEmpty(parser, TokenClass.IDENTIFIER, TokenClass.COMMA);
         final VarType<?> type = extractType(parser).orElse(VarType.NUM);
-        final Expression initializer = extractInitializer(parser, context, type);
+        final Expression initializer = extractInitializer(parser, type);
 
         final List<String> names = new ArrayList<>(identifiers.size());
 
@@ -64,10 +63,10 @@ public record VariableParser(boolean isPublic) implements SyntaxParser<VarDefini
         }
     }
 
-    private static @Nullable Expression extractInitializer(final QtfParser parser, final SyntaxContext context, final VarType<?> type) throws QtfParseException {
+    private static @Nullable Expression extractInitializer(final QtfParser parser, final VarType<?> type) throws QtfParseException {
         if (type.isAssignable() && parser.isNext(TokenClass.ASSIGNMENT, null)) {
             parser.next(TokenClass.ASSIGNMENT);
-            return ExpressionParser.INSTANCE.accept(parser, context);
+            return ExpressionParser.INSTANCE.accept(parser);
         }
         return null;
     }

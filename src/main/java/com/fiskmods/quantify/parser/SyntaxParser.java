@@ -4,5 +4,5 @@ import com.fiskmods.quantify.exception.QtfParseException;
 
 @FunctionalInterface
 public interface SyntaxParser<T> {
-    T accept(QtfParser parser, SyntaxContext context) throws QtfParseException;
+    T accept(QtfParser parser) throws QtfParseException;
 }

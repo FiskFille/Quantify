@@ -3,7 +3,6 @@ package com.fiskmods.quantify.parser.element;
 import com.fiskmods.quantify.exception.QtfParseException;
 import com.fiskmods.quantify.lexer.token.TokenClass;
 import com.fiskmods.quantify.parser.QtfParser;
-import com.fiskmods.quantify.parser.SyntaxContext;
 import com.fiskmods.quantify.parser.SyntaxParser;
 import com.fiskmods.quantify.parser.tree.BlockStatement;
 import com.fiskmods.quantify.parser.tree.Expression;
@@ -14,10 +13,10 @@ class IfStatementParser implements SyntaxParser<IfStatement> {
     static final SyntaxParser<IfStatement> PARSER = new IfStatementParser();
 
     @Override
-    public IfStatement accept(final QtfParser parser, final SyntaxContext context) throws QtfParseException {
+    public IfStatement accept(final QtfParser parser) throws QtfParseException {
         parser.startTree();
         parser.next(TokenClass.IF);
-        final Expression condition = ExpressionParser.INSTANCE.accept(parser, context);
+        final Expression condition = ExpressionParser.INSTANCE.accept(parser);
         parser.skip(TokenClass.TERMINATOR);
 
         final BlockStatement body = BlockParser.parseBlock(parser);
@@ -27,7 +26,7 @@ class IfStatementParser implements SyntaxParser<IfStatement> {
         if (parser.isNext(TokenClass.ELSE)) {
             parser.clearPeekedToken();
             if (parser.isNext(TokenClass.IF)) {
-                elseBody = accept(parser, context);
+                elseBody = accept(parser);
             } else {
                 elseBody = BlockParser.parseBlock(parser);
             }

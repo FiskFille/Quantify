@@ -6,7 +6,6 @@ import com.fiskmods.quantify.jvm.assignable.VarType;
 import com.fiskmods.quantify.lexer.token.Token;
 import com.fiskmods.quantify.lexer.token.TokenClass;
 import com.fiskmods.quantify.parser.QtfParser;
-import com.fiskmods.quantify.parser.SyntaxContext;
 import com.fiskmods.quantify.parser.SyntaxParser;
 import com.fiskmods.quantify.parser.tree.ParameterTree;
 
@@ -14,7 +13,7 @@ class ParameterParser implements SyntaxParser<ParameterTree> {
     static final ParameterParser INSTANCE = new ParameterParser();
 
     @Override
-    public ParameterTree accept(final QtfParser parser, final SyntaxContext context) throws QtfParseException {
+    public ParameterTree accept(final QtfParser parser) throws QtfParseException {
         parser.startTree();
         final String name = parser.next(TokenClass.IDENTIFIER).getString();
         final VarType<?> type = extractType(parser);

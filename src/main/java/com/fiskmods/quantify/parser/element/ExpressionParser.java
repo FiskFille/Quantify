@@ -5,7 +5,6 @@ import com.fiskmods.quantify.lexer.token.Operator;
 import com.fiskmods.quantify.lexer.token.Token;
 import com.fiskmods.quantify.lexer.token.TokenClass;
 import com.fiskmods.quantify.parser.QtfParser;
-import com.fiskmods.quantify.parser.SyntaxContext;
 import com.fiskmods.quantify.parser.SyntaxParser;
 import com.fiskmods.quantify.parser.tree.Expression;
 import com.fiskmods.quantify.parser.tree.Operation;
@@ -19,15 +18,15 @@ class ExpressionParser implements SyntaxParser<Expression> {
     static final ExpressionParser INSTANCE = new ExpressionParser();
 
     @Override
-    public Expression accept(final QtfParser parser, final SyntaxContext context) throws QtfParseException {
+    public Expression accept(final QtfParser parser) throws QtfParseException {
         final List<Object> stack = new ArrayList<>();
         final Deque<Integer> lastPriority = new ArrayDeque<>();
 
-        stack.add(ExpressionParser.acceptValue(parser, context));
+        stack.add(ExpressionParser.acceptValue(parser));
 
         while (parser.isNext(TokenClass.OPERATOR)) {
             final Operator op = parser.next(TokenClass.OPERATOR).getOperator();
-            final Expression right = ExpressionParser.acceptValue(parser, context);
+            final Expression right = ExpressionParser.acceptValue(parser);
 
             while (!lastPriority.isEmpty() && lastPriority.peek() <= op.priority()) {
                 reduce(stack);
@@ -44,23 +43,23 @@ class ExpressionParser implements SyntaxParser<Expression> {
         return (Expression) stack.getFirst();
     }
 
-    static Expression parseParensExpression(final QtfParser parser, final SyntaxContext context) throws QtfParseException {
+    static Expression parseParensExpression(final QtfParser parser) throws QtfParseException {
         parser.next(TokenClass.OPEN_PARENTHESIS);
-        final Expression e = INSTANCE.accept(parser, context);
+        final Expression e = INSTANCE.accept(parser);
         parser.next(TokenClass.CLOSE_PARENTHESIS);
         return e;
     }
 
-    static Expression parseBraceExpression(final QtfParser parser, final SyntaxContext context) throws QtfParseException {
+    static Expression parseBraceExpression(final QtfParser parser) throws QtfParseException {
         parser.next(TokenClass.OPEN_BRACES);
         parser.skip(TokenClass.TERMINATOR);
-        final Expression e = INSTANCE.accept(parser, context);
+        final Expression e = INSTANCE.accept(parser);
         parser.skip(TokenClass.TERMINATOR);
         parser.next(TokenClass.CLOSE_BRACES);
         return e;
     }
 
-    private static Expression acceptValue(final QtfParser parser, final SyntaxContext context) throws QtfParseException {
+    private static Expression acceptValue(final QtfParser parser) throws QtfParseException {
         final Token peeked = parser.peek();
 
         // Consumes any leading + or - signs
@@ -68,20 +67,20 @@ class ExpressionParser implements SyntaxParser<Expression> {
             final Operator op = peeked.getOperator();
             if (op == Operator.SUB) {
                 parser.clearPeekedToken();
-                final Expression e = acceptValue(parser, context);
+                final Expression e = acceptValue(parser);
                 return Expression.negate(e);
             }
             if (op == Operator.ADD) {
                 parser.clearPeekedToken();
-                return acceptValue(parser, context);
+                return acceptValue(parser);
             }
         }
         return switch (peeked.type()) {
             case IDENTIFIER -> IdentifierParser.parseExpressionIdentifier(parser);
-            case OPEN_PARENTHESIS -> parseParensExpression(parser, context);
-            case OPEN_BRACES -> parseBraceExpression(parser, context);
-            case IF -> IfElseParser.INSTANCE.accept(parser, context);
-            default -> NumLiteralParser.PARSER.accept(parser, context);
+            case OPEN_PARENTHESIS -> parseParensExpression(parser);
+            case OPEN_BRACES -> parseBraceExpression(parser);
+            case IF -> IfElseParser.INSTANCE.accept(parser);
+            default -> NumLiteralParser.PARSER.accept(parser);
         };
     }
 

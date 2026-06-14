@@ -3,7 +3,6 @@ package com.fiskmods.quantify.parser.element;
 import com.fiskmods.quantify.exception.QtfParseException;
 import com.fiskmods.quantify.lexer.token.TokenClass;
 import com.fiskmods.quantify.parser.QtfParser;
-import com.fiskmods.quantify.parser.SyntaxContext;
 import com.fiskmods.quantify.parser.SyntaxParser;
 import com.fiskmods.quantify.parser.tree.InputStatement;
 
@@ -11,7 +10,7 @@ class InputParser implements SyntaxParser<InputStatement> {
     static final InputParser INSTANCE = new InputParser();
 
     @Override
-    public InputStatement accept(final QtfParser parser, final SyntaxContext context) throws QtfParseException {
+    public InputStatement accept(final QtfParser parser) throws QtfParseException {
         parser.startTree();
         parser.clearPeekedToken();
         parser.next(TokenClass.OPEN_BRACKETS);

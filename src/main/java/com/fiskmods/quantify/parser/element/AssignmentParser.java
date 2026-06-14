@@ -5,7 +5,6 @@ import com.fiskmods.quantify.lexer.token.Operator;
 import com.fiskmods.quantify.lexer.token.Token;
 import com.fiskmods.quantify.lexer.token.TokenClass;
 import com.fiskmods.quantify.parser.QtfParser;
-import com.fiskmods.quantify.parser.SyntaxContext;
 import com.fiskmods.quantify.parser.tree.Expression;
 import com.fiskmods.quantify.parser.tree.Statement;
 import com.fiskmods.quantify.parser.tree.VarRef;
@@ -13,12 +12,12 @@ import com.fiskmods.quantify.parser.tree.VarRef;
 import java.util.List;
 
 class AssignmentParser {
-    private static Statement parseAssignment(final QtfParser parser, final SyntaxContext context, final List<VarRef> targets) throws QtfParseException {
+    private static Statement parseAssignment(final QtfParser parser, final List<VarRef> targets) throws QtfParseException {
         parser.startTree();
         final Token assignment = parser.next(TokenClass.ASSIGNMENT);
         final Operator op = assignment.getAssignmentOperator(false);
 
-        final Expression value = ExpressionParser.INSTANCE.accept(parser, context);
+        final Expression value = ExpressionParser.INSTANCE.accept(parser);
         if (op == Operator.LERP || op == Operator.LERP_ROT) {
             return parser.newLerpAssignment(targets, value, op == Operator.LERP_ROT);
         } else {
@@ -26,14 +25,14 @@ class AssignmentParser {
         }
     }
 
-    static Statement parseAssignment(final QtfParser parser, final SyntaxContext context, final Expression expression) throws QtfParseException {
+    static Statement parseAssignment(final QtfParser parser, final Expression expression) throws QtfParseException {
         final VarRef firstVar = parser.newVariableRef(expression, false);
 
         if (parser.isNext(TokenClass.COMMA)) {
             final List<VarRef> list = VariableParser.parseList(parser, firstVar);
-            return parseAssignment(parser, context, list);
+            return parseAssignment(parser, list);
         } else {
-            return parseAssignment(parser, context, List.of(firstVar));
+            return parseAssignment(parser, List.of(firstVar));
         }
     }
 }

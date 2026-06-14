@@ -3,7 +3,6 @@ package com.fiskmods.quantify.parser.element;
 import com.fiskmods.quantify.exception.QtfParseException;
 import com.fiskmods.quantify.lexer.token.TokenClass;
 import com.fiskmods.quantify.parser.QtfParser;
-import com.fiskmods.quantify.parser.SyntaxContext;
 import com.fiskmods.quantify.parser.tree.*;
 
 import java.util.Optional;
@@ -21,7 +20,7 @@ class IdentifierParser {
         return result;
     }
 
-    static Statement parseStatementIdentifier(final QtfParser parser, final SyntaxContext context) throws QtfParseException {
+    static Statement parseStatementIdentifier(final QtfParser parser) throws QtfParseException {
         final Expression expression = parseIdentifier(parser);
         final Optional<FunctionRef> func = FunctionRefParser.tryParseFunction(parser, expression);
         if (func.isPresent()) {
@@ -29,7 +28,7 @@ class IdentifierParser {
             return ExpressionStatement.of(func.get());
         }
 
-        final Statement statement = AssignmentParser.parseAssignment(parser, context, expression);
+        final Statement statement = AssignmentParser.parseAssignment(parser, expression);
         parser.expectLineBreak();
         return statement;
     }

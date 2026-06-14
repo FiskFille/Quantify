@@ -18,11 +18,9 @@ public class QtfParser extends TreeGenerator implements TokenStream {
     private final Deque<Token.Range> treeStack = new ArrayDeque<>();
 
     private final TokenStream tokens;
-    private final SyntaxContext context;
 
-    public QtfParser(final TokenStream tokens, final SyntaxContext context) {
+    public QtfParser(final TokenStream tokens) {
         this.tokens = tokens;
-        this.context = context;
     }
 
     public List<Statement> parse(final boolean isEnclosed) throws QtfParseException {
@@ -38,7 +36,7 @@ public class QtfParser extends TreeGenerator implements TokenStream {
             }
 
             final SyntaxParser<? extends Statement> syntax = SyntaxSelector.selectSyntax(peek());
-            final Statement statement = syntax.accept(this, context);
+            final Statement statement = syntax.accept(this);
             statements.add(statement);
         }
         return statements;
@@ -119,7 +117,7 @@ public class QtfParser extends TreeGenerator implements TokenStream {
             throws QtfParseException {
         final List<T> list = new ArrayList<>();
         while (true) {
-            list.add(syntaxParser.accept(this, context));
+            list.add(syntaxParser.accept(this));
 
             if (isNext(delimiter)) {
                 clearPeekedToken();
