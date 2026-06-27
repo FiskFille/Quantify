@@ -20,11 +20,7 @@ final class DynamicClassLoader extends ClassLoader {
         if (fallbackClassLoader == null) {
             return super.loadClass(name);
         }
-        try {
-            return super.loadClass(name);
-        } catch (final ClassNotFoundException e) {
-            return fallbackClassLoader.loadClass(name);
-        }
+        return fallbackClassLoader.loadClass(name);
     }
 
     Class<?> defineClass(final String name, final byte[] b) throws ClassFormatError {
